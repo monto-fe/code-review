@@ -1,0 +1,146 @@
+openapi: 3.0.0
+info:
+  title: "ACL-Pro"
+  version: "1.0"
+
+paths:
+  /v1/custom-rule:
+    get:
+      tags:
+        - CustomRule
+      summary: "获取自定义规则列表"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+        - $ref: "#/components/parameters/Current"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        200:
+          description: "成功获取自定义规则列表"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomRuleListResponse"
+        500:
+          description: "服务器错误"
+
+    post:
+      tags:
+        - CustomRule
+      summary: "创建自定义规则"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomRule"
+      responses:
+        201:
+          description: "成功创建自定义规则"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomRule"
+        500:
+          description: "服务器错误"
+    
+    put:
+      tags:
+        - CustomRule
+      summary: "更新自定义规则"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomRule"
+      responses:
+        200:
+          description: "成功更新自定义规则"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomRule"
+        500:
+          description: "服务器错误"
+
+    delete:
+      tags:
+        - CustomRule
+      summary: "删除自定义规则"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      responses:
+        200:
+          description: "成功删除自定义规则"
+        500:
+          description: "服务器错误"
+
+components:
+  parameters:
+    JWTToken:
+      name: jwt_token
+      in: header
+      schema:
+        type: string
+      required: true
+      description: "JWT 授权令牌"
+
+    Current:
+      name: current
+      in: query
+      schema:
+        type: number
+        default: 1
+      description: "页码"
+
+    PageSize:
+      name: pageSize
+      in: query
+      schema:
+        type: number
+        default: 10
+      description: "每页条数"
+
+  schemas:
+    CustomRule:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        project_name:
+          type: string
+          example: "Project A"
+        project_id:
+          type: integer
+          example: 101
+        rule:
+          type: string
+          example: "def custom_rule(): # Custom rule logic here"
+        status:
+          type: integer
+          enum:
+            - 1
+            - -1
+          example: 1
+
+    CustomRuleListResponse:
+      type: object
+      properties:
+        ret_code:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: "成功"
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/CustomRule"
+        total:
+          type: integer
+          example: 5

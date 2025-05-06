@@ -1,0 +1,221 @@
+openapi: 3.0.0
+info:
+  title: "ACL-Pro"
+  version: "1.0"
+
+paths:
+  /v1/gitlab-info:
+    get:
+      tags:
+      - GitLab Info
+      summary: "获取 GitLab 配置信息"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GitLabInfoListResponse"
+        500:
+          description: "Server Error"
+    post:
+      tags:
+      - GitLab Info
+      summary: "创建 GitLab 配置信息"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GitLabInfoRequestBody"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GitLabInfoResponse"
+        500:
+          description: "Server Error"
+    put:
+      tags:
+      - GitLab Info
+      summary: "更新 GitLab 配置信息"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GitLabInfoPutRequestBody"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GitLabInfoResponse"
+        500:
+          description: "Server Error"
+    delete:
+      tags:
+      - GitLab Info
+      summary: "删除 GitLab 配置信息"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+              properties:
+                id:
+                  description: "待删除的 GitLab 配置 ID"
+                  type: number
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GitLabInfoResponse"
+        500:
+          description: "Server Error"
+
+components:
+  parameters:
+    JWTToken:
+      name: jwt_token
+      in: header
+      schema:
+        type: string
+      required: true
+      description: "JWT 授权令牌"
+
+  schemas:
+    GitLabInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        api:
+          type: string
+          example: "GitLab API v4"
+        token:
+          type: string
+          example: "gitlab-access-token"
+        status:
+          type: integer
+          enum: [1, -1]
+          example: 1
+        gitlab_version:
+          type: string
+          example: "14.0.0"
+        expired:
+          type: integer
+          example: 1728401258
+          description: "过期时间"
+        gitlab_url:
+          type: string
+          example: "https://gitlab.example.com"
+        create_time:
+          type: integer
+          example: 1728401258
+          description: "过期时间"
+        update_time:
+          type: integer
+          example: 1728401258
+          description: "更新时间"
+
+    GitLabInfoRequestBody:
+      type: object
+      required:
+        - api
+        - token
+        - status
+        - gitlab_version
+        - expired
+        - gitlab_url
+      properties:
+        api:
+          type: string
+          description: "GitLab API 名称"
+        token:
+          type: string
+          description: "GitLab 访问令牌"
+        status:
+          type: integer
+          enum: [1, -1]
+          description: "状态: 1启用 -1禁用"
+        gitlab_version:
+          type: string
+          description: "GitLab 版本"
+        expired:
+          type: integer
+          example: 1728401258
+          description: "过期时间"
+        gitlab_url:
+          type: string
+          description: "GitLab 服务器地址"
+
+    GitLabInfoPutRequestBody:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+          description: "GitLab 配置信息 ID"
+        api:
+          type: string
+        token:
+          type: string
+        status:
+          type: string
+          enum: [1, -1]
+        gitlab_version:
+          type: string
+        expired:
+          type: integer
+          example: 1728401258
+          description: "过期时间"
+        gitlab_url:
+          type: string
+
+    GitLabInfoResponse:
+      type: object
+      properties:
+        ret_code:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: "成功"
+        data:
+          $ref: "#/components/schemas/GitLabInfo"
+
+    GitLabInfoListResponse:
+      type: object
+      properties:
+        ret_code:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: "成功"
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/GitLabInfo"
+        total:
+          type: integer
+          example: 5

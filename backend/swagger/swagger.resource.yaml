@@ -1,0 +1,198 @@
+openapi: 3.0.0
+info:
+  title: "ACL-Pro"
+  version: "1.0"
+
+components:
+  parameters:
+    JWTToken:
+      name: jwt_token
+      in: header
+      schema:
+        type: string
+      required: true
+    NamespaceQuery:
+      name: namespace
+      in: query
+      schema:
+        type: string
+      required: true
+      description: 项目组名称
+    ResourceQuery:
+      name: resource
+      in: query
+      schema:
+        type: string
+      description: 资源
+    NameQuery:
+      name: name
+      in: query
+      schema:
+        type: string
+      description: 名称
+    CategoryQuery:
+      name: category
+      in: query
+      schema:
+        type: string
+      description: 类别
+      default: "API,Menu,Action,Other"
+    PaginationQuery:
+      name: current
+      in: query
+      schema:
+        type: number
+      default: 1
+      description: 页码
+    PageSizeQuery:
+      name: pageSize
+      in: query
+      schema:
+        type: number
+      default: 10
+      description: 每页条数
+  schemas:
+    ResourceRequestBody:
+      type: object
+      required:
+        - namespace
+        - resource
+        - category
+        - name
+      properties:
+        namespace:
+          type: string
+          description: 所属项目组
+        resource:
+          type: string
+          description: 资源标识
+        category:
+          type: string
+          description: 资源分类
+          enum: ["API", "Menu", "Action", "Other"]
+        name:
+          type: string
+          description: 资源名
+        describe:
+          type: string
+          description: 描述
+    UpdateResourceRequestBody:
+      type: object
+      required:
+        - id
+        - namespace
+      properties:
+        id:
+          type: number
+          description: 资源ID
+        namespace:
+          type: string
+          description: 所属项目组
+        category:
+          type: string
+          enum: ["API", "Menu", "Action", "Other"]
+          description: 资源分类
+        resource:
+          type: string
+          description: 资源标识
+        name:
+          type: string
+          description: 资源名
+        describe:
+          type: string
+          description: 描述
+
+paths:
+  /v1/resource:
+    get:
+      tags: 
+        - Resource
+      summary: "资源"
+      parameters:
+        - $ref: '#/components/parameters/JWTToken'
+        - $ref: '#/components/parameters/NamespaceQuery'
+        - $ref: '#/components/parameters/ResourceQuery'
+        - $ref: '#/components/parameters/NameQuery'
+        - $ref: '#/components/parameters/CategoryQuery'
+        - $ref: '#/components/parameters/PaginationQuery'
+        - $ref: '#/components/parameters/PageSizeQuery'
+      responses:
+        '200':
+          description: "OK"
+        '500':
+          description: "Server Error"
+
+    post:
+      tags: 
+        - Resource
+      summary: "添加资源"
+      parameters:
+        - $ref: '#/components/parameters/JWTToken'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResourceRequestBody'
+      responses:
+        '200':
+          description: "OK"
+        '500':
+          description: "Server Error"
+
+    put:
+      tags: 
+        - Resource
+      summary: "更新资源"
+      parameters:
+        - $ref: '#/components/parameters/JWTToken'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateResourceRequestBody'
+      responses:
+        '200':
+          description: "更新资源成功"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ret_code:
+                    type: number
+                    example: 0
+                  message:
+                    type: string
+                    example: ""
+                  data:
+                    type: array
+                    example: []
+        '500':
+          description: "Server Error"
+
+    delete:
+      tags: 
+        - Resource
+      summary: "删除资源"
+      parameters:
+        - $ref: '#/components/parameters/JWTToken'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - namespace
+              properties:
+                id:
+                  type: number
+                  description: 资源ID
+                namespace:
+                  type: string
+                  description: 所属项目组
+      responses:
+        '200':
+          description: "OK"
+        '500':
+          description: "Server Error"

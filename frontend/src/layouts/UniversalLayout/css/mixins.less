@@ -1,0 +1,23 @@
+header {
+  &.fixed {
+    position: fixed;
+    top: 0;
+    width: calc(100% - @leftSideBarWidth);
+    height: @headerHeight;
+    z-index: 999;
+
+    &.collapsed {
+      width: calc(100% - @leftSideBarCollapseWidth);
+    }
+
+    &.horizontal {
+      width: 100%;
+    }
+  }
+}
+
+main {
+  &.headerfixed {
+    margin-top: @headerHeight;
+  }
+}

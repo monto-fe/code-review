@@ -1,0 +1,58 @@
+{
+  "name": "stark-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "cross-env NODE_ENV=development nodemon src/index.ts",
+    "build": "swc src -d dist --source-maps --copy-files",
+    "deploy:pre": "pm2-runtime start ecosystem.config.js --env development",
+    "deploy:prod": "pm2-runtime start ecosystem.config.js --env production"
+  },
+  "author": "",
+  "license": "ISC",
+  "lint-staged": {
+    "src/**/*.ts": [
+      "eslint --fix",
+      "yarn prettier"
+    ]
+  },
+  "devDependencies": {
+    "@swc/cli": "^0.1.57",
+    "@swc/core": "^1.2.210",
+    "@types/cookie-parser": "^1.4.2",
+    "@types/cors": "^2.8.12",
+    "@types/express": "^4.17.13",
+    "@types/md5": "^2.3.2",
+    "@types/node": "^18.0.1",
+    "@types/sequelize": "^4.28.14",
+    "@types/swagger-jsdoc": "^6.0.1",
+    "@types/swagger-ui-express": "^4.1.3",
+    "@typescript-eslint/eslint-plugin": "^5.43.0",
+    "@typescript-eslint/parser": "^5.43.0",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.27.0",
+    "husky": "^8.0.2",
+    "nodemon": "^2.0.18",
+    "prettier": "^2.7.1",
+    "ts-node": "^10.8.2",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "axios": "^1.8.1",
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
+    "dayjs": "^1.11.9",
+    "dotenv": "^16.0.1",
+    "express": "^4.18.1",
+    "jsonwebtoken": "^9.0.0",
+    "md5": "^2.3.0",
+    "mysql2": "^2.3.3",
+    "mariadb": "^3.4.0",
+    "openai": "^4.86.1",
+    "sequelize": "^6.26.0",
+    "swagger-jsdoc": "^6.0.0",
+    "swagger-ui-express": "^5.0.1"
+  }
+}

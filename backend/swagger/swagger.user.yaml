@@ -1,0 +1,362 @@
+openapi: 3.0.0
+info:
+  title: "ACL-Pro"
+  version: "1.0"
+
+paths:
+  /v1/user:
+    get:
+      tags: 
+      - User
+      summary: "获取用户列表"
+      parameters:
+        - in: header
+          name: jwt_token
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: namespace
+          description: 项目名称
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: id
+          description: 用户ID
+          required: false
+          schema:
+            type: number
+        - in: query
+          name: user
+          description: 用户名
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: roleName
+          description: 支持角色名称查询用户
+          required: false
+          schema:
+            type: string
+          default: ""
+        - in: query
+          name: userName
+          description: 支持用户名称查询用户
+          required: false
+          schema:
+            type: string
+          default: ""
+        - in: query
+          name: current
+          description: 页码
+          default: 1
+          schema:
+            type: number
+        - in: query
+          name: pageSize
+          description: 每页条数
+          default: 10
+          schema:
+            type: number
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: number
+                          description: 用户ID
+                        userName:
+                          type: string
+                          description: 用户名
+                        roleName:
+                          type: string
+                          description: 角色名称
+                        email:
+                          type: string
+                          description: 用户的电子邮件
+                  current:
+                    type: number
+                    description: 当前页码
+                  pageSize:
+                    type: number
+                    description: 每页条数
+                  total:
+                    type: number
+                    description: 总记录数
+        500:
+          description: "Server Error"
+    post:
+      tags: 
+      - User
+      summary: "新增用户"
+      parameters:
+        - name: jwt_token
+          in: header
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - namespace
+                - user
+                - name
+              properties:
+                name:
+                  type: string
+                namespace:
+                  type: string
+                user:
+                  type: string
+                job:
+                  type: string
+                password:
+                  type: string
+                  default: '12345678'
+                email:
+                  type: string
+                phone_number:
+                  type: string
+                role_ids:
+                  type: array
+                  items:
+                    type: number
+      responses:
+        200:
+          description: "OK"
+        500:
+          description: "Server Error"
+    put:
+      tags: 
+      - User
+      summary: "更新用户信息"
+      parameters:
+        - in: header
+          name: jwt_token
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - namespace
+              properties:
+                id:
+                  type: number
+                namespace:
+                  type: string
+                  comments: "必选，不可更改"
+                password:
+                  type: string
+                name:
+                  type: string
+                phone_number:
+                  type: string
+                job:
+                  type: string
+                email: 
+                  type: string
+                role_ids:
+                  type: array
+                  items:
+                    type: number
+      responses:
+        200:
+          description: "OK"
+        500:
+          description: "Server Error"
+    delete:
+      tags: 
+      - User
+      summary: "删除用户"
+      parameters:
+        - in: header
+          name: jwt_token
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - namespace
+                - user
+                - name
+              properties:
+                namespace:
+                  type: string
+                id:
+                  type: number
+                user:
+                  type: string
+      responses:
+        200:
+          description: "OK"
+        500:
+          description: "Server Error"
+  /v1/userInfo:
+    get:
+      tags: 
+      - User
+      summary: "获取用户信息"
+      parameters:
+        - in: header
+          name: jwt_token
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ret_code: 
+                    type: number 
+                    description: "返回码"
+                    default: 0
+                  message:
+                    type: string
+                    description: "返回信息"
+                  data:
+                    type: object
+                    properties:
+                      id: 
+                        type: number
+                        description: "用户ID"
+                      namespace:
+                        type: string
+                        description: "项目组名称"
+                      user:
+                        type: string
+                        description: "用户名"
+                      name:
+                        type: string
+                        description: "用户姓名"
+                      job:
+                        type: string
+                        description: "用户职位"
+                      phone_number:
+                        type: string
+                        description: "用户电话号码"
+                      email:
+                        type: string
+                        description: "用户邮箱"
+                      roleList:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Role'
+                          
+        500:
+          description: "Server Error"
+  /v1/login:
+    post:
+      tags: 
+      - User
+      summary: "登陆"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user
+                - namespace
+                - password
+              properties:
+                namespace:
+                  type: string
+                  comments: "项目组名称"
+                user:
+                  type: string
+                  comments: "用户名"
+                password:
+                  type: string
+                  comments: "密码"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      jwt_token:  
+                        type: string
+                        description: "jwt token"
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw
+                      user:
+                        type: string
+                        description: "用户名"
+                  ret_code: 
+                    type: number
+                    description: "返回码"
+                    example: 0
+                  message:
+                    type: string
+                    description: "返回信息"
+                    example: "ok"    
+                    
+        500:
+          description: "Server Error"
+schemes:
+ - https
+ - http
+
+components:
+  schemas:
+    Role:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        namespace:
+          type: string
+          example: "acl"
+        role:
+          type: string
+          example: "admin"
+        name:
+          type: string
+          example: "超级管理员"
+        describe:
+          type: string
+          example: "最高权限"
+        operator:
+          type: string
+          example: "pengfei.lv"
+        create_time:
+          type: integer
+          example: 1719460635
+        update_time:
+          type: integer
+          example: 1719460635

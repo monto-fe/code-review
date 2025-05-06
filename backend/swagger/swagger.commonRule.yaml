@@ -1,0 +1,158 @@
+openapi: 3.0.0
+info:
+  title: "ACL-Pro"
+  version: "1.0"
+
+paths:
+  /v1/common-rule:
+    get:
+      tags:
+        - CommonRule
+      summary: "获取规则列表"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+        - $ref: "#/components/parameters/Current"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        200:
+          description: "成功获取规则列表"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommonRuleListResponse"
+        500:
+          description: "服务器错误"
+
+    post:
+      tags:
+        - CommonRule
+      summary: "创建新规则"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommonRule"
+      responses:
+        201:
+          description: "成功创建规则"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommonRule"
+        500:
+          description: "服务器错误"
+
+    put:
+      tags:
+        - CommonRule
+      summary: "更新规则"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommonRule"
+      responses:
+        200:
+          description: "成功更新规则"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommonRule"
+        500:
+          description: "服务器错误"
+
+    delete:
+      tags:
+        - CommonRule
+      summary: "删除规则"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+        - name: id
+          in: path
+          required: true
+          description: "规则ID"
+          schema:
+            type: integer
+            example: 1
+      responses:
+        200:
+          description: "成功删除规则"
+        500:
+          description: "服务器错误"
+
+components:
+  parameters:
+    JWTToken:
+      name: jwt_token
+      in: header
+      schema:
+        type: string
+      required: true
+      description: "JWT 授权令牌"
+
+    Current:
+      name: current
+      in: query
+      schema:
+        type: number
+        default: 1
+      description: "页码"
+
+    PageSize:
+      name: pageSize
+      in: query
+      schema:
+        type: number
+        default: 10
+      description: "每页条数"
+
+  schemas:
+    CommonRule:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Rule 1"
+        language:
+          type: string
+          enum:
+            - "Python"
+            - "Java"
+            - "JavaScript"
+            - "Go"
+            - "Ruby"
+            - "C++"
+            - "other"
+          example: "Python"
+        rule:
+          type: string
+          example: "def check_code_quality(): # Rule logic here"
+        description:
+          type: string
+          example: "This is a rule to check code quality."
+
+    CommonRuleListResponse:
+      type: object
+      properties:
+        ret_code:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: "成功"
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommonRule"
+        total:
+          type: integer
+          example: 5

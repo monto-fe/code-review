@@ -1,0 +1,296 @@
+openapi: 3.0.0
+info:
+  title: "ACL-Pro"
+  version: "1.0"
+
+paths:
+  /v1/project:
+    get:
+      tags: 
+      - Project
+      summary: "项目组"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+        - $ref: "#/components/parameters/Namespace"
+        - $ref: "#/components/parameters/Current"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoleListResponse"
+        500:
+          description: "Server Error"
+    post:
+      tags:
+      - Project
+      summary: "创建项目"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectRequestBody"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PermissionResponse"
+        500:
+          description: "Server Error"
+        default:
+          description: "Server Error"
+    put:
+      tags: 
+      - Project
+      summary: "更新项目组"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PutProjectRequestBody"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ret_code:
+                    type: integer
+                    example: 0
+                    description: "返回码"
+                  message:
+                    type: string
+                    example: "成功"
+                    description: "返回消息"
+                  data:
+                    type: array
+                    items:
+                      type: integer
+                      example: 1
+                    description: "返回的项目组ID数组"
+        500:
+          description: "Server Error"
+    delete:
+      tags: 
+      - Project
+      summary: "删除项目组"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+              properties:
+                id:
+                  description: 待删除项目组ID
+                  type: number
+                namespace:
+                  description: 待删除项目组
+                  type: string
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ret_code:
+                    type: integer
+                    example: 0
+                    description: "返回码"
+                  message:
+                    type: string
+                    example: "成功"
+                    description: "返回消息"
+        500:
+          description: "Server Error"
+
+schemes:
+ - https
+ - http
+
+components:
+  parameters:
+    JWTToken:
+      name: jwt_token
+      in: header
+      schema:
+        type: string
+      required: true
+      description: "JWT 授权令牌"
+
+    Namespace:
+      name: namespace
+      in: query
+      schema:
+        type: string
+      required: false
+      description: "项目组名称"
+
+    Current:
+      name: current
+      in: query
+      schema:
+        type: number
+        default: 1
+      description: "页码"
+
+    PageSize:
+      name: pageSize
+      in: query
+      schema:
+        type: number
+        default: 10
+      description: "每页条数"
+      
+  schemas:
+    Namespace:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 30
+        namespace:
+          type: string
+          example: "acl10"
+        parent:
+          type: string
+          example: ""
+        name:
+          type: string
+          example: "heng.du10"
+        describe:
+          type: string
+          example: "1"
+        operator:
+          type: string
+          example: "pengfei.lv"
+        create_time:
+          type: integer
+          example: 1721534729
+        update_time:
+          type: integer
+          example: 1721534729
+
+    RoleListResponse:
+      type: object
+      properties:
+        ret_code:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: "成功"
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Namespace"
+        total:
+          type: integer
+          example: 13
+
+    ProjectRequestBody:
+      type: object
+      required:
+        - namespace
+        - name
+      properties:
+        namespace:
+          type: string
+          description: "所属项目组"
+        parent:
+          type: string
+          description: "父级项目组"
+          default: ''
+        name:
+          type: string
+          description: "项目组名称"
+        describe:
+          type: string
+          description: "项目组描述"
+
+    PermissionResponse:
+      type: object
+      properties:
+        ret_code:
+          type: integer
+          example: 0
+          description: "返回码"
+        message:
+          type: string
+          example: "成功"
+          description: "返回消息"
+        data:
+          type: object
+          properties:
+            parent:
+              type: string
+              example: ""
+              description: "父级权限"
+            id:
+              type: integer
+              example: 31
+              description: "权限ID"
+            namespace:
+              type: string
+              example: "ops"
+              description: "命名空间"
+            name:
+              type: string
+              example: "运营权限"
+              description: "权限名称"
+            operator:
+              type: string
+              example: "pengfei.lv"
+              description: "操作人"
+            describe:
+              type: string
+              example: "测试"
+              description: "权限描述"
+            create_time:
+              type: integer
+              example: 1728401258
+              description: "创建时间"
+            update_time:
+              type: integer
+              example: 1728401258
+              description: "更新时间"
+
+    PutProjectRequestBody:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: number
+          description: "项目组ID"
+          example: 1
+        namespace:
+          type: string
+          description: "所属项目组"
+          example: "acl"
+        name:
+          type: string
+          description: "项目组名称"
+          example: "项目组名称示例"
+        describe:
+          type: string
+          description: "项目组描述"
+          example: "项目组描述示例"

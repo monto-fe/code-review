@@ -1,0 +1,245 @@
+openapi: 3.0.0
+info:
+  title: "ACL-Pro"
+  version: "1.0"
+
+components:
+  parameters:
+    JWTToken:
+      in: header
+      name: jwt_token
+      schema:
+        type: string
+      required: true
+  schemas:
+    CommonResponse:
+      type: object
+      properties:
+        ret_code:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: "成功"
+        data:
+          type: object
+    PermissionRequestBody:
+      type: object
+      properties:
+        namespace:
+          description: 项目组标识
+          type: string
+        role_id:
+          description: 角色 ID
+          type: number
+        user:
+          description: 用户标识
+          type: string
+        resource_id:
+          description: 资源 ID
+          type: number
+        resource_ids:
+          description: 资源 ID 集合
+          type: array
+          items:
+            type: number
+        describe:
+          description: 描述
+          type: string
+        role_ids:
+          type: array
+          items:
+            type: number
+        current:
+          description: 页码
+          type: number
+          default: 1
+        pageSize:
+          description: 每页条数
+          type: number
+          default: 10
+    ErrorResponse:
+      type: object
+      properties:
+        ret_code:
+          type: integer
+          example: 500
+        message:
+          type: string
+          example: "Server Error"
+    SuccessResponse:
+      allOf:
+        - $ref: "#/components/schemas/CommonResponse"
+        - type: object
+          properties:
+            data:
+              oneOf:
+                - type: array
+                  items:
+                    type: object
+                - type: object
+                - type: number
+                - type: string
+
+paths:
+  /v1/permission/assertRolePermission:
+    post:
+      tags:
+      - Permission
+      summary: "给角色分配资源权限"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PermissionRequestBody"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        500:
+          description: "Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/permission/assertUserRole:
+    post:
+      tags:
+      - Permission
+      summary: "给用户分配角色"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PermissionRequestBody"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        500:
+          description: "Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/permission/cancelRolePermission:
+    post:
+      tags:
+      - Permission
+      summary: "取消角色已分配的资源权限"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PermissionRequestBody"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        500:
+          description: "Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/permission/cancelUserRole:
+    post:
+      tags:
+      - Permission
+      summary: "取消分配给用户的角色"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PermissionRequestBody"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        500:
+          description: "Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/permission/getRolePermissions:
+    post:
+      tags:
+      - Permission
+      summary: "获取角色分配资源权限"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PermissionRequestBody"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        500:
+          description: "Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/permission/getSelfPermissions:
+    post:
+      tags:
+      - Permission
+      summary: "获取用户自身的所有权限"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PermissionRequestBody"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        500:
+          description: "Server Error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"

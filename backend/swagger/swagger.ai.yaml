@@ -1,0 +1,312 @@
+openapi: 3.0.0
+info:
+  title: "ACL-Pro"
+  version: "1.0"
+
+paths:
+  /v1/ai-manager:
+    get:
+      tags:
+      - AI Manager
+      summary: "获取 AI 管理列表"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+        - $ref: "#/components/parameters/Current"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiManagerListResponse"
+        500:
+          description: "Server Error"
+    post:
+      tags:
+      - AI Manager
+      summary: "创建 AI 管理"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiManagerRequestBody"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiManagerResponse"
+        500:
+          description: "Server Error"
+    put:
+      tags:
+      - AI Manager
+      summary: "更新 AI 管理"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiManagerPutRequestBody"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiManagerResponse"
+        500:
+          description: "Server Error"
+    delete:
+      tags:
+      - AI Manager
+      summary: "删除 AI 管理"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+              properties:
+                id:
+                  description: "待删除的 AI 管理 ID"
+                  type: number
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiManagerResponse"
+        500:
+          description: "Server Error"
+  /v1/ai/message:
+    get:
+      tags:
+      - AI Manager
+      summary: "获取AI生成的评论列表"
+      parameters:
+        - $ref: "#/components/parameters/JWTToken"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiCommentsListResponse"
+        500:
+          description: "Server Error"
+components:
+  parameters:
+    JWTToken:
+      name: jwt_token
+      in: header
+      schema:
+        type: string
+      required: true
+      description: "JWT 授权令牌"
+
+    Current:
+      name: current
+      in: query
+      schema:
+        type: number
+        default: 1
+      description: "页码"
+
+    PageSize:
+      name: pageSize
+      in: query
+      schema:
+        type: number
+        default: 10
+      description: "每页条数"
+    # 保留其他原有的参数，如 Namespace, Current, PageSize 等
+  
+  schemas:
+    # 更新的模型：AI 管理
+    AiManager:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        model:
+          type: string
+          example: "GPT-3"
+        api:
+          type: string
+          example: "openai"
+        api_key:
+          type: string
+          example: "sk-xxxxxx"
+        status:
+          type: integer
+          enum: [1, -1]
+          example: 1
+        expired:
+          type: integer
+          example: 1728401258
+          description: "过期时间"
+        create_time:
+          type: integer
+          example: 1728401258
+          description: "创建时间"
+        update_time:
+          type: integer
+          example: 1728401258
+          description: "更新时间"
+        created_by:
+          type: string
+          example: "admin"
+        updated_by:
+          type: string
+          example: "admin"
+    
+    AiManagerRequestBody:
+      type: object
+      required:
+        - name
+        - model
+        - api
+        - api_key
+        - status
+        - expired
+      properties:
+        name:
+          type: string
+          description: "AI 管理名称"
+        model:
+          type: string
+          description: "AI 模型名称"
+        api:
+          type: string
+          description: "API 名称"
+        api_key:
+          type: string
+          description: "API 密钥"
+        status:
+          type: integer
+          enum: [1, -1]
+          example: 1
+        expired:
+          type: integer
+          example: 1728401258
+          description: "过期时间"
+    
+    AiManagerPutRequestBody:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+          description: "AI 管理 ID"
+        model:
+          type: string
+        api:
+          type: string
+        api_key:
+          type: string
+        status:
+          type: integer
+          enum: [1, -1]
+        expired:
+          type: integer
+          example: 1728401258
+          description: "过期时间"
+    
+    AiManagerResponse:
+      type: object
+      properties:
+        ret_code:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: "成功"
+        data:
+          $ref: "#/components/schemas/AiManager"
+
+    AiManagerListResponse:
+      type: object
+      properties:
+        ret_code:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: "成功"
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AiManager"
+        total:
+          type: integer
+          example: 5
+          
+    AiMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        project_id:
+          type: string
+          example: "1"
+        merge_id:
+          type: string
+          example: "123"
+        ai_model:
+          type: string
+          example: "DeepSeek"
+        rule:
+          type: integer
+          enum:
+            - 1
+            - 2
+          example: 1
+        rule_id:
+          type: integer
+          example: 10
+        result:
+          type: string
+          example: "Rule passed successfully"
+        passed:
+          type: boolean
+          example: false
+        checked_by:
+          type: string
+          example: "auto-checker"
+        create_time:
+          type: integer
+          example: 1728401258
+          description: "创建时间"
+
+    AiCommentsListResponse:
+      type: object
+      properties:
+        ret_code:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: "成功"
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AiMessage"
+        total:
+          type: integer
+          example: 10

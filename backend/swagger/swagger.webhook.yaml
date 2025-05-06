@@ -1,0 +1,61 @@
+openapi: 3.0.0
+info:
+  title: "ACL-Pro"
+  version: "1.0"
+
+paths:
+  /v1/webhook/merge:
+    post:
+      tags:
+      - Webhook
+      summary: "监听Gitlab仓库合并事件"
+      parameters:
+        - $ref: "#/components/parameters/XGitlabToken"
+      responses:
+        200:
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      projectId:
+                        type: string
+                        description: "项目ID"
+                        example: 1
+                      mergeRequestId:  
+                        type: string
+                        description: "merge Id"
+                        example: 1
+                      comment:
+                        type: string
+                        description: "ai 评论"
+                  ret_code: 
+                    type: number
+                    description: "返回码"
+                    example: 0
+                  message:
+                    type: string
+                    description: "返回信息"
+                    example: "ok"   
+        500:
+          description: "Server Error"
+        default:
+          description: "Server Error"
+
+schemes:
+ - https
+ - http
+
+components:
+  parameters:
+    XGitlabToken:
+      name: X-Gitlab-Token
+      in: header
+      schema:
+        type: string
+      required: true
+      description: "webhook令牌"
