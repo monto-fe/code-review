@@ -11,6 +11,7 @@ import AIMessageModel from '../models/aiMessage.model';
 import CommonRuleModel from '../models/commonRule.model';
 import CustomRuleModel from '../models/customRule.model';
 import GitlabInfoModel from '../models/gitlab.model';
+import AIConfigModel from '../models/AIConfig.model';
 
 console.log('数据库地址：' + DB_HOST + ': ' + DB_PORT)
 console.log('NODE_ENV', NODE_ENV)
@@ -52,6 +53,7 @@ const DB:any = {
   AIMessage: AIMessageModel(sequelize),
   CommonRule: CommonRuleModel(sequelize),
   CustomRule: CustomRuleModel(sequelize),
+  AIConfig: AIConfigModel(sequelize),
   sequelize, // connection instance (RAW queries)
   Sequelize, // library
 };

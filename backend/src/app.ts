@@ -9,6 +9,7 @@ import { authenticateJwt } from './middlewares/auth';
 import errorHandler from './middlewares/errorHandler';
 import { PORT, DOMAIN } from './config';
 import { Routes } from './interfaces/routes.interface';
+import aiConfigManager from './services/aiConfigManager';
  
 const corsOptions = {
 	origin: "*",
@@ -74,11 +75,16 @@ class App {
 			res.send(specs);
 		});
 	}
-	public listen() {
-		this.app.listen(this.port, () => {
-			console.log(`TypeScript with Express
-              http://localhost:${this.port}/`);
-		});
+	public async listen() {
+		try {
+			await aiConfigManager.loadConfig();
+			this.app.listen(this.port, () => {
+				console.log(`TypeScript with Express
+				  http://localhost:${this.port}/`);
+			});
+		} catch (error) {
+			console.error('Error loading AIConfig:', error);
+		}
 	}
 }
 

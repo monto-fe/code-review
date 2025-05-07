@@ -1,5 +1,4 @@
 // import { Op } from 'sequelize';
-import OpenAI from "openai";
 import DB from '../databases';
 import { getUnixTimestamp } from '../utils';
 import { GitlabInfoCreate } from '../interfaces/gitlab.interface';
@@ -10,10 +9,6 @@ class gitlabService {
     public GitlabInfo = DB.GitlabInfo;
     
     public now:number = getUnixTimestamp();
-    public openai = new OpenAI({
-        baseURL: "",
-        apiKey: "",
-    });
 
     // 添加gitlab的信息
     public async addGitlabToken(Data: GitlabInfoCreate): Promise<any> {
@@ -30,11 +25,25 @@ class gitlabService {
         }
         const res: any = await this.GitlabInfo.create({ ...data });
         return res;
-
     }
     // 更新gitlab的信息
     public async updateGitlabInfo(Data: any): Promise<any> {
-        
+        const { id, api, token, status, gitlab_version, expired, gitlab_url } = Data;
+        const data = {
+            api,
+            token,
+            status,
+            gitlab_version,
+            expired,
+            gitlab_url,
+            update_time: this.now
+        }
+        const response: any = await this.GitlabInfo.update({ ...data }, {
+            where: {
+                id
+            }
+        });
+        return response;
     }
     // 获取gitlab的信息
     public async getGitlabInfo() {
