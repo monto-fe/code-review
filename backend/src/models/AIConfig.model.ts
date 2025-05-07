@@ -45,14 +45,16 @@ export default function (sequelize: Sequelize): typeof AIConfigModel {
         defaultValue: false,
       },
       create_time: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-        allowNull: false
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        comment: '创建时间',
+        defaultValue: 0,
       },
       update_time: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-        allowNull: true
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        comment: '创建时间',
+        defaultValue: 0,
       }
     },
     {

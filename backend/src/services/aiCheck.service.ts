@@ -205,6 +205,7 @@ class AICheckService {
             rule: 1,
             rule_id: 1,
             result: comments,
+            create_time: this.now
           })
         }catch(err){
           console.log("err:", err);

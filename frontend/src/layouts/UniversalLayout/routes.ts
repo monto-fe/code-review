@@ -115,6 +115,22 @@ const universalLayoutRotes: IRouter[] = [
         },
         component: lazy(() => import('@/pages/aicodecheck/CustomRuleList')),
       },
+      {
+        path: 'AIModel',
+        meta: {
+          icon: OrderedListOutlined,
+          title: 'universal-layout.menu.aicodecheck.AIModel',
+        },
+        component: lazy(() => import('@/pages/aicodecheck/AIModelManager')),
+      },
+      {
+        path: 'GitlabToken',
+        meta: {
+          icon: OrderedListOutlined,
+          title: 'universal-layout.menu.aicodecheck.GitlabToken',
+        },
+        component: lazy(() => import('@/pages/aicodecheck/GitlabToken')),
+      },
     ],
   },
   {

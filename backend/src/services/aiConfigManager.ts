@@ -33,7 +33,6 @@ class AIConfigManager {
         where: { is_active: true },
         order: [['update_time', 'DESC']]
         });
-        console.log("configRow", configRow)
         if (!configRow) {
             console.warn('No active AI config found, using fallback or skipping initialization.');
             return;

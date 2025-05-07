@@ -5,7 +5,7 @@ import { GitlabInfoCreate } from '../interfaces/gitlab.interface';
 
 const ENABLE = 1
 
-class gitlabService {
+class GitlabService {
     public GitlabInfo = DB.GitlabInfo;
     
     public now:number = getUnixTimestamp();
@@ -56,4 +56,4 @@ class gitlabService {
     }
 }
 
-export default gitlabService;
+export default GitlabService;
