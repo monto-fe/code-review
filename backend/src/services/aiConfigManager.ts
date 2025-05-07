@@ -34,12 +34,15 @@ class AIConfigManager {
         order: [['update_time', 'DESC']]
         });
         console.log("configRow", configRow)
-        if (!configRow) throw new Error('No active AI config found');
+        if (!configRow) {
+            console.warn('No active AI config found, using fallback or skipping initialization.');
+            return;
+        }
         this.config = {
-        name: configRow.name,
-        apiKey: configRow.api_key,
-        apiUrl: configRow.api_url,
-        model: configRow.model
+            name: configRow.name,
+            apiKey: configRow.api_key,
+            apiUrl: configRow.api_url,
+            model: configRow.model
         };
     }
 
