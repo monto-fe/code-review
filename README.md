@@ -6,7 +6,7 @@
 
 1. 克隆项目
 ```
-git clone git@github.com:richLpf/code-review.git
+git clone https://github.com/richLpf/code-review.git
 
 ```
    
@@ -49,6 +49,16 @@ webhook地址：http://192.168.1.1:9000/v1/webhook/merge
 提交merge，将会触发AI检查
 
 ![webhook](https://picture.questionlearn.cn/blog/picture/1746626303888.png)
+
+
+## 常见问题
+
+- 镜像拉不下来
+  - 需要外网或修改镜像地址
+- 启动后访问失败
+  - 检查防火墙是否开启9000和9003端口
+- 启动后连接数据库失败
+  - 可以重启一下docker compose restart,可能数据库启动慢，导致服务没有正常连接
 
 ## 如果使用已有的数据库，需要修改对应的配置信息
 
