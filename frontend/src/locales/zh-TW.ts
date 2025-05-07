@@ -10,6 +10,7 @@ export default {
   'app.global.edit': '編輯',
   'app.global.view': '查看',
   'app.global.delete.tip': '確認刪除此條信息嗎',
+  'app.global.doing': '開發中',
 
   'app.form.required': '必填',
   'app.form.search': '搜索',
@@ -95,6 +96,8 @@ export default {
   'universal-layout.menu.aicodecheck.commonrule': '通用規則',
   'universal-layout.menu.aicodecheck.customrule': '自定義規則',
   'universal-layout.menu.aicodecheck.commentlist': '評論列表',
+  'universal-layout.menu.aicodecheck.AIModel': 'AI模型管理',
+  'universal-layout.menu.aicodecheck.GitlabToken': 'Gitlab Token',
 
   'page.resource.name': '資源名稱',
   'page.resource.key': '資源標識',
@@ -132,6 +135,12 @@ export default {
   'page.aicodecheck.comment.status': '審核狀態',
   'page.aicodecheck.comment.status.pass': '通過',
   'page.aicodecheck.comment.status.fail': '不通過',
+
+  'page.aicodecheck.aimodel.name': '模型名称',
+  'page.aicodecheck.aimodel.model': '模型',
+  'page.aicodecheck.aimodel.api_url': 'API地址',
+  'page.aicodecheck.aimodel.api_key': 'API密钥',
+  'page.aicodecheck.aimodel.add': '添加模型',
 
   'setting.pagestyle': '頁面風格',
   'setting.navigationmode': '導航風格',

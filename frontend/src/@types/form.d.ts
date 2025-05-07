@@ -14,6 +14,7 @@ interface IFormItem {
   span?: number;
   validators?: any;
   type: FormType;
+  tooltip?: React.ReactNode | string;
 }
 
 interface IForm {

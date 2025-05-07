@@ -2,14 +2,16 @@ import { memo, useContext, useRef, useState } from 'react';
 import { Button, FormInstance, message, Popconfirm, PopconfirmProps, Space } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import { observer } from 'mobx-react-lite';
+import dayjs from 'dayjs';
 
 import CommonTable from '@/pages/component/Table';
 import { ITable } from '@/pages/component/Table/data';
 import { BasicContext } from '@/store/context';
 import { useI18n } from '@/store/i18n';
+import { renderDateFromTimestamp, timeFormatType } from '@/utils/timeformat';
 
 import { createData, queryList, removeData, updateData as updateDataService } from './service';
-import { TableQueryParam, TableListItem } from './data.d';
+import { TableQueryParam, TableListItem } from './data';
 import CreateForm from './components/CreateForm';
 
 function App() {
@@ -62,9 +64,11 @@ function App() {
   };
 
   const handleUpdate = (record: TableListItem) => {
-    setUpdateData({
-      ...record,
-    });
+    const { id, token, api, expired } = record;
+    const editInfo = {
+      id, token, api, expired: expired?dayjs(expired*1000):dayjs()
+    }
+    setUpdateData(editInfo);
     setCreateFormVisible(true);
   };
 
@@ -75,19 +79,15 @@ function App() {
       key: 'id',
     },
     {
-      title: t('page.aicodecheck.rule.project_id'),
-      dataIndex: 'project_id',
-      key: 'project_id',
+      title: t('page.aicodecheck.gitlab.api'),
+      dataIndex: 'api',
+      key: 'api',
     },
     {
-      title: t('page.aicodecheck.rule.project_name'),
-      dataIndex: 'project_name',
-      key: 'project_name',
-    },
-    {
-      title: t('page.aicodecheck.rule'),
-      dataIndex: 'rule',
-      key: 'rule',
+      title: t('page.aicodecheck.gitlab.expired'),
+      dataIndex: 'expired',
+      key: 'expired',
+      render: (text: number) => renderDateFromTimestamp(text, timeFormatType.time)
     },
     {
       title: t('app.table.action'),
@@ -125,8 +125,8 @@ function App() {
         columns={columns}
         queryList={queryList}
         title={
-          <Button type='primary' disabled onClick={handleCreate}>
-            {t('page.aicodecheck.rule.add')}
+          <Button type='primary' onClick={handleCreate}>
+            {t('page.aicodecheck.gitlab.add')}
           </Button>
         }
         useTools

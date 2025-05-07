@@ -8,9 +8,16 @@ import { ITable } from '@/pages/component/Table/data';
 import { BasicContext } from '@/store/context';
 import { useI18n } from '@/store/i18n';
 
-import { createData, queryList, removeData, updateData as updateDataService } from './service';
-import { TableQueryParam, TableListItem } from './data.d';
+import { createData, queryList, updateData as updateDataService } from './service';
+import { TableQueryParam, TableListItem } from './data';
 import CreateForm from './components/CreateForm';
+
+const initialValues = {
+    name: 'DeepSeek',
+    api_url: 'https://deepseek.modelverse.cn/v1/chat/completions',
+    api_key: '',
+    model: 'deepseek-ai/DeepSeek-V3-0324'
+}
 
 function App() {
   const tableRef = useRef<ITable<TableListItem>>();
@@ -24,11 +31,12 @@ function App() {
   const [deleteOpen, setDeleteOpen] = useState<number | undefined>();
   const handleDelete = (id: number) => setDeleteOpen(id);
   const deleteConfirm = (id: number) => {
-    removeData(id).then(() => {
-      message.success(t('app.global.tip.delete.success'));
-      reload();
-      setDeleteOpen(void 0);
-    });
+    message.success(t('app.global.doing'));
+    // removeData(id).then(() => {
+    //   message.success(t('app.global.tip.delete.success'));
+    //   reload();
+    //   setDeleteOpen(void 0);
+    // });
   };
 
   const deleteCancel: PopconfirmProps['onCancel'] = () => {
@@ -75,19 +83,19 @@ function App() {
       key: 'id',
     },
     {
-      title: t('page.aicodecheck.rule.project_id'),
-      dataIndex: 'project_id',
-      key: 'project_id',
+      title: t('page.aicodecheck.aimodel.name'),
+      dataIndex: 'name',
+      key: 'name',
     },
     {
-      title: t('page.aicodecheck.rule.project_name'),
-      dataIndex: 'project_name',
-      key: 'project_name',
+      title: t('page.aicodecheck.aimodel.api_url'),
+      dataIndex: 'api_url',
+      key: 'api_url',
     },
     {
-      title: t('page.aicodecheck.rule'),
-      dataIndex: 'rule',
-      key: 'rule',
+      title: t('page.aicodecheck.aimodel.model'),
+      dataIndex: 'model',
+      key: 'model'
     },
     {
       title: t('app.table.action'),
@@ -125,15 +133,15 @@ function App() {
         columns={columns}
         queryList={queryList}
         title={
-          <Button type='primary' disabled onClick={handleCreate}>
-            {t('page.aicodecheck.rule.add')}
+          <Button type='primary' onClick={handleCreate}>
+            {t('page.aicodecheck.aimodel.add')}
           </Button>
         }
         useTools
       />
 
       <CreateForm
-        initialValues={updateData}
+        initialValues={initialValues}
         visible={createFormVisible}
         setVisible={setCreateFormVisible}
         onSubmit={createSubmit}

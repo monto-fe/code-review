@@ -10,6 +10,7 @@ export default {
   'app.global.edit': 'edit',
   'app.global.view': 'view',
   'app.global.delete.tip': 'are you sure to delete',
+  'app.global.doing': 'developing',
 
   'app.form.required': 'required',
   'app.form.search': 'search',
@@ -95,6 +96,8 @@ export default {
   'universal-layout.menu.aicodecheck.commonrule': 'common rule',
   'universal-layout.menu.aicodecheck.customrule': 'custom rule',
   'universal-layout.menu.aicodecheck.commentlist': 'comment list',
+  'universal-layout.menu.aicodecheck.AIModel': 'AI Model',
+  'universal-layout.menu.aicodecheck.GitlabToken': 'Gitlab Token',
 
   'page.resource.name': 'resource name',
   'page.resource.key': 'resource',
@@ -132,6 +135,14 @@ export default {
   'page.aicodecheck.comment.status': 'status',
   'page.aicodecheck.comment.status.pass': 'passed',
   'page.aicodecheck.comment.status.fail': 'Failed',
+
+
+  'page.aicodecheck.aimodel.name': 'model name',
+  'page.aicodecheck.aimodel.model': 'model',
+  'page.aicodecheck.aimodel.api_url': 'api url',
+  'page.aicodecheck.aimodel.api_key': 'api key',
+  'page.aicodecheck.aimodel.add': 'add model',
+  
 
   'setting.pagestyle': 'page styles',
   'setting.navigationmode': 'nav mode',

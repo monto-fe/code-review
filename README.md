@@ -2,28 +2,61 @@
 
 ## 快速启动服务
 
-> 服务默认使用docker启动mariadbAPI服务
+> 服务默认使用docker启动mariadb API服务
 
-[修改代码，通过前端录入] 1. 修改backendend/.env.production，配置deepseek
+1. 克隆项目
+```
+git clone git@github.com:richLpf/code-review.git
 
-1. cd code-review && docker compose up -d 即可启动服务
+```
+   
+2. 修改控制台请求的api地址
+```
+cd code-review/frontend
 
-2. 打开web端，在web上中录入gitlab的token
+vi .env.production
 
-登陆账号和密码：admin/12345678
+# api接口域名，假如部署的机器ip为192.168.1.1
+VITE_APP_APIHOST = http://192.168.1.1:9000/v1
+```
 
-登陆前端，录入token和ai token
+3. 启动服务
 
-3. 在gitlab的webhook中配置对应的url
+```
+cd code-review && docker compose up -d 
 
-如果gitlab支持Group的webhook，可以为Group配置webhook
+```
+
+4. 打开web端
+
+访问地址：http://192.168.1.1:9003
+账号密码：admin/12345678
+
+![控制台](https://picture.questionlearn.cn/blog/picture/1746626120106.png)
+
+添加AI模型key（特定Key）和Gitlab token(Token需要所有权限)
+
+5. 在gitlab的项目的setting => webhook中配置对应的url
+
+> 如果gitlab支持Group的webhook，可以为Group配置webhook
+
+webhook地址：http://192.168.1.1:9000/v1/webhook/merge
+
+![webhook配置](https://picture.questionlearn.cn/blog/picture/1746626508783.png)
+
+目前只支持`Merge request events`方式触发
+
+提交merge，将会触发AI检查
+
+![webhook](https://picture.questionlearn.cn/blog/picture/1746626303888.png)
 
 ## 如果使用已有的数据库，需要修改对应的配置信息
 
 ### 使用mysql
 
+需要对backend项目进行简单修改，待同步
+
 ## 重要改动
-- 减少操作难度，将ai的配置录入数据库，读取和切换
 - 支持不同的gitlab url
 - 目前支持UCloud的模型，需要支持多种大模型，可以进行切换【公有的大模型和私有的大模型】
 

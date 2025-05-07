@@ -10,6 +10,7 @@ export default {
   'app.global.edit': '编辑',
   'app.global.view': '查看',
   'app.global.delete.tip': '确认删除此条信息吗',
+  'app.global.doing': '开发中',
 
   'app.form.required': '必填',
   'app.form.search': '搜索',
@@ -95,6 +96,8 @@ export default {
   'universal-layout.menu.aicodecheck.commonrule': '通用规则',
   'universal-layout.menu.aicodecheck.customrule': '自定义规则',
   'universal-layout.menu.aicodecheck.commentlist': '评论列表',
+  'universal-layout.menu.aicodecheck.AIModel': 'AI模型管理',
+  'universal-layout.menu.aicodecheck.GitlabToken': 'Gitlab Token',
 
   'page.resource.name': '资源名称',
   'page.resource.key': '资源标识',
@@ -132,6 +135,17 @@ export default {
   'page.aicodecheck.comment.status': '审核状态',
   'page.aicodecheck.comment.status.pass': '通过',
   'page.aicodecheck.comment.status.fail': '不通过',
+
+  'page.aicodecheck.aimodel.name': '模型名称',
+  'page.aicodecheck.aimodel.model': '模型',
+  'page.aicodecheck.aimodel.api_url': 'API地址',
+  'page.aicodecheck.aimodel.api_key': 'API密钥',
+  'page.aicodecheck.aimodel.add': '添加模型',
+
+  'page.aicodecheck.gitlab.add': '添加TOKEN',
+  'page.aicodecheck.gitlab.api': 'API',
+  'page.aicodecheck.gitlab.token': 'Token',
+  'page.aicodecheck.gitlab.expired': '有效期',
 
   'setting.pagestyle': '页面风格',
   'setting.navigationmode': '导航风格',

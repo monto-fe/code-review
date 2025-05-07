@@ -2,7 +2,7 @@ import request from '@/utils/request';
 import { TableQueryParam, TableListItem } from './data.d';
 
 const config = {
-  baseURL: import.meta.env.VITE_APP_AI_APIHOST || '',
+  baseURL: import.meta.env.VITE_APP_APIHOST || '',
 }
 
 const namespace = 'acl';

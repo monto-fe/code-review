@@ -72,11 +72,11 @@ export default function (sequelize: Sequelize): typeof AImessageModel {
         comment: '检查人',
       },
       create_time: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
+        type: DataTypes.INTEGER,
         allowNull: false,
         comment: '创建时间',
-      },
+        defaultValue: 0,
+      }
     },
     {
       sequelize,

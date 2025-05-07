@@ -199,6 +199,20 @@ CREATE TABLE IF NOT EXISTS `t_ai_message` (
   KEY `rule_id` (`rule_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='AI 检测消息表';
 
+-- t_ai_config
+CREATE TABLE IF NOT EXISTS `t_ai_config` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
+  `name` VARCHAR(64) NOT NULL COMMENT '配置名称',
+  `api_url` VARCHAR(255) NOT NULL COMMENT 'API 请求地址',
+  `api_key` VARCHAR(255) NOT NULL COMMENT 'API 密钥',
+  `model` VARCHAR(100) NOT NULL COMMENT 'AI 模型名称',
+  `is_active` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否启用该配置（0: 否，1: 是）',
+  `create_time` int unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
+  `update_time` int unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_model` (`model`),
+  KEY `idx_is_active` (`is_active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='AI 配置表';
 
 -- 为优化查询性能添加索引
 CREATE INDEX idx_project_id ON t_ai_message(project_id);

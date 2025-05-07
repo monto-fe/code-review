@@ -4,7 +4,7 @@ import DB from '../databases';
 import AIRuleService from './aiRule.service';
 import { getUnixTimestamp } from '../utils';
 import { generatePrompt } from '../utils/prompt';
-import { AI_MODEL, AI_API, AI_KEY } from '../config';
+import AIConfigManager from './aiConfigManager';
 
 class AICheckService {
     public AIManager = DB.AIManager;
@@ -14,14 +14,17 @@ class AICheckService {
 
     public now:number = getUnixTimestamp();
     public cache: any = {};
-    // public openai: any = new OpenAI({
-    //     apiKey: AI_KEY,
-    //     baseURL: AI_API
-    // });
+    
     constructor () {
-        if(!AI_MODEL || !AI_API || !AI_KEY){
-            console.error("AI 信息未配置")
+      try {
+        const config = AIConfigManager.getConfig();
+        if (!config.apiKey || !config.apiUrl || !config.model) {
+          console.error('[AICheckService] AI配置不完整');
         }
+
+      } catch (err){
+        console.error("[AICheckService] AI配置错误", err)
+      }
     }
 
     // 获取项目语言
@@ -140,6 +143,7 @@ class AICheckService {
       gitlabAPI: string,
       gitlabToken: string
     }) {
+        const AIInfo = AIConfigManager.getConfig();
         const { project_id, iid, title, description, web_url, author, url } = mergeRequest;
         console.log("mergeRequest:", mergeRequest)
         console.log("url", url)
@@ -168,14 +172,15 @@ class AICheckService {
           diff
         })
         console.log("currentRule:", currentRule, formattedInfo)
-        if(!AI_API){
-          console.error("AI_API未配置")
-          return "AI_API未配置"
+        if(!AIInfo.apiUrl){
+          console.error("apiUrl未配置")
+          return "apiUrl未配置"
         }
-      
-        const completion = await axios.post(AI_API, {
+        // 支持UCloud的私有模型
+        // 支持DS的公共模型
+        const completion = await axios.post(AIInfo.apiUrl, {
             stream: false,
-            model: AI_MODEL,
+            model: AIInfo.model,
             messages: [
               { role: "system", content: "你是一个代码审核机器人" },
               { role: "user", content: formattedInfo }
@@ -184,7 +189,7 @@ class AICheckService {
           {
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${AI_KEY}`
+              Authorization: `Bearer ${AIInfo.apiKey}`
             }
             // responseType: "stream"
           }
@@ -196,10 +201,11 @@ class AICheckService {
             project_id: project_id,
             merge_url: web_url,
             merge_id: iid,
-            ai_model: AI_MODEL,
+            ai_model: AIInfo.model,
             rule: 1,
             rule_id: 1,
             result: comments,
+            create_time: this.now
           })
         }catch(err){
           console.log("err:", err);
