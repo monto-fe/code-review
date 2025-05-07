@@ -16,9 +16,8 @@ class GitlabController {
 
   public getGitlabList = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const result: NamespaceResult = await this.GitlabService.getGitlabInfo();
-      const { rows, count } = result;
-      return ResponseHandler.success(res, { data: rows||[], total: count });
+      const result = await this.GitlabService.getGitlabInfo();
+      return ResponseHandler.success(res, { data: result });
 	} catch (error: any) {
       return ResponseHandler.error(res, error);
 	}
