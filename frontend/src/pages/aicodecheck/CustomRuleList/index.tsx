@@ -125,7 +125,7 @@ function App() {
         columns={columns}
         queryList={queryList}
         title={
-          <Button type='primary' onClick={handleCreate}>
+          <Button type='primary' disabled onClick={handleCreate}>
             {t('page.aicodecheck.rule.add')}
           </Button>
         }

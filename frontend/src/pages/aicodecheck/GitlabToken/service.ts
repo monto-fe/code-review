@@ -23,7 +23,8 @@ export async function createData(params: TableListItem): Promise<any> {
     method: 'post',
     data: {
       ...params,
-      namespace,
+      gitlab_version: '1',
+      gitlab_url: 'xxx'
     },
   });
 }
@@ -35,7 +36,8 @@ export async function updateData(params: TableListItem): Promise<any> {
     method: 'put',
     data: {
       ...params,
-      namespace,
+      gitlab_version: '1',
+      gitlab_url: 'xxx'
     },
   });
 }

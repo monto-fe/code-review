@@ -6,9 +6,7 @@ export interface TableQueryParam {
 
 export interface TableListItem {
   id: number;
-  project_name: string;
-  project_id: string;
-  rule: string;
-  create_time?: number;
-  update_time?: number;
+  api: string;
+  token: string;
+  expired: any;
 }

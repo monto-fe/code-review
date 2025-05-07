@@ -24,13 +24,14 @@ const CreateForm: React.FC<ICreateFormProps> = (props) => {
       name: 'api',
       required: true,
       type: FormType.Input,
-      disabled: true
+      tooltip: '假如部署ip为192.168.1.1，则填写http://192.168.1.1:8080/api'
     },
     {
       label: t('page.aicodecheck.gitlab.token'),
       name: 'token',
       required: true,
       type: FormType.Input,
+      tooltip: '获取地址：https://xxx.com/-/profile/personal_access_tokens, 需要所有权限'
     },
     {
       label: t('page.aicodecheck.gitlab.expired'),
@@ -41,7 +42,7 @@ const CreateForm: React.FC<ICreateFormProps> = (props) => {
   ];
 
   const onFinish = async (values: TableListItem) => {
-    onSubmit({ ...values }, form);
+    onSubmit({ ...values, expired: values.expired?.unix() }, form);
   };
 
   return (
@@ -54,8 +55,8 @@ const CreateForm: React.FC<ICreateFormProps> = (props) => {
         title={t('page.aicodecheck.gitlab.add')}
         ItemOptions={addFormItems}
         formLayout={{
-          labelCol: { span: 7 },
-          wrapperCol: { span: 15 },
+          labelCol: { span: 4 },
+          wrapperCol: { span: 18 },
         }}
         onFinish={onFinish}
         onCancel={onCancel}

@@ -13,7 +13,9 @@ import { TableQueryParam, TableListItem } from './data';
 import CreateForm from './components/CreateForm';
 
 const initialValues = {
-
+  api: '',
+  token: '',
+  expired: 0
 }
 
 function App() {
