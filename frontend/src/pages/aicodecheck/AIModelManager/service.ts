@@ -22,7 +22,8 @@ export async function createData(params: TableListItem): Promise<any> {
     url: '/ai-manager',
     method: 'post',
     data: {
-      ...params
+      ...params,
+      is_active: 1
     },
   });
 }
@@ -33,7 +34,8 @@ export async function updateData(params: TableListItem): Promise<any> {
     url: `/ai-manager`,
     method: 'put',
     data: {
-      ...params
+      ...params,
+      is_active: 1,
     },
   });
 }

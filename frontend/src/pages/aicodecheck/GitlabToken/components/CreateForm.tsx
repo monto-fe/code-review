@@ -23,12 +23,14 @@ const CreateForm: React.FC<ICreateFormProps> = (props) => {
       label: t('page.aicodecheck.gitlab.api'),
       name: 'api',
       type: FormType.Input,
-      tooltip: '假如部署ip为192.168.1.1，则填写http://192.168.1.1:8080/api'
+      required: true,
+      tooltip: '假如gitlab部署域名为https://demo.com，则填写https://demo.com/api'
     },
     {
       label: t('page.aicodecheck.gitlab.token'),
       name: 'token',
       type: FormType.Input,
+      required: true,
       tooltip: '获取地址：https://xxx.com/-/profile/personal_access_tokens, 需要所有权限'
     },
     {
