@@ -98,10 +98,40 @@ AI 检查示例：
 
 ---
 
+## 🔧 使用MySQL数据库启动
+
+使用mysql数据库启动。
+
+```
+cd code-review
+git checkout feature/mysql
+cd docker-compose -f docker-compose.mysql.yml up -d
+```
+
 ## 🔧 使用已有数据库（MySQL）
 
-如果不使用默认的 MariaDB，可以手动修改 `backend` 配置（细节将同步补充）。
+如果自己有mysql数据库，则可以使用以下命令启动。
 
+```
+cd code-review
+git checkout feature/mysql
+cd docker-compose -f docker-compose.without.mysql.yml up -d
+```
+
+修改配置文件`backend/ecosystem.config.js`
+
+```
+env_production: {
+    PORT: 9000,
+    NODE_ENV: 'production',
+    DOMAIN: 'http://localhost:9000',
+    DB_HOST: "your_mysql_host",
+    DB_PORT: 3306,
+    DB_USER: "root",
+    DB_PASSWORD: "mysql123456",
+    DB_DATABASE: "ucode_review"
+}
+```
 ---
 
 ## 📌 重要变更记录
