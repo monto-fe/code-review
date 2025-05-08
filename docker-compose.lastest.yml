@@ -1,3 +1,4 @@
+# 忽略，打算提供构建好的镜像
 services:
   frontend:
     build:

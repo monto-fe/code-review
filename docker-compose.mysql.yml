@@ -1,17 +1,47 @@
 services:
+  frontend:
+    build:
+      context: ./frontend  # 指向前端项目代码所在目录
+      dockerfile: Dockerfile.prod    # Dockerfile 的名称
+    ports:
+      - "9003:80"
+    restart: always
+    depends_on:
+      - backend
+    networks:
+      - backend-network
+
+  backend:
+    build:
+      context: ./backend  # 指向后端项目代码所在目录
+      dockerfile: Dockerfile.prod   # Dockerfile 的名称
+    ports:
+      - "9000:9000"
+    restart: always
+    depends_on:
+      - mysql 
+    networks:
+      - backend-network
+
   mysql:
-      image: mariadb:10.5
-      environment:
-        MYSQL_ROOT_PASSWORD: mysql123456
-        MYSQL_DATABASE: ucode_review
-        MYSQL_USER: mysql
-        MYSQL_PASSWORD: mysql123456
-        # 默认用户使用兼容插件
-        MYSQL_AUTHENTICATION_PLUGIN: mysql_native_password
-      volumes:
-        - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf:ro
-        - ./mysql/data:/var/lib/mysql
-        - ./mysql/init:/docker-entrypoint-initdb.d
-      ports:
-        - "3306:3306"
-      restart: always
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: mysql123456
+      MYSQL_DATABASE: ucode_review
+      MYSQL_USER: mysql
+      MYSQL_PASSWORD: mysql123456
+      # 默认用户使用兼容插件
+      MYSQL_AUTHENTICATION_PLUGIN: mysql_native_password
+    volumes:
+      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
+    restart: always
+    networks:
+      - backend-network
+
+networks:
+  backend-network:
+    driver: bridge
