@@ -9,10 +9,13 @@ WORKDIR /app
 RUN npm i -g pm2
 RUN yarn install && yarn build
 
-EXPOSE 3000
-
+# Production build stage
 FROM common-build-stage as production-build-stage
 
 ENV NODE_ENV production
 
-CMD ["yarn", "deploy:prod", "&&", "sleep", "infinity"]
+EXPOSE 3000
+
+# CMD ["yarn", "deploy:prod", "&&", "sleep", "infinity"]
+# 启动前延迟 5 秒，防止出现mysql没有初始化完成导致的失败
+CMD ["sh", "-c", "sleep 5 && yarn deploy:prod"]

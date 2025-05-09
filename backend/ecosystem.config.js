@@ -30,7 +30,7 @@
         PORT: 9000,
         NODE_ENV: 'production',
         DOMAIN: 'http://localhost:9000',
-        DB_HOST: "mariadb",
+        DB_HOST: "mysql",
         DB_PORT: 3306,
         DB_USER: "root",
         DB_PASSWORD: "mysql123456",

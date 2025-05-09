@@ -16,7 +16,7 @@ import AIConfigModel from '../models/AIConfig.model';
 console.log('数据库地址：' + DB_HOST + ': ' + DB_PORT)
 console.log('NODE_ENV', NODE_ENV)
 const sequelize = new Sequelize.Sequelize(DB_DATABASE, DB_USER, DB_PASSWORD, {
-  dialect: 'mariadb',
+  dialect: 'mysql',
   host: DB_HOST,
   port: DB_PORT,
   timezone: '+08:00',
