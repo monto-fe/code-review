@@ -1,3 +1,19 @@
+const dotenv = require('dotenv');
+const fs = require('fs');
+
+// 获取当前指定的环境
+const currentEnv = process.env.NODE_ENV || 'development';
+const envFile = `.env.${currentEnv}`;
+
+// 检查文件存在才加载
+if (fs.existsSync(envFile)) {
+  dotenv.config({ path: envFile });
+  console.log(`✅ Loaded env from ${envFile}`);
+} else {
+  console.warn(`⚠️ No ${envFile} file found`);
+}
+
+console.log("process.env.PORT", process.env.PORT)
 /**
  * @description pm2 configuration file.
  * @example
@@ -27,8 +43,8 @@
         DB_DATABASE: "ucode_review"
       },
       env_production: {
-        PORT: 9000,
-        NODE_ENV: 'production',
+        PORT: process.env.PORT,
+        NODE_ENV: process.env.NODE_ENV,
         DOMAIN: 'http://localhost:9000',
         DB_HOST: "mysql",
         DB_PORT: 3306,

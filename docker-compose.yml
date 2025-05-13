@@ -3,6 +3,10 @@ services:
     build:
       context: ./frontend  # 指向前端项目代码所在目录
       dockerfile: Dockerfile.prod    # Dockerfile 的名称
+    env_file:
+      - .env.production
+    environment:
+      VITE_APP_APIHOST: http://192.168.0.1:9000/v1
     ports:
       - "9003:80"
     restart: always
@@ -15,6 +19,10 @@ services:
     build:
       context: ./backend  # 指向后端项目代码所在目录
       dockerfile: Dockerfile.prod   # Dockerfile 的名称
+    env_file:
+      - .env.production
+    environment:
+      VITE_APP_APIHOST: http://192.168.0.1:9000/v1
     ports:
       - "9000:9000"
     restart: always
