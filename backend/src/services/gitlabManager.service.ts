@@ -67,8 +67,8 @@ export class GitlabManagerService {
         headers: { 'PRIVATE-TOKEN': token },
         params: { per_page: perPage, page },
       });
-
-      if (res.data && res.data.length) {
+      console.log("res", res.data)
+      if (Array.isArray(res.data) && res.data.length) {
         const ids = res.data.map((proj: any) => String(proj.id));
         projectIds.push(...ids);
         if (res.data.length < perPage) break;
