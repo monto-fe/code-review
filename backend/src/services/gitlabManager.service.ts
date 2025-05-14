@@ -64,7 +64,7 @@ export class GitlabManagerService {
     const perPage = 100;
 
     while (true) {
-      const res = await axios.get(`${gitlabAPI}/api/v4/projects`, {
+      const res = await axios.get(`${gitlabAPI}/v4/projects`, {
         headers: { 'PRIVATE-TOKEN': token },
         params: { per_page: perPage, page },
       });
