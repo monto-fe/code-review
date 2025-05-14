@@ -23,7 +23,8 @@ export class GitlabManagerService {
 
   // 加载所有 Token 对应的项目 ID
   private async loadAllTokens() {
-    const tokens = await this.GitlabInfo.getGitlabInfo();
+    const tokens = await this.GitlabInfo.getGitlabData();
+    console.log("tokens", tokens)
 
     for (const t of tokens) {
       await this.loadToken({

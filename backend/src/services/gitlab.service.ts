@@ -51,7 +51,16 @@ class GitlabService {
         });
         return response;
     }
-    // 获取gitlab的信息
+    // 对内读取gitlab信息
+    public async getGitlabData() {
+        const response = await this.GitlabInfo.findAll({
+            where: {
+                status: ENABLE
+            }
+        })
+        return response
+    }
+    // 对外获取gitlab的信息
     public async getGitlabInfo() {
         const response = await this.GitlabInfo.findAll({
             where: {
