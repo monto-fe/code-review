@@ -2,6 +2,8 @@ export interface GitlabInfo {
     id: number;
     api: string;
     token: string;
+    webhook_url: string;
+    webhook_name: string;
     status: 1 | -1;
     gitlab_version: string;
     expired: number;
@@ -13,6 +15,8 @@ export interface GitlabInfo {
 export interface GitlabInfoCreate {
     api: string;
     token: string;
+    webhook_url: string;
+    webhook_name: string;
     status: 1 | -1;
     gitlab_version: string;
     expired: number | undefined;

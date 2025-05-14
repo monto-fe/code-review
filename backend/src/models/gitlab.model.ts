@@ -7,6 +7,8 @@ export class GitlabModel extends Model<GitlabInfo, GitlabInfoCreationAttributes>
     public id!: number;
     public api!: string;
     public token!: string;
+    public webhook_url!: string;
+    public webhook_name!: string;
     public status!: 1 | -1;
     public gitlab_version!: string;
     public expired!: number;
@@ -37,6 +39,16 @@ export default function (sequelize: Sequelize): typeof GitlabModel {
           type: DataTypes.INTEGER,
           allowNull: false,
           comment: '状态（启用/禁用）',
+      },
+      webhook_url: {
+          type: DataTypes.STRING(255),
+          allowNull: false,
+          comment: 'webhook url',
+      },
+      webhook_name: {
+          type: DataTypes.STRING(255),
+          allowNull: false,
+          comment: 'webhook name',
       },
       gitlab_version: {
           type: DataTypes.STRING(20),

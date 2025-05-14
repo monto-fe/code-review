@@ -135,6 +135,8 @@ CREATE TABLE IF NOT EXISTS `t_gitlab_info` (
   `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
   `api` varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'GitLab API 名称',
   `token` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'GitLab 访问令牌',
+  `webhook_url` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'webhook url',
+  `webhook_name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'webhook name',
   `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态(-1: 禁用；1: 可用)',
   `gitlab_version` varchar(20) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'GitLab 版本',
   `expired` int unsigned NOT NULL DEFAULT '0' COMMENT '过期时间',
