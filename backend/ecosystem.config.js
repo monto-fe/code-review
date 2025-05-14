@@ -43,8 +43,8 @@ console.log("process.env.PORT", process.env.PORT)
         DB_DATABASE: "ucode_review"
       },
       env_production: {
-        PORT: process.env.PORT,
-        NODE_ENV: process.env.NODE_ENV,
+        PORT: 9000,
+        NODE_ENV: 'production',
         DOMAIN: 'http://localhost:9000',
         DB_HOST: "mysql",
         DB_PORT: 3306,
