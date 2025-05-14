@@ -1,27 +1,32 @@
 import { NextFunction, Request, Response } from 'express';
 import axios from 'axios';
 import AICheckService from '../services/aiCheck.service';
-import GitlabService from '../services/gitlab.service';
+// import GitlabService from '../services/gitlab.service';
+import { GitlabManagerService } from '../services/gitlabManager.service';
 import ResponseHandler from '../utils/responseHandler';
 import { pageCompute } from '../utils/pageCompute';
 import { PushWeChatInfo } from '../utils/util';
+import { GitlabCache } from '../interfaces/gitlab.interface';
 
 class WebhookController {
   public AICheckService = new AICheckService();
-  public GitlabService = new GitlabService();
-
-  // private requestQueue: Promise<void>[] = [];
+  // public GitlabService = new GitlabService();
 
   public AICheck = async (req: Request, res: Response, next: NextFunction) => {
-    const { project: { id, path_with_namespace }, object_attributes: { iid } } = req.body;
+    const { project: { id, path_with_namespace }, object_attributes: { iid, url: merge_url } } = req.body;
     ResponseHandler.success(res, { projectId: id, mergeRequestId: iid }, 'Webhook处理成功，等待AI检测');
     // 获取gitlab信息
-    const gitlabInfo = await this.GitlabService.getGitlabInfo();
-    if(!gitlabInfo.length){
-        ResponseHandler.error(res, {}, '请配置gitlab Token');
-        return
+    // 读取gitlab缓存信息
+    const gitlabService = await GitlabManagerService.init();
+    const gitlabInfoCache: GitlabCache = gitlabService.getCache();
+    const gitlabInfoResult = this.findTokenByProjectId(gitlabInfoCache, id)
+    if(!gitlabInfoResult){
+      ResponseHandler.error(res, {}, '请配置gitlab Token');
+      return
     }
-    const { api: gitlabAPI, token: gitlabToken, webhook_name, webhook_url } = gitlabInfo[0].dataValues;
+    const { token: gitlabToken, config: { gitlabAPI, webhook_url } } = gitlabInfoResult;
+
+    // const { api: gitlabAPI, token: gitlabToken, webhook_url } = gitlabInfo[0].dataValues;
     
     // 获取merge信息
     const mergeRequest = await this.AICheckService.getMergeRequestInfo({
@@ -64,7 +69,7 @@ class WebhookController {
     if(webhook_url){
         const webhookContent = PushWeChatInfo({
             path_with_namespace,
-            mergeRequest,
+            merge_url,
             result
         });
         await this.sendMarkdownToWechatBot(webhook_url, webhookContent);
@@ -103,6 +108,22 @@ class WebhookController {
       throw error;
     }
   };
+
+  public findTokenByProjectId(gitlabInfoCache: GitlabCache, projectId: string): {
+    token: string;
+    config: {
+      projectids: string[];
+      gitlabAPI: string;
+      webhook_url: string;
+    };
+  } | null {
+    for (const [token, config] of Object.entries(gitlabInfoCache)) {
+      if (config.projectids.includes(projectId)) {
+        return { token, config };
+      }
+    }
+    return null;
+  }
 }
 
 export default WebhookController;

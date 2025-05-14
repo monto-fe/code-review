@@ -9,7 +9,10 @@ import { authenticateJwt } from './middlewares/auth';
 import errorHandler from './middlewares/errorHandler';
 import { PORT, DOMAIN } from './config';
 import { Routes } from './interfaces/routes.interface';
+// 初始化ai信息
 import aiConfigManager from './services/aiConfigManager';
+// 初始化gitlab信息
+import { GitlabManagerService } from './services/gitlabManager.service';
  
 const corsOptions = {
 	origin: "*",
@@ -78,6 +81,9 @@ class App {
 	public async listen() {
 		try {
 			await aiConfigManager.loadConfig();
+			const gitlabManager = await GitlabManagerService.init();
+			const cache = gitlabManager.getCache();
+			console.log('GitLab Token 缓存初始化完成:', cache);
 			this.app.listen(this.port, () => {
 				console.log(`TypeScript with Express
 				  http://localhost:${this.port}/`);

@@ -24,3 +24,11 @@ export interface GitlabInfoCreate {
     create_time?: number;
     update_time?: number;
 }
+
+export interface GitlabCacheItem {
+  projectids: string[];
+  gitlabAPI: string;
+  webhook_url: string;
+}
+
+export type GitlabCache = Record<string, GitlabCacheItem>;

@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import GitlabService from '../services/gitlab.service';
+import { GitlabManagerService } from '../services/gitlabManager.service';
 import { ResponseMap } from '../utils/const';
 import ResponseHandler from '../utils/responseHandler';
 
@@ -12,7 +13,6 @@ interface NamespaceResult {
 
 class GitlabController {
   public GitlabService = new GitlabService();
-
 
   public getGitlabList = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -64,6 +64,15 @@ class GitlabController {
       }else{
         return ResponseHandler.error(res, ParamsError);
       }
+    } catch (error) {
+        next(error);
+    }
+  }
+
+  public refreshGitlabToken = async (req: Request, res: Response, next: NextFunction) => { 
+    try {
+      await GitlabManagerService.init();
+      return ResponseHandler.success(res);
     } catch (error) {
         next(error);
     }

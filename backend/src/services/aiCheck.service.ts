@@ -7,7 +7,6 @@ import { generatePrompt } from '../utils/prompt';
 import AIConfigManager from './aiConfigManager';
 
 class AICheckService {
-    public AIManager = DB.AIManager;
     public GitlabInfo = DB.GitlabInfo;
     public AIMessage = DB.AIMessage;
     public AIRuleService = new AIRuleService();

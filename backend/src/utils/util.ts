@@ -114,12 +114,12 @@ export function generateAudioFileKey(userId: number, questionId: number):string{
 }
 
 // 通过webhook推送到企业微信群
-export const PushWeChatInfo = ({path_with_namespace, mergeRequest, result}:{
+export const PushWeChatInfo = ({path_with_namespace, merge_url, result}:{
   path_with_namespace: string, 
-  mergeRequest: string, 
+  merge_url: string, 
   result: string
 }) => {
-  return `🔍 您的${path_with_namespace}合并请求「${mergeRequest}」触发了AI检测，详情如下：
-          ${result}
-          📝 如果您觉得结果有帮助，请在 [系统]xxxx 中为该提示评价打分～`
+  return `🔍 您的${path_with_namespace}合并请求「${merge_url}」触发了AI检测，详情如下：
+${result}
+📝 如果您觉得结果有帮助，请在 [系统]xxxx 中为该提示评价打分～`
 }

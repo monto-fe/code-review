@@ -1,4 +1,5 @@
 // import { Op } from 'sequelize';
+import axios from 'axios';
 import DB from '../databases';
 import { getUnixTimestamp } from '../utils';
 import { GitlabInfoCreate } from '../interfaces/gitlab.interface';
@@ -59,6 +60,27 @@ class GitlabService {
             attributes: ['id', 'api', 'webhook_name', 'webhook_url', 'status', 'gitlab_version', 'expired', 'gitlab_url']
         })
         return response
+    }
+
+    // 用户配置token的时候，同步更新缓存
+    public async getGitlabProjectIdList({
+        gitlabAPI,
+        gitlabToken
+    }:{
+        gitlabAPI: string,
+        gitlabToken: string,
+    }) {
+        try {
+            const response = await axios.get(`${gitlabAPI}/v4/projects`, {
+                headers: {
+                    'PRIVATE-TOKEN': gitlabToken
+                }
+            });
+            return response.data;
+        } catch (error:any) {
+            console.error('获取 projects 失败:', error.response?.data || error.message);
+            return [];
+        }
     }
 }
 

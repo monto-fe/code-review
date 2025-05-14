@@ -47,7 +47,7 @@ class AIConfigManager {
 
     private startAutoRefresh() {
         setInterval(() => {
-        this.loadConfig();
+            this.loadConfig();
         }, this.refreshInterval);
     }
   
