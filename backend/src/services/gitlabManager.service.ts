@@ -24,7 +24,6 @@ export class GitlabManagerService {
   // 加载所有 Token 对应的项目 ID
   private async loadAllTokens() {
     const tokens = await this.GitlabInfo.getGitlabData();
-    console.log("tokens", tokens)
 
     for (const t of tokens) {
       await this.loadToken({
@@ -68,7 +67,6 @@ export class GitlabManagerService {
         headers: { 'PRIVATE-TOKEN': token },
         params: { per_page: perPage, page },
       });
-      console.log("res", res.data)
       if (Array.isArray(res.data) && res.data.length) {
         const ids = res.data.map((proj: any) => String(proj.id));
         projectIds.push(...ids);
