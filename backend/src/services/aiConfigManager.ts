@@ -30,8 +30,8 @@ class AIConfigManager {
 
     public async loadConfig() {
         const configRow = await DB.AIConfig.findOne({
-        where: { is_active: true },
-        order: [['update_time', 'DESC']]
+            where: { is_active: true },
+            order: [['update_time', 'DESC']]
         });
         if (!configRow) {
             console.warn('No active AI config found, using fallback or skipping initialization.');

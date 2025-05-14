@@ -46,7 +46,7 @@ class GitlabService {
             where: {
                 id
             },
-            attributes: ['api', 'webhook_name', 'webhook_url', 'status', 'gitlab_version', 'expired', 'gitlab_url']
+            attributes: ['id', 'api', 'webhook_name', 'webhook_url', 'status', 'gitlab_version', 'expired', 'gitlab_url']
         });
         return response;
     }
@@ -56,7 +56,7 @@ class GitlabService {
             where: {
                 status: ENABLE
             },
-            attributes: ['api', 'webhook_name', 'webhook_url', 'status', 'gitlab_version', 'expired', 'gitlab_url']
+            attributes: ['id', 'api', 'webhook_name', 'webhook_url', 'status', 'gitlab_version', 'expired', 'gitlab_url']
         })
         return response
     }
