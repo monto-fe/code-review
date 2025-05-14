@@ -46,7 +46,7 @@ console.log("process.env.PORT", process.env.PORT)
         PORT: 9000,
         NODE_ENV: 'production',
         DOMAIN: 'http://localhost:9000',
-        DB_HOST: "mysql",
+        DB_HOST: "mariadb",
         DB_PORT: 3306,
         DB_USER: "root",
         DB_PASSWORD: "mysql123456",
