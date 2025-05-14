@@ -25,10 +25,12 @@ class GitlabController {
 
   public createGitlabToken = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { api, token, status, gitlab_version, gitlab_url, expired } = req.body;
+      const { api, token, status, gitlab_version, webhook_name, webhook_url, gitlab_url, expired } = req.body;
       const data = {
         api,
         token,
+        webhook_name,
+        webhook_url,
         status,
         gitlab_version,
         expired,

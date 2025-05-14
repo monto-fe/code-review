@@ -12,10 +12,12 @@ class GitlabService {
 
     // 添加gitlab的信息
     public async addGitlabToken(Data: GitlabInfoCreate): Promise<any> {
-        const { api, token, status=1, gitlab_version, expired, gitlab_url } = Data;
+        const { api, token, status=1, gitlab_version, webhook_name, webhook_url, expired, gitlab_url } = Data;
         const data = {
             api,
             token,
+            webhook_url,
+            webhook_name,
             status,
             gitlab_version,
             expired,
@@ -28,10 +30,12 @@ class GitlabService {
     }
     // 更新gitlab的信息
     public async updateGitlabInfo(Data: any): Promise<any> {
-        const { id, api, token, status, gitlab_version, expired, gitlab_url } = Data;
+        const { id, api, token, status, webhook_name, webhook_url, gitlab_version, expired, gitlab_url } = Data;
         const data = {
             api,
             token,
+            webhook_name, 
+            webhook_url,
             status,
             gitlab_version,
             expired,
@@ -41,7 +45,8 @@ class GitlabService {
         const response: any = await this.GitlabInfo.update({ ...data }, {
             where: {
                 id
-            }
+            },
+            attributes: ['api', 'webhook_name', 'webhook_url', 'status', 'gitlab_version', 'expired', 'gitlab_url']
         });
         return response;
     }
@@ -50,7 +55,8 @@ class GitlabService {
         const response = await this.GitlabInfo.findAll({
             where: {
                 status: ENABLE
-            }
+            },
+            attributes: ['api', 'webhook_name', 'webhook_url', 'status', 'gitlab_version', 'expired', 'gitlab_url']
         })
         return response
     }
