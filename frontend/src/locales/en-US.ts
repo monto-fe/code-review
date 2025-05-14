@@ -99,6 +99,7 @@ export default {
   'universal-layout.menu.aicodecheck.AIModel': 'AI Model',
   'universal-layout.menu.aicodecheck.GitlabToken': 'Gitlab Token',
 
+
   'page.resource.name': 'resource name',
   'page.resource.key': 'resource',
   'page.resource.category': 'category',
@@ -142,6 +143,13 @@ export default {
   'page.aicodecheck.aimodel.api_url': 'api url',
   'page.aicodecheck.aimodel.api_key': 'api key',
   'page.aicodecheck.aimodel.add': 'add model',
+
+  'page.aicodecheck.gitlab.add': 'Add TOKEN',
+  'page.aicodecheck.gitlab.api': 'API',
+  'page.aicodecheck.gitlab.token': 'Token',
+  'page.aicodecheck.gitlab.expired': 'Expired',
+  'page.aicodecheck.gitlab.webhook_name': 'Webhook Name',
+  'page.aicodecheck.gitlab.webhook_url': 'Webhook URL',
   
 
   'setting.pagestyle': 'page styles',

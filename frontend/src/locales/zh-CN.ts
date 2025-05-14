@@ -146,6 +146,8 @@ export default {
   'page.aicodecheck.gitlab.api': 'API',
   'page.aicodecheck.gitlab.token': 'Token',
   'page.aicodecheck.gitlab.expired': '有效期',
+  'page.aicodecheck.gitlab.webhook_name': 'webhook名称',
+  'page.aicodecheck.gitlab.webhook_url': 'webhook地址',
 
   'setting.pagestyle': '页面风格',
   'setting.navigationmode': '导航风格',

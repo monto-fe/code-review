@@ -84,6 +84,16 @@ function App() {
       key: 'api',
     },
     {
+      title: t('page.aicodecheck.gitlab.webhook_name'),
+      dataIndex: 'webhook_name',
+      key: 'webhook_name',
+    },
+    {
+      title: t('page.aicodecheck.gitlab.webhook_url'),
+      dataIndex: 'webhook_url',
+      key: 'webhook_url',
+    },
+    {
       title: t('page.aicodecheck.gitlab.expired'),
       dataIndex: 'expired',
       key: 'expired',
