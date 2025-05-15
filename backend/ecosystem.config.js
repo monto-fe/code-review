@@ -43,7 +43,8 @@ console.log("process.env.PORT", process.env.PORT)
         DB_DATABASE: "ucode_review"
       },
       env_production: {
-        PORT: 9000,
+        // PORT: 9000,
+        PORT: process.env.PORT,
         NODE_ENV: 'production',
         DOMAIN: 'http://localhost:9000',
         DB_HOST: "mariadb",
