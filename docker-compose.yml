@@ -3,6 +3,8 @@ services:
     build:
       context: ./frontend  # 指向前端项目代码所在目录
       dockerfile: Dockerfile.prod    # Dockerfile 的名称
+      args:
+        VITE_APP_APIHOST: http://backend:3000/api
     ports:
       - "9003:80"
     restart: always

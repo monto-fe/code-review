@@ -19,7 +19,7 @@ export const generatePrompt = ({
     const prompt = `
     请检查以下代码差异（diff），确保其符合以下原则：
     ${rule}
-    输出要求：
+    要求用中文输出：
     仅输出以下两部分内容，如无内容可省略：
         1. 不符合检查原则的地方（使用 Markdown 表格格式）：
           - 不符合的代码行号 | 违反的原则 | 修改建议

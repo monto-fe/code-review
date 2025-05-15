@@ -7,6 +7,12 @@ WORKDIR /app
 
 RUN npm i -g vite && npm i -g pnpm
 
+# 接收传入的构建参数
+ARG VITE_APP_APIHOST
+
+# 生成 .env.production 文件
+RUN echo "VITE_APP_APIHOST=$VITE_APP_APIHOST" >> .env.production
+
 RUN pnpm install && pnpm build
 
 RUN ls -al
