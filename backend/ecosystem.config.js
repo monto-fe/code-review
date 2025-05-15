@@ -1,3 +1,19 @@
+const dotenv = require('dotenv');
+const fs = require('fs');
+
+// 获取当前指定的环境
+const currentEnv = process.env.NODE_ENV || 'development';
+const envFile = `.env.${currentEnv}`;
+
+// 检查文件存在才加载
+if (fs.existsSync(envFile)) {
+  dotenv.config({ path: envFile });
+  console.log(`✅ Loaded env from ${envFile}`);
+} else {
+  console.warn(`⚠️ No ${envFile} file found`);
+}
+
+console.log("process.env.PORT", process.env.PORT)
 /**
  * @description pm2 configuration file.
  * @example
@@ -20,6 +36,7 @@
         PORT: 9000,
         NODE_ENV: 'development',
         DOMAIN: 'http://lobalhost:9000',
+        DB_TYPE: "mariadb",
         DB_HOST: "localhost",
         DB_PORT: 3306,
         DB_USER: "mysql",
@@ -27,14 +44,15 @@
         DB_DATABASE: "ucode_review"
       },
       env_production: {
-        PORT: 9000,
-        NODE_ENV: 'production',
-        DOMAIN: 'http://localhost:9000',
-        DB_HOST: "mysql",
-        DB_PORT: 3306,
-        DB_USER: "root",
-        DB_PASSWORD: "mysql123456",
-        DB_DATABASE: "ucode_review"
+        PORT: process.env.PORT,
+        NODE_ENV: process.env.NODE_ENV,
+        DOMAIN: process.env.DOMAIN,
+        DB_TYPE: process.env.DB_TYPE,
+        DB_HOST: process.env.DB_HOST,
+        DB_PORT: process.env.DB_PORT,
+        DB_USER: process.env.DB_USER,
+        DB_PASSWORD: process.env.DB_PASSWORD,
+        DB_DATABASE: process.env.DB_DATABASE
       }
     }
   ]

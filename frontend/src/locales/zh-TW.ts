@@ -142,6 +142,13 @@ export default {
   'page.aicodecheck.aimodel.api_key': 'API密钥',
   'page.aicodecheck.aimodel.add': '添加模型',
 
+  'page.aicodecheck.gitlab.add': '添加TOKEN',
+  'page.aicodecheck.gitlab.api': 'API',
+  'page.aicodecheck.gitlab.token': 'Token',
+  'page.aicodecheck.gitlab.expired': '有效期',
+  'page.aicodecheck.gitlab.webhook_name': 'webhook名称',
+  'page.aicodecheck.gitlab.webhook_url': 'webhook地址',
+
   'setting.pagestyle': '頁面風格',
   'setting.navigationmode': '導航風格',
   'setting.headfixed': '固定頭部',

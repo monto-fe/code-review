@@ -34,6 +34,20 @@ const CreateForm: React.FC<ICreateFormProps> = (props) => {
       tooltip: '获取地址：https://xxx.com/-/profile/personal_access_tokens, 需要所有权限'
     },
     {
+      label: t('page.aicodecheck.gitlab.webhook_name'),
+      name: 'webhook_name',
+      type: FormType.Input,
+      required: true,
+      tooltip: '企业微信机器人名称或webhook名称'
+    },
+    {
+      label: t('page.aicodecheck.gitlab.webhook_url'),
+      name: 'webhook_url',
+      type: FormType.Input,
+      required: true,
+      tooltip: '企业微信机器人地址或webhook地址'
+    },
+    {
       label: t('page.aicodecheck.gitlab.expired'),
       name: 'expired',
       required: true,
@@ -55,8 +69,8 @@ const CreateForm: React.FC<ICreateFormProps> = (props) => {
         title={t('page.aicodecheck.gitlab.add')}
         ItemOptions={addFormItems}
         formLayout={{
-          labelCol: { span: 4 },
-          wrapperCol: { span: 18 },
+          labelCol: { span: 8 },
+          wrapperCol: { span: 16 },
         }}
         onFinish={onFinish}
         onCancel={onCancel}

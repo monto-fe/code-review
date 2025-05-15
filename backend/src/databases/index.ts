@@ -1,5 +1,5 @@
 import Sequelize from 'sequelize';
-import { NODE_ENV, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_DATABASE } from '../config';
+import { NODE_ENV, DB_TYPE, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_DATABASE } from '../config';
 import UserModel from '../models/user.model';
 import NamespaceModel from '../models/namespace.model';
 import ResourceModel from '../models/resource.model';
@@ -16,7 +16,7 @@ import AIConfigModel from '../models/AIConfig.model';
 console.log('数据库地址：' + DB_HOST + ': ' + DB_PORT)
 console.log('NODE_ENV', NODE_ENV)
 const sequelize = new Sequelize.Sequelize(DB_DATABASE, DB_USER, DB_PASSWORD, {
-  dialect: 'mysql',
+  dialect: DB_TYPE,
   host: DB_HOST,
   port: DB_PORT,
   timezone: '+08:00',

@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import GitlabService from '../services/gitlab.service';
+import { GitlabManagerService } from '../services/gitlabManager.service';
 import { ResponseMap } from '../utils/const';
 import ResponseHandler from '../utils/responseHandler';
 
@@ -13,7 +14,6 @@ interface NamespaceResult {
 class GitlabController {
   public GitlabService = new GitlabService();
 
-
   public getGitlabList = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = await this.GitlabService.getGitlabInfo();
@@ -25,10 +25,12 @@ class GitlabController {
 
   public createGitlabToken = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { api, token, status, gitlab_version, gitlab_url, expired } = req.body;
+      const { api, token, status, gitlab_version, webhook_name, webhook_url, gitlab_url, expired } = req.body;
       const data = {
         api,
         token,
+        webhook_name,
+        webhook_url,
         status,
         gitlab_version,
         expired,
@@ -62,6 +64,15 @@ class GitlabController {
       }else{
         return ResponseHandler.error(res, ParamsError);
       }
+    } catch (error) {
+        next(error);
+    }
+  }
+
+  public refreshGitlabToken = async (req: Request, res: Response, next: NextFunction) => { 
+    try {
+      await GitlabManagerService.init();
+      return ResponseHandler.success(res);
     } catch (error) {
         next(error);
     }

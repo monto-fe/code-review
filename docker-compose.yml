@@ -3,8 +3,10 @@ services:
     build:
       context: ./frontend  # 指向前端项目代码所在目录
       dockerfile: Dockerfile.prod    # Dockerfile 的名称
+      args:
+        VITE_APP_APIHOST: http://${IP}:${API_PORT}/v1
     ports:
-      - "9003:80"
+      - "${CONSOLE_PORT}:80"
     restart: always
     depends_on:
       - backend
@@ -15,8 +17,18 @@ services:
     build:
       context: ./backend  # 指向后端项目代码所在目录
       dockerfile: Dockerfile.prod   # Dockerfile 的名称
+    environment:
+      - PORT=${API_PORT}
+      - NODE_ENV=${NODE_ENV}
+      - DOMAIN=${IP}:${API_PORT}
+      - DB_TYPE=${DB_TYPE}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_DATABASE=${DB_DATABASE}
     ports:
-      - "9000:9000"
+      - "${API_PORT}:9000"
     restart: always
     depends_on:
       - mariadb
@@ -26,10 +38,10 @@ services:
   mariadb:
     image: mariadb:10.5
     environment:
-      MYSQL_ROOT_PASSWORD: mysql123456
-      MYSQL_DATABASE: ucode_review
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
       MYSQL_USER: mysql
-      MYSQL_PASSWORD: mysql123456
+      MYSQL_PASSWORD: ${DB_PASSWORD}
       # 默认用户使用兼容插件
       MYSQL_AUTHENTICATION_PLUGIN: mysql_native_password
     volumes:
@@ -37,7 +49,7 @@ services:
       - ./mysql/data:/var/lib/mysql
       - ./mysql/init:/docker-entrypoint-initdb.d
     ports:
-      - "3306:3306"
+      - "${DB_PORT}:3306"
     restart: always
     networks:
       - backend-network
