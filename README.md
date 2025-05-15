@@ -112,6 +112,8 @@ cd docker-compose -f docker-compose.mysql.yml up -d
 
 如果自己有mysql数据库，则可以使用以下命令启动。
 
+数据库需要导入预制的Sql脚本。
+
 ```
 cd code-review
 git checkout feature/mysql
