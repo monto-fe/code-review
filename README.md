@@ -105,7 +105,7 @@ AI 检查示例：
 ```
 cd code-review
 git checkout feature/mysql
-cd docker-compose -f docker-compose.mysql.yml up -d
+docker compose -f docker-compose.mysql.yml up -d
 ```
 
 ## 🔧 使用已有数据库（MySQL）
@@ -117,7 +117,7 @@ cd docker-compose -f docker-compose.mysql.yml up -d
 ```
 cd code-review
 git checkout feature/mysql
-cd docker-compose -f docker-compose.without.mysql.yml up -d
+docker compose -f docker-compose.without.mysql.yml up -d
 ```
 
 修改配置文件`backend/ecosystem.config.js`
@@ -145,8 +145,8 @@ env_production: {
 
 ## 🔭 开发中功能（规划）
 
+* [ ] 支持消息推送机器人通知
 * [ ] 支持仅输入 `projectId` 和 `mergeId` 即可进行 AI 审查
 * [ ] 支持监听 GitLab Push 事件
-* [ ] 支持消息推送机器人通知
 * [ ] 提供一键启动的 Docker 镜像版本（挂载配置）
 * [ ] 提供内部 CI/CD 集成示例（如 `.gitlab-ci.yml`）
