@@ -20,7 +20,6 @@ class WebhookController {
     const gitlabService = await GitlabManagerService.init();
     const gitlabInfoCache: GitlabCache = gitlabService.getCache();
     const gitlabInfoResult = await this.findTokenByProjectId(gitlabInfoCache, String(id))
-    console.log("gitlabInfoResult", gitlabInfoResult)
     if(!gitlabInfoResult){
       console.log('请配置gitlab Token');
       return

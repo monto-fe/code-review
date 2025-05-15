@@ -83,7 +83,7 @@ class App {
 			await aiConfigManager.loadConfig();
 			const gitlabManager = await GitlabManagerService.init();
 			const cache = gitlabManager.getCache();
-			console.log('GitLab Token 缓存初始化完成:', cache);
+			console.log('GitLab Token 缓存初始化完成');
 			this.app.listen(this.port, () => {
 				console.log(`TypeScript with Express
 				  http://localhost:${this.port}/`);

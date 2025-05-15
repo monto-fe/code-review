@@ -18,9 +18,8 @@ class UsersController {
   public login = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { user, password, namespace } : UserLogin = req.body;
-      console.log('login:', user, namespace, password)
+      console.log('login:', user)
       const findData: User | null = await this.UserService.findUserByUsername({user, namespace});
-      console.log('login:', findData)
       if (!findData || findData.password !== md5(password)) {
         return ResponseHandler.error(res, UserError);
       }
