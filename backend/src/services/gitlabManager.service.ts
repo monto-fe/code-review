@@ -50,9 +50,9 @@ export class GitlabManagerService {
         gitlabAPI,
         webhook_url,
       };
-      console.log(`GitLab Token 加载成功: ${token}, 项目数: ${projects.length}`);
+      console.log(`GitLab Token 加载成功, 项目数: ${projects.length}`);
     } catch (err) {
-      console.error(`加载 GitLab Token 失败: ${token}`, err);
+      console.error(`加载 GitLab Token 失败: `, err);
     }
   }
 
