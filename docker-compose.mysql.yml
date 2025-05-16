@@ -36,7 +36,7 @@ services:
       - backend-network
 
   mysql:
-    image: mysql:8.0
+    image: uhub.service.ucloud.cn/code-review/centos-mysql:8.0
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_DATABASE}
