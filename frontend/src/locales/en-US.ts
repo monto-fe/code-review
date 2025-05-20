@@ -150,7 +150,8 @@ export default {
   'page.aicodecheck.gitlab.expired': 'Expired',
   'page.aicodecheck.gitlab.webhook_name': 'Webhook Name',
   'page.aicodecheck.gitlab.webhook_url': 'Webhook URL',
-  
+  'page.aicodecheck.gitlab.source_branch': 'Source Branch',
+  'page.aicodecheck.gitlab.target_branch': 'Target Branch',
 
   'setting.pagestyle': 'page styles',
   'setting.navigationmode': 'nav mode',

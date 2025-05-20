@@ -5,6 +5,8 @@ export interface GitlabInfo {
     webhook_url: string;
     webhook_name: string;
     status: 1 | -1;
+    source_branch: string;
+    target_branch: string;
     gitlab_version: string;
     expired: number;
     gitlab_url: string;
@@ -18,6 +20,8 @@ export interface GitlabInfoCreate {
     webhook_url: string;
     webhook_name: string;
     status: 1 | -1;
+    source_branch: string;
+    target_branch: string;
     gitlab_version: string;
     expired: number | undefined;
     gitlab_url: string;
@@ -29,6 +33,8 @@ export interface GitlabCacheItem {
   projectids: string[];
   gitlabAPI: string;
   webhook_url: string;
+  source_branch: string;
+  target_branch: string;
 }
 
 export type GitlabCache = Record<string, GitlabCacheItem>;

@@ -37,15 +37,25 @@ const CreateForm: React.FC<ICreateFormProps> = (props) => {
       label: t('page.aicodecheck.gitlab.webhook_name'),
       name: 'webhook_name',
       type: FormType.Input,
-      required: true,
       tooltip: '企业微信机器人名称或webhook名称'
     },
     {
       label: t('page.aicodecheck.gitlab.webhook_url'),
       name: 'webhook_url',
       type: FormType.Input,
-      required: true,
       tooltip: '企业微信机器人地址或webhook地址'
+    },
+    {
+      label: t('page.aicodecheck.gitlab.source_branch'),
+      name: 'source_branch',
+      type: FormType.Input,
+      tooltip: '源分支'
+    },
+    {
+      label: t('page.aicodecheck.gitlab.target_branch'),
+      name: 'target_branch',
+      type: FormType.Input,
+      tooltip: '目标分支'
     },
     {
       label: t('page.aicodecheck.gitlab.expired'),

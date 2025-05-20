@@ -95,6 +95,14 @@ class AIConfigManager {
         }
         return this.config;
     }
+
+    public async deleteAIConfig(id: number): Promise<any> {
+        return await this.AIconfig.destroy({
+            where: {
+                id
+            }
+        });
+    }
 }
 
 export default AIConfigManager.getInstance();

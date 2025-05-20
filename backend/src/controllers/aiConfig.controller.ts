@@ -30,6 +30,16 @@ class AIConfigController {
     const result = await aiConfigManager.updateAIConfig({ id, name, api_url, api_key, model, is_active });
     ResponseHandler.success(res, { data: result }, 'success');
   }
+  
+  // 删除ai config
+  public DeleteAIConfig = async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.body as any;
+    if (!id) {
+      return ResponseHandler.error(res, { message: 'id is required' }, ParamsError.message, ParamsError.ret_code);
+    }
+    const result = await aiConfigManager.deleteAIConfig(id);
+    ResponseHandler.success(res, { data: result }, 'success');
+  }
 }
 
 export default AIConfigController;

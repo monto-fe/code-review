@@ -13,13 +13,15 @@ class GitlabService {
 
     // 添加gitlab的信息
     public async addGitlabToken(Data: GitlabInfoCreate): Promise<any> {
-        const { api, token, status=1, gitlab_version, webhook_name, webhook_url, expired, gitlab_url } = Data;
+        const { api, token, status=1, gitlab_version, webhook_name, webhook_url, expired, gitlab_url, source_branch, target_branch } = Data;
         const data = {
             api,
             token,
             webhook_url,
             webhook_name,
             status,
+            source_branch,
+            target_branch,
             gitlab_version,
             expired,
             gitlab_url,
@@ -31,13 +33,15 @@ class GitlabService {
     }
     // 更新gitlab的信息
     public async updateGitlabInfo(Data: any): Promise<any> {
-        const { id, api, token, status, webhook_name, webhook_url, gitlab_version, expired, gitlab_url } = Data;
+        const { id, api, token, status, webhook_name, webhook_url, gitlab_version, expired, gitlab_url, source_branch, target_branch } = Data;
         const data = {
             api,
             token,
             webhook_name, 
             webhook_url,
             status,
+            source_branch,
+            target_branch,
             gitlab_version,
             expired,
             gitlab_url,

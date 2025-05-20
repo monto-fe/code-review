@@ -13,7 +13,10 @@ class WebhookController {
   // public GitlabService = new GitlabService();
 
   public AICheck = async (req: Request, res: Response, next: NextFunction) => {
-    const { project: { id, path_with_namespace }, object_attributes: { iid, url: merge_url } } = req.body;
+    const { project: { id, path_with_namespace }, object_attributes: { iid, url: merge_url, action, source_branch, target_branch } } = req.body;
+    if(action !== 'created'){
+      return
+    }
     ResponseHandler.success(res, { projectId: id, mergeRequestId: iid }, 'Webhook处理成功，等待AI检测');
     // 获取gitlab信息
     // 读取gitlab缓存信息
@@ -24,9 +27,16 @@ class WebhookController {
       console.log('请配置gitlab Token');
       return
     }
-    const { token: gitlabToken, config: { gitlabAPI, webhook_url } } = gitlabInfoResult;
+    const { token: gitlabToken, config: { gitlabAPI, webhook_url, source_branch: sourceBranch, target_branch: targetBranch } } = gitlabInfoResult;
 
-    // const { api: gitlabAPI, token: gitlabToken, webhook_url } = gitlabInfo[0].dataValues;
+    if(sourceBranch && sourceBranch !== source_branch){
+      console.log('源分支或目标分支不匹配');
+      return
+    }
+    if(targetBranch && targetBranch !== target_branch){
+      console.log('源分支或目标分支不匹配');
+      return
+    }
     
     // 获取merge信息
     const mergeRequest = await this.AICheckService.getMergeRequestInfo({
@@ -115,6 +125,8 @@ class WebhookController {
       projectids: string[];
       gitlabAPI: string;
       webhook_url: string;
+      source_branch: string;
+      target_branch: string;
     };
   } | null {
     for (const [token, config] of Object.entries(gitlabInfoCache)) {
