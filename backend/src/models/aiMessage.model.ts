@@ -64,12 +64,12 @@ export default function (sequelize: Sequelize): typeof AImessageModel {
       },
       human_rating: {
         type: DataTypes.INTEGER.UNSIGNED,
-        allowNull: false,
+        allowNull: true,
         comment: '人工评分',
       },
       remark: {
         type: DataTypes.TEXT,
-        allowNull: false,
+        allowNull: true,
         comment: '备注',
       },
       passed: {

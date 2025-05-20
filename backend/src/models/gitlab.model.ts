@@ -44,22 +44,22 @@ export default function (sequelize: Sequelize): typeof GitlabModel {
       },
       source_branch: {
         type: DataTypes.STRING(255),
-        allowNull: false,
+        allowNull: true,
         comment: '源分支'
       },
       target_branch: {
         type: DataTypes.STRING(255),
-        allowNull: false,
+        allowNull: true,
         comment: '目标分支'
       },
       webhook_url: {
           type: DataTypes.STRING(255),
-          allowNull: false,
+          allowNull: true,
           comment: 'webhook url',
       },
       webhook_name: {
           type: DataTypes.STRING(255),
-          allowNull: false,
+          allowNull: true,
           comment: 'webhook name',
       },
       gitlab_version: {
