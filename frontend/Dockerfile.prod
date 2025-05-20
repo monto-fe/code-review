@@ -1,5 +1,5 @@
 # Common build stage
-FROM uhub.service.ucloud.cn/code-review/centos-node:18-alpine as common-build-stage
+FROM node:18-alpine as common-build-stage
 
 COPY . ./app
 
@@ -19,7 +19,7 @@ RUN ls -al
 
 # EXPOSE 3000
 
-FROM uhub.service.ucloud.cn/code-review/centos-nginx:1.19.1 as production-build-stage
+FROM nginx:1.19.1 as production-build-stage
 
 COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 

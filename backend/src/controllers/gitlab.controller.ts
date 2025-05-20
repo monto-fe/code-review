@@ -25,7 +25,7 @@ class GitlabController {
 
   public createGitlabToken = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { api, token, status, gitlab_version, webhook_name, webhook_url, gitlab_url, expired } = req.body;
+      const { api, token, status, gitlab_version, webhook_name, webhook_url, gitlab_url, expired, source_branch, target_branch } = req.body;
       const data = {
         api,
         token,
@@ -34,7 +34,9 @@ class GitlabController {
         status,
         gitlab_version,
         expired,
-        gitlab_url
+        gitlab_url,
+        source_branch,
+        target_branch
       }
     
       if (!api || !token ) {
@@ -96,6 +98,19 @@ class GitlabController {
 	// 		next(error);
 	// 	}
   // }
+  public deleteGitlabToken = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.body as any;
+      const result: any = await this.GitlabService.deleteGitlabToken({ id });
+      if(result){
+        return ResponseHandler.success(res);
+      }else{
+        return ResponseHandler.error(res, ParamsError);
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default GitlabController;

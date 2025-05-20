@@ -8,6 +8,11 @@
 
 > ✅ 支持 **MySQL**（推荐版本：`8.0`）与 **MariaDB**（推荐版本：`10.5`）
 
+**环境依赖**
+
+- docker && docker compose > 2.0
+- git
+
 ### 1️⃣ 克隆项目
 
 ```bash
@@ -29,6 +34,9 @@ cd mysql/init
 
 # 编辑环境变量
 vi .env
+
+# 服务启动
+docker compose up -d
 ```
 
 #### 方式二：使用内置 MySQL

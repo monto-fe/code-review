@@ -1,7 +1,7 @@
 // src/services/gitlabManager.service.ts
 import axios from 'axios';
 import GitlabService from './gitlab.service';
-import { GitlabCache, GitlabCacheItem } from '../interfaces/gitlab.interface';
+import { GitlabCache } from '../interfaces/gitlab.interface';
 //import DB from '../databases';
 
 
@@ -30,6 +30,8 @@ export class GitlabManagerService {
         token: t.token,
         gitlabAPI: t.api,
         webhook_url: t.webhook_url,
+        source_branch: t.source_branch,
+        target_branch: t.target_branch,
       });
     }
   }
@@ -39,8 +41,10 @@ export class GitlabManagerService {
     token: string;
     gitlabAPI: string;
     webhook_url: string;
+    source_branch: string;
+    target_branch: string;
   }): Promise<void> {
-    const { token, gitlabAPI, webhook_url } = config;
+    const { token, gitlabAPI, webhook_url, source_branch, target_branch } = config;
 
     try {
       const projects: string[] = await this.fetchProjectIds(token, gitlabAPI);
@@ -49,10 +53,12 @@ export class GitlabManagerService {
         projectids: projects,
         gitlabAPI,
         webhook_url,
+        source_branch,
+        target_branch,
       };
-      console.log(`GitLab Token 加载成功: ${token}, 项目数: ${projects.length}`);
+      console.log(`GitLab Token 加载成功, 项目数: ${projects.length}`);
     } catch (err) {
-      console.error(`加载 GitLab Token 失败: ${token}`, err);
+      console.error(`加载 GitLab Token 失败: `, err);
     }
   }
 

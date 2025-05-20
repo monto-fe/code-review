@@ -112,6 +112,19 @@ class AIRuleService {
         })
         return result;
     }
+
+    // 更新human_rating和remark字段
+    public async updateHumanRatingAndRemark(Data: any): Promise<any> {
+        const { id, human_rating, remark } = Data;
+        const result = await this.CustomRule.update({
+            human_rating, remark
+        }, {
+            where: {
+                id
+            }
+        })
+        return result;
+    }
 }
 
 export default AIRuleService;

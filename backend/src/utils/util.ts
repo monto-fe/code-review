@@ -119,7 +119,8 @@ export const PushWeChatInfo = ({path_with_namespace, merge_url, result}:{
   merge_url: string, 
   result: string
 }) => {
-  return `🔍 您的${path_with_namespace}合并请求「${merge_url}」触发了AI检测，详情如下：
+  return `🔍 您的「${path_with_namespace}」合并请求「[${merge_url}](${merge_url})」触发了AI检测，详情如下：
 ${result}
-📝 如果您觉得结果有帮助，请在 [系统]xxxx 中为该提示评价打分～`
+
+📝 请您到 [系统](xxxx) 中反馈Bug检测效果，帮助我们不断优化～`
 }

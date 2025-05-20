@@ -1,5 +1,5 @@
 # Common build stage
-FROM uhub.service.ucloud.cn/code-review/centos-node:18-alpine as common-build-stage
+FROM node:18-alpine as common-build-stage
 
 COPY . ./app
 

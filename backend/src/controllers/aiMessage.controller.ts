@@ -59,6 +59,18 @@ class AIMessageController {
     ResponseHandler.success(res, { data: result }, 'success');
   }
 
+  // 更新human_rating和remark字段
+  public UpdateHumanRatingAndRemark = async (req: Request, res: Response, next: NextFunction) => {
+    const { id, human_rating, remark } = req.body as any;
+    if (!id || !human_rating) {
+      return ResponseHandler.error(res, { message: 'id, human_rating is required' }, ParamsError.message, ParamsError.ret_code);
+    }
+    const result = await this.AIRuleService.updateHumanRatingAndRemark({
+      id, human_rating, remark
+    });
+    ResponseHandler.success(res, { data: result }, 'success');
+  }
+
 }
 
 export default AIMessageController;

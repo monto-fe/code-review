@@ -1,5 +1,5 @@
 import { Sequelize, DataTypes, Model, Optional } from 'sequelize';
-import { AImessage } from '../interfaces/aiMessage.interface';
+import { AImessage, HumanRating } from '../interfaces/aiMessage.interface';
 
 export type AImessageCreationAttributes = Optional<AImessage, 'id'>;
 
@@ -12,6 +12,8 @@ export class AImessageModel extends Model<AImessage, AImessageCreationAttributes
   public rule!: 1 | 2;
   public rule_id!: number;
   public result!: string;
+  public human_rating!: HumanRating;
+  public remark!: string;
   public passed?: boolean;
   public checked_by?: string | null;
   public create_time!: number;
@@ -59,6 +61,16 @@ export default function (sequelize: Sequelize): typeof AImessageModel {
         type: DataTypes.TEXT,
         allowNull: false,
         comment: '结果',
+      },
+      human_rating: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true,
+        comment: '人工评分',
+      },
+      remark: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        comment: '备注',
       },
       passed: {
         type: DataTypes.INTEGER,

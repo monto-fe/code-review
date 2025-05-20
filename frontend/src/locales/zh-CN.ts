@@ -148,6 +148,8 @@ export default {
   'page.aicodecheck.gitlab.expired': '有效期',
   'page.aicodecheck.gitlab.webhook_name': 'webhook名称',
   'page.aicodecheck.gitlab.webhook_url': 'webhook地址',
+  'page.aicodecheck.gitlab.source_branch': '源分支',
+  'page.aicodecheck.gitlab.target_branch': '目标分支',
 
   'setting.pagestyle': '页面风格',
   'setting.navigationmode': '导航风格',
