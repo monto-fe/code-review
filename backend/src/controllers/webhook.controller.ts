@@ -14,7 +14,7 @@ class WebhookController {
   public AICheck = async (req: Request, res: Response, next: NextFunction) => {
     const { project: { id, path_with_namespace }, object_attributes: { iid, url: merge_url, action, source_branch, target_branch } } = req.body;
     ResponseHandler.success(res, { projectId: id, mergeRequestId: iid }, 'Webhook处理成功，等待AI检测');
-    if(action !== 'open' || action !== 'update'){
+    if(!['open', 'update'].includes(action)){
       return
     }
     // 获取gitlab信息
@@ -29,11 +29,11 @@ class WebhookController {
     const { token: gitlabToken, config: { gitlabAPI, webhook_url, source_branch: sourceBranch, target_branch: targetBranch } } = gitlabInfoResult;
 
     if(sourceBranch && sourceBranch !== source_branch){
-      console.log('源分支或目标分支不匹配');
+      console.log('源分支不匹配');
       return
     }
     if(targetBranch && targetBranch !== target_branch){
-      console.log('源分支或目标分支不匹配');
+      console.log('目标分支不匹配');
       return
     }
     
