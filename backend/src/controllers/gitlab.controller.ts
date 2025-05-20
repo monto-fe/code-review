@@ -98,6 +98,19 @@ class GitlabController {
 	// 		next(error);
 	// 	}
   // }
+  public deleteGitlabToken = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.body as any;
+      const result: any = await this.GitlabService.deleteGitlabToken({ id });
+      if(result){
+        return ResponseHandler.success(res);
+      }else{
+        return ResponseHandler.error(res, ParamsError);
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default GitlabController;

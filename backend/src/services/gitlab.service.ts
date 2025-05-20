@@ -96,6 +96,13 @@ class GitlabService {
             return [];
         }
     }
+    // 删除gitlab信息
+    public async deleteGitlabToken({ id }: { id: number }) {
+        const response = await this.GitlabInfo.destroy({
+            where: { id }
+        });
+        return response;
+    }
 }
 
 export default GitlabService;

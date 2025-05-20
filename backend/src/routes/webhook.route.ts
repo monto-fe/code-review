@@ -26,6 +26,7 @@ class Route implements Routes {
     this.router.get('/gitlab-info', this.GitlabController.getGitlabList)
     this.router.post('/gitlab-info', this.GitlabController.createGitlabToken)
     this.router.put('/gitlab-info', this.GitlabController.updateGitlabToken)
+    this.router.delete('/gitlab-info', this.GitlabController.deleteGitlabToken)
 
     // 加载所有gitlab token
     this.router.post('/gitlab/token/refresh', this.GitlabController.refreshGitlabToken)
