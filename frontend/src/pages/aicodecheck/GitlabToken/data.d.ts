@@ -9,4 +9,8 @@ export interface TableListItem {
   api: string;
   token: string;
   expired: any;
+  webhook_url: string;
+  webhook_name: string;
+  source_branch: string;
+  target_branch: string;
 }

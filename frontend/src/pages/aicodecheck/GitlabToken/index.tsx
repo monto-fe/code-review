@@ -64,9 +64,9 @@ function App() {
   };
 
   const handleUpdate = (record: TableListItem) => {
-    const { id, token, api, expired } = record;
+    const { id, token, api, expired, source_branch, target_branch, webhook_url, webhook_name } = record;
     const editInfo = {
-      id, token, api, expired: expired?dayjs(expired*1000):dayjs()
+      id, token, api, expired: expired?dayjs(expired*1000):dayjs(), source_branch, target_branch, webhook_url, webhook_name
     }
     setUpdateData(editInfo);
     setCreateFormVisible(true);
@@ -92,6 +92,23 @@ function App() {
       title: t('page.aicodecheck.gitlab.webhook_url'),
       dataIndex: 'webhook_url',
       key: 'webhook_url',
+      width: 300,
+    },
+    {
+      title: t('page.aicodecheck.gitlab.source_branch'),
+      dataIndex: 'source_branch',
+      key: 'source_branch',
+    },
+    {
+      title: t('page.aicodecheck.gitlab.target_branch'),
+      dataIndex: 'target_branch',
+      key: 'target_branch',
+    },
+    {
+      title: t('page.aicodecheck.gitlab.expired'),
+      dataIndex: 'expired',
+      key: 'expired',
+      render: (text: number) => renderDateFromTimestamp(text, timeFormatType.time)
     },
     {
       title: t('page.aicodecheck.gitlab.expired'),

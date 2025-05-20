@@ -10,14 +10,13 @@ import { GitlabCache } from '../interfaces/gitlab.interface';
 
 class WebhookController {
   public AICheckService = new AICheckService();
-  // public GitlabService = new GitlabService();
 
   public AICheck = async (req: Request, res: Response, next: NextFunction) => {
     const { project: { id, path_with_namespace }, object_attributes: { iid, url: merge_url, action, source_branch, target_branch } } = req.body;
-    if(action !== 'created'){
+    ResponseHandler.success(res, { projectId: id, mergeRequestId: iid }, 'Webhook处理成功，等待AI检测');
+    if(action !== 'open' || action !== 'update'){
       return
     }
-    ResponseHandler.success(res, { projectId: id, mergeRequestId: iid }, 'Webhook处理成功，等待AI检测');
     // 获取gitlab信息
     // 读取gitlab缓存信息
     const gitlabService = await GitlabManagerService.init();

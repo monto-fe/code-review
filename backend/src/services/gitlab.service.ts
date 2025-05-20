@@ -34,6 +34,7 @@ class GitlabService {
     // 更新gitlab的信息
     public async updateGitlabInfo(Data: any): Promise<any> {
         const { id, api, token, status, webhook_name, webhook_url, gitlab_version, expired, gitlab_url, source_branch, target_branch } = Data;
+
         const data = {
             api,
             token,
@@ -51,7 +52,7 @@ class GitlabService {
             where: {
                 id
             },
-            attributes: ['id', 'api', 'webhook_name', 'webhook_url', 'status', 'gitlab_version', 'expired', 'gitlab_url']
+            attributes: ['id', 'api', 'webhook_name', 'webhook_url', 'status', 'gitlab_version', 'expired', 'gitlab_url', 'source_branch', 'target_branch']
         });
         return response;
     }
@@ -70,7 +71,7 @@ class GitlabService {
             where: {
                 status: ENABLE
             },
-            attributes: ['id', 'api', 'webhook_name', 'webhook_url', 'status', 'gitlab_version', 'expired', 'gitlab_url']
+            attributes: ['id', 'api', 'webhook_name', 'webhook_url', 'status', 'gitlab_version', 'expired', 'gitlab_url', 'source_branch', 'target_branch']
         })
         return response
     }
