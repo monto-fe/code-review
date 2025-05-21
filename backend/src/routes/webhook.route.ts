@@ -19,6 +19,10 @@ class Route implements Routes {
   private initializeRoutes() {
     this.router.post('/webhook/merge', this.WebhookController.AICheck)
     this.router.get('/ai/message', this.WebhookController.GetAIMessage)
+    // 更新human_rating和remark字段
+    this.router.put('/ai/message', this.AIMessageController.UpdateHumanRatingAndRemark)
+
+
     this.router.get('/ai-manager', this.AIConfigController.GetAIConfig)
     this.router.post('/ai-manager', this.AIConfigController.CreateAIConfig)
     this.router.put('/ai-manager', this.AIConfigController.UpdateAIConfig)
@@ -30,6 +34,7 @@ class Route implements Routes {
 
     // 加载所有gitlab token
     this.router.post('/gitlab/token/refresh', this.GitlabController.refreshGitlabToken)
+
   }
 }
 

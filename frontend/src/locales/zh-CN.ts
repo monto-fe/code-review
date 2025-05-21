@@ -151,6 +151,8 @@ export default {
   'page.aicodecheck.gitlab.source_branch': '源分支',
   'page.aicodecheck.gitlab.target_branch': '目标分支',
 
+  'page.aicodecheck.comment.human_rating': '评分',
+  'page.aicodecheck.comment.remark': '备注',
   'setting.pagestyle': '页面风格',
   'setting.navigationmode': '导航风格',
   'setting.headfixed': '固定头部',

@@ -53,7 +53,7 @@ class WebhookController {
         });
     }
 
-    const result:any = await this.AICheckService.checkMergeRequestWithAI({
+    const { result, id: aiMessageId }:any = await this.AICheckService.checkMergeRequestWithAI({
       mergeRequest, 
       diff,
       gitlabAPI: gitlabAPI,
@@ -79,7 +79,8 @@ class WebhookController {
         const webhookContent = PushWeChatInfo({
             path_with_namespace,
             merge_url,
-            result
+            result,
+            id: aiMessageId
         });
         await this.sendMarkdownToWechatBot(webhook_url, webhookContent);
         console.log("推送webhook成功", mergeRequest);
@@ -87,11 +88,12 @@ class WebhookController {
   }
 
   public GetAIMessage = async (req: Request, res: Response, next: NextFunction) => {
-    const { projectId, current, pageSize } = req.query as any;
+    const { id, projectId, current, pageSize } = req.query as any;
     const pageParams = pageCompute(current, pageSize)
         const params: any = {
           ...pageParams,
-          projectId: projectId
+          projectId,
+          id
         }
     const { rows, count } = await this.AICheckService.getAIMessage(params);
     ResponseHandler.success(res, { data: rows, total: count }, 'success');

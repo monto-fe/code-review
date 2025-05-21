@@ -153,6 +153,9 @@ export default {
   'page.aicodecheck.gitlab.source_branch': 'Source Branch',
   'page.aicodecheck.gitlab.target_branch': 'Target Branch',
 
+  'page.aicodecheck.comment.human_rating': 'rating',
+  'page.aicodecheck.comment.remark': 'remark',
+
   'setting.pagestyle': 'page styles',
   'setting.navigationmode': 'nav mode',
   'setting.headfixed': 'head fixed',
