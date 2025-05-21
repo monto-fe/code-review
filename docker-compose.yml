@@ -27,6 +27,8 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_DATABASE=${DB_DATABASE}
+      - CONSOLE_PORT=${CONSOLE_PORT}
+      - IP=${IP}
     ports:
       - "${API_PORT}:9000"
     restart: always

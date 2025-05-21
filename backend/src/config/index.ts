@@ -1,7 +1,7 @@
 import { config } from 'dotenv';
 config({ path: `.env.${process.env.NODE_ENV || 'development'}` });
 
-console.log("current environment is", process.env.NODE_ENV, process.env.DOMAIN)
+console.log("current environment is", process.env.NODE_ENV, process.env.DOMAIN, process.env.CONSOLE_PORT, process.env.IP)
 
 export const CREDENTIALS = process.env.CREDENTIALS === 'true';
 export const { 
