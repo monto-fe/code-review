@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import AICheckService from '../services/aiCheck.service';
 import GitlabService from '../services/gitlab.service';
 import AIRuleService from '../services/aiRule.service';
+import AIMessageService from '../services/aiMessage.service';
 import ResponseHandler from '../utils/responseHandler';
 import { ResponseMap } from '../utils/const';
 
@@ -11,6 +12,7 @@ class AIMessageController {
   public AICheckService = new AICheckService();
   public GitlabService = new GitlabService();
   public AIRuleService = new AIRuleService();
+  public AIMessageService = new AIMessageService();
 
   public CreateCommonRule = async (req: Request, res: Response, next: NextFunction) => {
     const { name, language, rule, description } = req.body as any;
@@ -65,7 +67,7 @@ class AIMessageController {
     if (!id || !human_rating) {
       return ResponseHandler.error(res, { message: 'id, human_rating is required' }, ParamsError.message, ParamsError.ret_code);
     }
-    const result = await this.AIRuleService.updateHumanRatingAndRemark({
+    const result = await this.AIMessageService.updateHumanRatingAndRemark({
       id, human_rating, remark
     });
     ResponseHandler.success(res, { data: result }, 'success');
