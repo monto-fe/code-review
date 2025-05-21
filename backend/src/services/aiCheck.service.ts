@@ -144,8 +144,6 @@ class AICheckService {
     }) {
         const AIInfo = AIConfigManager.getConfig();
         const { project_id, iid, title, description, web_url, author, url } = mergeRequest;
-        console.log("mergeRequest:", mergeRequest)
-        console.log("url", url)
         // 在这里获取merge项目信息，匹配配置的代码规范，组合成AI提示词
         // TODO: 
         let currentRule = '符合代码行业的常规写法'
@@ -205,7 +203,6 @@ class AICheckService {
           result: comments,
           create_time: this.now
         });
-        console.log("Created AIMessage:", result.dataValues);
         const id = result.dataValues.id;
         return { comments, id }
     }

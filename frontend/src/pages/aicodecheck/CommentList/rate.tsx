@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Flex, Rate as AntRate, message } from 'antd';
 import { updateRating } from './service';
 
-const desc = ['terrible', 'bad', 'normal', 'good', 'wonderful'];
+const desc = ['完全误导性建议', '发现BUG但无实用价值', '找到Bug', '精准定位并提供建议', '超出预期的指导'];
 
 interface RateProps {
   id: number;

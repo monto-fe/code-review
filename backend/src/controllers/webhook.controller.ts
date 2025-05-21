@@ -53,13 +53,13 @@ class WebhookController {
         });
     }
 
-    const { result, id: aiMessageId }:any = await this.AICheckService.checkMergeRequestWithAI({
+    const { comments: result, id: aiMessageId }:any = await this.AICheckService.checkMergeRequestWithAI({
       mergeRequest, 
       diff,
       gitlabAPI: gitlabAPI,
       gitlabToken: gitlabToken
     });
-    console.log("AI检查结果:", result);
+    console.log("AI检查结果:", result, aiMessageId);
 
     // 将 AI 检查结果作为评论写入 GitLab
     let commentResponse = ''
@@ -79,7 +79,7 @@ class WebhookController {
         const webhookContent = PushWeChatInfo({
             path_with_namespace,
             merge_url,
-            result,
+            result: result,
             id: aiMessageId
         });
         await this.sendMarkdownToWechatBot(webhook_url, webhookContent);
