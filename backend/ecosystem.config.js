@@ -1,19 +1,19 @@
-const dotenv = require('dotenv');
-const fs = require('fs');
+// const dotenv = require('dotenv');
+// const fs = require('fs');
 
-// 获取当前指定的环境
-const currentEnv = process.env.NODE_ENV || 'development';
-const envFile = `.env.${currentEnv}`;
+// // 获取当前指定的环境
+// const currentEnv = process.env.NODE_ENV || 'development';
+// const envFile = `.env.${currentEnv}`;
 
-// 检查文件存在才加载
-if (fs.existsSync(envFile)) {
-  dotenv.config({ path: envFile });
-  console.log(`✅ Loaded env from ${envFile}`);
-} else {
-  console.warn(`⚠️ No ${envFile} file found`);
-}
+// // 检查文件存在才加载
+// if (fs.existsSync(envFile)) {
+//   dotenv.config({ path: envFile });
+//   console.log(`✅ Loaded env from ${envFile}`);
+// } else {
+//   console.warn(`⚠️ No ${envFile} file found`);
+// }
 
-console.log("process.env.PORT", process.env.PORT)
+// console.log("process.env.PORT", process.env.PORT)
 /**
  * @description pm2 configuration file.
  * @example

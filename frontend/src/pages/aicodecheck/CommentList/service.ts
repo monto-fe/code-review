@@ -16,3 +16,16 @@ export async function queryList(params?: TableQueryParam): Promise<any> {
   });
 }
 
+export async function updateRating(id: number, human_rating: number): Promise<any> {
+  return request({
+    ...config,
+    url: `/ai/message`,
+    method: 'put',
+    data: {
+      id,
+      human_rating,
+      namespace,
+    },
+  });
+}
+

@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken')
 const fs = require('fs');
 const dayjs = require('dayjs');
 const { Buffer } = require('buffer');
+const { CONSOLE_PORT, IP } = require('../config');
 /**
  * @method isEmpty
  * @param {String | Number | Object} value
@@ -114,13 +115,14 @@ export function generateAudioFileKey(userId: number, questionId: number):string{
 }
 
 // 通过webhook推送到企业微信群
-export const PushWeChatInfo = ({path_with_namespace, merge_url, result}:{
+export const PushWeChatInfo = ({path_with_namespace, merge_url, result, id}:{
   path_with_namespace: string, 
   merge_url: string, 
-  result: string
+  result: string,
+  id: number
 }) => {
   return `🔍 您的「${path_with_namespace}」合并请求「[${merge_url}](${merge_url})」触发了AI检测，详情如下：
 ${result}
 
-📝 请您到 [系统](xxxx) 中反馈Bug检测效果，帮助我们不断优化～`
+📝 请您到 [系统](http://${IP}:${CONSOLE_PORT}/aicodecheck/commentList?id=${id}) 中反馈Bug检测效果，帮助我们不断优化～`
 }

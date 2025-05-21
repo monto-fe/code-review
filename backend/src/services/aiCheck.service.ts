@@ -193,61 +193,21 @@ class AICheckService {
             // responseType: "stream"
           }
         );
-        console.log("completion:", completion.data)
+        //console.log("completion:", completion.data)
         const comments = completion.data.choices[0].message.content;
-        try{
-          this.AIMessage.create({
-            project_id: project_id,
-            merge_url: web_url,
-            merge_id: iid,
-            ai_model: AIInfo.model,
-            rule: 1,
-            rule_id: 1,
-            result: comments,
-            create_time: this.now
-          })
-        }catch(err){
-          console.log("err:", err);
-        }
-        return comments
-        
-        /*  处理流式返回 */
-        // return new Promise((resolve, reject) => {
-        //   let responseText = "";
-        //   stream.data.on('data', (chunk:any) => {
-        //     if(chunk){
-        //       const chunkString = chunk.toString();
-        //       // console.log("chunk", chunkString)
-        //       if(!chunkString.includes('reasoning_content')){
-        //         // console.log("chunkString", chunkString)
-        //         if (chunkString.startsWith('data: ')) {
-        //           const jsonString = chunkString.replace('data: ', '');
-        //           if (jsonString.trim() !== '[DONE]') {
-        //             try {
-        //               const json = JSON.parse(jsonString);
-        //               if (json.choices && json.choices.length > 0) {
-        //                 const delta = json.choices[0].delta;
-        //                 // console.log("jsonString", delta)
-        //                 responseText += delta?.content;
-        //                 process.stdout.write(delta.content); // 实时打印到终端
-        //               }
-        //             } catch (parseError) {
-        //               console.error("解析 JSON 数据时发生错误:", parseError);
-        //             }
-        //           }
-        //         }
-        //       }
-        //     }
-        //   });
-        //   stream.data.on("end", () => {
-        //       console.log("\nAI 审查结果:", responseText);
-        //       resolve(responseText); // **在流结束后，返回完整的 responseText**
-        //   });
-        //   stream.data.on("error", (error: Error) => {
-        //       console.error("AI 请求错误:", error);
-        //       reject(error);
-        //   });
-        // })
+        const result = await this.AIMessage.create({
+          project_id: project_id,
+          merge_url: web_url,
+          merge_id: iid,
+          ai_model: AIInfo.model,
+          rule: 1,
+          rule_id: 1,
+          result: comments,
+          create_time: this.now
+        });
+        console.log("Created AIMessage:", result.dataValues);
+        const id = result.dataValues.id;
+        return { comments, id }
     }
 
     public async postCommentToGitLab({
