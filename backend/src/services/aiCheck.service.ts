@@ -235,16 +235,20 @@ class AICheckService {
     }
 
     public async getAIMessage({
-      projectId, limit, offset
+      id, projectId, limit, offset
     }:{
-      projectId: string, limit: number, offset: number
+      id:number, projectId: string, limit: number, offset: number
     }): Promise<any> {
       let params: any = {
         limit,
         offset,
+        where: {},
         order: [
           ['id', 'DESC']
         ]
+      }
+      if(id){
+        params.where.id = id
       }
       if(projectId){
         params.where.project_id = projectId
