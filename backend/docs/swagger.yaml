@@ -1,0 +1,936 @@
+basePath: /v1
+definitions:
+  ai_check.ObjectAttributes:
+    properties:
+      action:
+        type: string
+      iid:
+        type: integer
+      source_branch:
+        type: string
+      target_branch:
+        type: string
+      url:
+        type: string
+    type: object
+  ai_check.ProjectInfo:
+    properties:
+      id:
+        type: integer
+      path_with_namespace:
+        type: string
+    type: object
+  ai_check.WebhookBody:
+    properties:
+      object_attributes:
+        $ref: '#/definitions/ai_check.ObjectAttributes'
+      project:
+        $ref: '#/definitions/ai_check.ProjectInfo'
+    type: object
+  dto.AIMessageCreateRequest:
+    properties:
+      ai_model:
+        description: AI模型
+        type: string
+      merge_id:
+        description: 合并请求ID
+        type: integer
+      merge_url:
+        description: 合并请求URL
+        type: string
+      project_id:
+        description: 项目ID
+        type: integer
+      result:
+        description: AI评论结果
+        type: string
+      rule:
+        description: 规则类型
+        type: integer
+      rule_id:
+        description: 规则ID
+        type: integer
+    required:
+    - ai_model
+    - merge_id
+    - merge_url
+    - project_id
+    - result
+    - rule
+    - rule_id
+    type: object
+  dto.AIMessageCreateResponse:
+    properties:
+      comments:
+        description: 评论内容
+        type: string
+      id:
+        description: 消息ID
+        type: integer
+    type: object
+  dto.AIMessageItem:
+    properties:
+      ai_model:
+        description: AI模型
+        type: string
+      checked_by:
+        description: 检查人
+        type: string
+      create_time:
+        description: 创建时间
+        type: integer
+      human_rating:
+        description: 人工评分
+        type: integer
+      id:
+        description: 消息ID
+        type: integer
+      merge_id:
+        description: 合并请求ID
+        type: integer
+      merge_url:
+        description: 合并请求URL
+        type: string
+      passed:
+        description: 是否通过
+        type: boolean
+      project_id:
+        description: 项目ID
+        type: integer
+      remark:
+        description: 备注
+        type: string
+      result:
+        description: AI评论结果
+        type: string
+      rule:
+        description: 规则类型
+        type: integer
+      rule_id:
+        description: 规则ID
+        type: integer
+      status:
+        description: 状态
+        type: integer
+      update_time:
+        description: 更新时间
+        type: integer
+    type: object
+  dto.AIMessageListResponse:
+    properties:
+      data:
+        description: 消息列表
+        items:
+          $ref: '#/definitions/dto.AIMessageItem'
+        type: array
+      total:
+        description: 总数
+        type: integer
+    type: object
+  dto.AIMessageUpdateRequest:
+    properties:
+      human_rating:
+        type: integer
+      id:
+        type: integer
+      remark:
+        type: string
+    required:
+    - human_rating
+    - id
+    - remark
+    type: object
+  dto.CreateInnerUserRequest:
+    properties:
+      email:
+        type: string
+      job:
+        type: string
+      name:
+        type: string
+      namespace:
+        type: string
+      operator:
+        type: string
+      password:
+        type: string
+      phone_number:
+        type: string
+      role_ids:
+        items:
+          type: integer
+        type: array
+      user:
+        type: string
+    required:
+    - name
+    - namespace
+    - password
+    - user
+    type: object
+  dto.UpdateInnerUserRequest:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      job:
+        type: string
+      name:
+        type: string
+      namespace:
+        type: string
+      password:
+        type: string
+      phone_number:
+        type: string
+      role_ids:
+        items:
+          type: integer
+        type: array
+      user:
+        type: string
+    required:
+    - id
+    - namespace
+    type: object
+  dto.UserLoginRequest:
+    properties:
+      namespace:
+        example: acl
+        type: string
+      password:
+        example: "12345678"
+        type: string
+      user:
+        example: admin
+        type: string
+    required:
+    - namespace
+    - password
+    - user
+    type: object
+  model.AIConfig:
+    properties:
+      api_key:
+        type: string
+      api_url:
+        type: string
+      create_time:
+        type: integer
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      model:
+        type: string
+      name:
+        type: string
+      status:
+        type: integer
+      type:
+        type: string
+      update_time:
+        type: integer
+    type: object
+  model.AIConfigCreate:
+    properties:
+      api_key:
+        type: string
+      api_url:
+        type: string
+      is_active:
+        type: boolean
+      model:
+        type: string
+      name:
+        type: string
+      type:
+        type: string
+    required:
+    - api_key
+    - api_url
+    - is_active
+    - model
+    - name
+    - type
+    type: object
+  model.AIConfigDelete:
+    properties:
+      id:
+        type: integer
+    required:
+    - id
+    type: object
+  model.AIConfigResponse:
+    properties:
+      api_url:
+        type: string
+      create_time:
+        type: integer
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      model:
+        type: string
+      name:
+        type: string
+      type:
+        type: string
+      update_time:
+        type: integer
+    type: object
+  model.AIConfigUpdate:
+    properties:
+      api_key:
+        type: string
+      api_url:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      model:
+        type: string
+      name:
+        type: string
+      type:
+        type: string
+    required:
+    - api_key
+    - api_url
+    - id
+    - is_active
+    - model
+    - name
+    - type
+    type: object
+  model.GitlabDeleteRequest:
+    properties:
+      id:
+        type: integer
+    required:
+    - id
+    type: object
+  model.GitlabInfo:
+    properties:
+      api:
+        type: string
+      create_time:
+        type: integer
+      expired:
+        type: integer
+      gitlab_url:
+        type: string
+      gitlab_version:
+        type: string
+      id:
+        type: integer
+      project_ids:
+        type: string
+      project_ids_synced:
+        type: boolean
+      prompt:
+        type: string
+      rule_check_status:
+        type: integer
+      source_branch:
+        type: string
+      status:
+        type: integer
+      target_branch:
+        type: string
+      token:
+        type: string
+      update_time:
+        type: integer
+      webhook_name:
+        type: string
+      webhook_status:
+        type: integer
+      webhook_url:
+        type: string
+    type: object
+  model.GitlabInfoCreate:
+    properties:
+      api:
+        type: string
+      expired:
+        type: integer
+      gitlab_url:
+        type: string
+      gitlab_version:
+        type: string
+      prompt:
+        type: string
+      rule_check_status:
+        type: integer
+      source_branch:
+        type: string
+      status:
+        description: '1: 启用, -1: 禁用'
+        type: integer
+      target_branch:
+        type: string
+      token:
+        type: string
+      webhook_name:
+        type: string
+      webhook_status:
+        type: integer
+      webhook_url:
+        type: string
+    required:
+    - api
+    - status
+    - token
+    type: object
+  response.Response:
+    properties:
+      data: {}
+      error: {}
+      message:
+        type: string
+      ret_code:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Code Review API documentation
+  title: Code Review API
+  version: "1.0"
+paths:
+  /v1/ai/config:
+    delete:
+      consumes:
+      - application/json
+      description: 删除现有的 AI 配置
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 配置ID
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.AIConfigDelete'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 删除AI配置
+      tags:
+      - AI配置
+    get:
+      consumes:
+      - application/json
+      description: 获取 AI 配置信息
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.AIConfigResponse'
+                  type: array
+              type: object
+      summary: 获取 AI 配置
+      tags:
+      - AI配置
+    post:
+      consumes:
+      - application/json
+      description: 创建新的 AI 配置
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: AI配置信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.AIConfigCreate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.AIConfig'
+              type: object
+      summary: 创建 AI 配置
+      tags:
+      - AI配置
+    put:
+      consumes:
+      - application/json
+      description: 更新现有的 AI 配置
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: AI配置信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.AIConfigUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 更新 AI 配置
+      tags:
+      - AI配置
+  /v1/ai/message:
+    get:
+      consumes:
+      - application/json
+      description: 获取AI代码审查消息列表
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 项目ID
+        in: query
+        name: project_id
+        type: integer
+      - description: 消息ID
+        in: query
+        name: id
+        type: integer
+      - default: 1
+        description: 当前页码
+        in: query
+        name: current
+        type: integer
+      - default: 10
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AIMessageListResponse'
+              type: object
+      summary: 获取AI消息列表
+      tags:
+      - AI消息
+    post:
+      consumes:
+      - application/json
+      description: 创建新的AI代码审查消息
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: AI消息信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AIMessageCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AIMessageCreateResponse'
+              type: object
+      summary: 创建AI消息
+      tags:
+      - AI消息
+    put:
+      consumes:
+      - application/json
+      description: 更新AI代码审查消息的人工评分和备注
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 更新信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AIMessageUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 更新AI消息
+      tags:
+      - AI消息
+  /v1/gitlab:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的 Gitlab Token
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: Gitlab Token ID
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.GitlabDeleteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 删除 Gitlab Token
+      tags:
+      - Gitlab
+    get:
+      consumes:
+      - application/json
+      description: 获取所有 Gitlab 配置信息
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 获取 Gitlab 列表
+      tags:
+      - Gitlab
+    post:
+      consumes:
+      - application/json
+      description: 创建新的 Gitlab Token
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: Gitlab 配置信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.GitlabInfoCreate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 创建 Gitlab Token
+      tags:
+      - Gitlab
+    put:
+      consumes:
+      - application/json
+      description: 更新现有的 Gitlab Token
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: Gitlab 配置信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.GitlabInfo'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 更新 Gitlab Token
+      tags:
+      - Gitlab
+  /v1/gitlab/token/refresh:
+    post:
+      consumes:
+      - application/json
+      description: 刷新所有 Gitlab Token
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 刷新 Gitlab Token
+      tags:
+      - Gitlab
+  /v1/login:
+    post:
+      consumes:
+      - application/json
+      description: 用户登录接口
+      parameters:
+      - description: 登录信息
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 返回 JWT token 和用户信息
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 用户登录
+      tags:
+      - 用户管理
+  /v1/user:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定用户
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 用户ID
+        in: query
+        name: id
+        required: true
+        type: integer
+      - description: 命名空间
+        in: query
+        name: namespace
+        required: true
+        type: string
+      - description: 用户名
+        in: query
+        name: user
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 删除成功
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 删除用户
+      tags:
+      - 用户管理
+    post:
+      consumes:
+      - application/json
+      description: 创建新的内部用户
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 用户信息
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateInnerUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 创建成功
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 创建内部用户
+      tags:
+      - 用户管理
+    put:
+      consumes:
+      - application/json
+      description: 更新内部用户信息
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 用户信息
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateInnerUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 更新内部用户
+      tags:
+      - 用户管理
+  /v1/user/info:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前登录用户的详细信息
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 返回用户信息和角色列表
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取用户信息
+      tags:
+      - 用户管理
+  /v1/webhook/merge:
+    post:
+      consumes:
+      - application/json
+      description: 处理 GitLab 合并请求的 webhook，自动触发 AI 代码审查与评论
+      parameters:
+      - description: Webhook 触发参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/ai_check.WebhookBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 触发 AI 代码审查
+      tags:
+      - Webhook
+swagger: "2.0"

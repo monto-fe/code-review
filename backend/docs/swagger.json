@@ -1,0 +1,1412 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Code Review API documentation",
+        "title": "Code Review API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/v1",
+    "paths": {
+        "/v1/ai/config": {
+            "get": {
+                "description": "获取 AI 配置信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI配置"
+                ],
+                "summary": "获取 AI 配置",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/model.AIConfigResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "更新现有的 AI 配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI配置"
+                ],
+                "summary": "更新 AI 配置",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "AI配置信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.AIConfigUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "创建新的 AI 配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI配置"
+                ],
+                "summary": "创建 AI 配置",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "AI配置信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.AIConfigCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/model.AIConfig"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "删除现有的 AI 配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI配置"
+                ],
+                "summary": "删除AI配置",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "配置ID",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.AIConfigDelete"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/ai/message": {
+            "get": {
+                "description": "获取AI代码审查消息列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI消息"
+                ],
+                "summary": "获取AI消息列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "项目ID",
+                        "name": "project_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "消息ID",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "当前页码",
+                        "name": "current",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "每页数量",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.AIMessageListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "更新AI代码审查消息的人工评分和备注",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI消息"
+                ],
+                "summary": "更新AI消息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "更新信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AIMessageUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "创建新的AI代码审查消息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI消息"
+                ],
+                "summary": "创建AI消息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "AI消息信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AIMessageCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.AIMessageCreateResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/gitlab": {
+            "get": {
+                "description": "获取所有 Gitlab 配置信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gitlab"
+                ],
+                "summary": "获取 Gitlab 列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "更新现有的 Gitlab Token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gitlab"
+                ],
+                "summary": "更新 Gitlab Token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Gitlab 配置信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.GitlabInfo"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "创建新的 Gitlab Token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gitlab"
+                ],
+                "summary": "创建 Gitlab Token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Gitlab 配置信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.GitlabInfoCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "删除指定的 Gitlab Token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gitlab"
+                ],
+                "summary": "删除 Gitlab Token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Gitlab Token ID",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.GitlabDeleteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/gitlab/token/refresh": {
+            "post": {
+                "description": "刷新所有 Gitlab Token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gitlab"
+                ],
+                "summary": "刷新 Gitlab Token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/login": {
+            "post": {
+                "description": "用户登录接口",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "用户登录",
+                "parameters": [
+                    {
+                        "description": "登录信息",
+                        "name": "login",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserLoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "返回 JWT token 和用户信息",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/user": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "更新内部用户信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "更新内部用户",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "用户信息",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateInnerUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "创建新的内部用户",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "创建内部用户",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "用户信息",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateInnerUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "创建成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "删除指定用户",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "删除用户",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "用户ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "命名空间",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "用户名",
+                        "name": "user",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "删除成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/user/info": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "获取当前登录用户的详细信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "获取用户信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "返回用户信息和角色列表",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/webhook/merge": {
+            "post": {
+                "description": "处理 GitLab 合并请求的 webhook，自动触发 AI 代码审查与评论",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Webhook"
+                ],
+                "summary": "触发 AI 代码审查",
+                "parameters": [
+                    {
+                        "description": "Webhook 触发参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ai_check.WebhookBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "ai_check.ObjectAttributes": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "iid": {
+                    "type": "integer"
+                },
+                "source_branch": {
+                    "type": "string"
+                },
+                "target_branch": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "ai_check.ProjectInfo": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "path_with_namespace": {
+                    "type": "string"
+                }
+            }
+        },
+        "ai_check.WebhookBody": {
+            "type": "object",
+            "properties": {
+                "object_attributes": {
+                    "$ref": "#/definitions/ai_check.ObjectAttributes"
+                },
+                "project": {
+                    "$ref": "#/definitions/ai_check.ProjectInfo"
+                }
+            }
+        },
+        "dto.AIMessageCreateRequest": {
+            "type": "object",
+            "required": [
+                "ai_model",
+                "merge_id",
+                "merge_url",
+                "project_id",
+                "result",
+                "rule",
+                "rule_id"
+            ],
+            "properties": {
+                "ai_model": {
+                    "description": "AI模型",
+                    "type": "string"
+                },
+                "merge_id": {
+                    "description": "合并请求ID",
+                    "type": "integer"
+                },
+                "merge_url": {
+                    "description": "合并请求URL",
+                    "type": "string"
+                },
+                "project_id": {
+                    "description": "项目ID",
+                    "type": "integer"
+                },
+                "result": {
+                    "description": "AI评论结果",
+                    "type": "string"
+                },
+                "rule": {
+                    "description": "规则类型",
+                    "type": "integer"
+                },
+                "rule_id": {
+                    "description": "规则ID",
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.AIMessageCreateResponse": {
+            "type": "object",
+            "properties": {
+                "comments": {
+                    "description": "评论内容",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "消息ID",
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.AIMessageItem": {
+            "type": "object",
+            "properties": {
+                "ai_model": {
+                    "description": "AI模型",
+                    "type": "string"
+                },
+                "checked_by": {
+                    "description": "检查人",
+                    "type": "string"
+                },
+                "create_time": {
+                    "description": "创建时间",
+                    "type": "integer"
+                },
+                "human_rating": {
+                    "description": "人工评分",
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "消息ID",
+                    "type": "integer"
+                },
+                "merge_id": {
+                    "description": "合并请求ID",
+                    "type": "integer"
+                },
+                "merge_url": {
+                    "description": "合并请求URL",
+                    "type": "string"
+                },
+                "passed": {
+                    "description": "是否通过",
+                    "type": "boolean"
+                },
+                "project_id": {
+                    "description": "项目ID",
+                    "type": "integer"
+                },
+                "remark": {
+                    "description": "备注",
+                    "type": "string"
+                },
+                "result": {
+                    "description": "AI评论结果",
+                    "type": "string"
+                },
+                "rule": {
+                    "description": "规则类型",
+                    "type": "integer"
+                },
+                "rule_id": {
+                    "description": "规则ID",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态",
+                    "type": "integer"
+                },
+                "update_time": {
+                    "description": "更新时间",
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.AIMessageListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "消息列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.AIMessageItem"
+                    }
+                },
+                "total": {
+                    "description": "总数",
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.AIMessageUpdateRequest": {
+            "type": "object",
+            "required": [
+                "human_rating",
+                "id",
+                "remark"
+            ],
+            "properties": {
+                "human_rating": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "remark": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateInnerUserRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "namespace",
+                "password",
+                "user"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "job": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "operator": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "role_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateInnerUserRequest": {
+            "type": "object",
+            "required": [
+                "id",
+                "namespace"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "job": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "role_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UserLoginRequest": {
+            "type": "object",
+            "required": [
+                "namespace",
+                "password",
+                "user"
+            ],
+            "properties": {
+                "namespace": {
+                    "type": "string",
+                    "example": "acl"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "12345678"
+                },
+                "user": {
+                    "type": "string",
+                    "example": "admin"
+                }
+            }
+        },
+        "model.AIConfig": {
+            "type": "object",
+            "properties": {
+                "api_key": {
+                    "type": "string"
+                },
+                "api_url": {
+                    "type": "string"
+                },
+                "create_time": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "update_time": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.AIConfigCreate": {
+            "type": "object",
+            "required": [
+                "api_key",
+                "api_url",
+                "is_active",
+                "model",
+                "name",
+                "type"
+            ],
+            "properties": {
+                "api_key": {
+                    "type": "string"
+                },
+                "api_url": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.AIConfigDelete": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.AIConfigResponse": {
+            "type": "object",
+            "properties": {
+                "api_url": {
+                    "type": "string"
+                },
+                "create_time": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "update_time": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.AIConfigUpdate": {
+            "type": "object",
+            "required": [
+                "api_key",
+                "api_url",
+                "id",
+                "is_active",
+                "model",
+                "name",
+                "type"
+            ],
+            "properties": {
+                "api_key": {
+                    "type": "string"
+                },
+                "api_url": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.GitlabDeleteRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.GitlabInfo": {
+            "type": "object",
+            "properties": {
+                "api": {
+                    "type": "string"
+                },
+                "create_time": {
+                    "type": "integer"
+                },
+                "expired": {
+                    "type": "integer"
+                },
+                "gitlab_url": {
+                    "type": "string"
+                },
+                "gitlab_version": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "project_ids": {
+                    "type": "string"
+                },
+                "project_ids_synced": {
+                    "type": "boolean"
+                },
+                "prompt": {
+                    "type": "string"
+                },
+                "rule_check_status": {
+                    "type": "integer"
+                },
+                "source_branch": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "target_branch": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                },
+                "update_time": {
+                    "type": "integer"
+                },
+                "webhook_name": {
+                    "type": "string"
+                },
+                "webhook_status": {
+                    "type": "integer"
+                },
+                "webhook_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.GitlabInfoCreate": {
+            "type": "object",
+            "required": [
+                "api",
+                "status",
+                "token"
+            ],
+            "properties": {
+                "api": {
+                    "type": "string"
+                },
+                "expired": {
+                    "type": "integer"
+                },
+                "gitlab_url": {
+                    "type": "string"
+                },
+                "gitlab_version": {
+                    "type": "string"
+                },
+                "prompt": {
+                    "type": "string"
+                },
+                "rule_check_status": {
+                    "type": "integer"
+                },
+                "source_branch": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "1: 启用, -1: 禁用",
+                    "type": "integer"
+                },
+                "target_branch": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                },
+                "webhook_name": {
+                    "type": "string"
+                },
+                "webhook_status": {
+                    "type": "integer"
+                },
+                "webhook_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.Response": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "error": {},
+                "message": {
+                    "type": "string"
+                },
+                "ret_code": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}
