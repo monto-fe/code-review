@@ -92,7 +92,6 @@ CREATE TABLE IF NOT EXISTS `t_user` (
   `update_time` int unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
   `delete_time` int DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `o_id` (`o_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 -- 创建 t_user_role 表
@@ -143,6 +142,11 @@ CREATE TABLE IF NOT EXISTS `t_gitlab_info` (
   `gitlab_version` varchar(20) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'GitLab 版本',
   `expired` int unsigned NOT NULL DEFAULT '0' COMMENT '过期时间',
   `gitlab_url` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'GitLab 服务器地址',
+  `prompt` text COLLATE utf8mb4_general_ci COMMENT 'AI prompt信息',
+  `webhook_status` tinyint NOT NULL DEFAULT '0' COMMENT 'webhook状态(0: 未设置, 1: 已设置)',
+  `project_ids` text COLLATE utf8mb4_general_ci COMMENT '项目ID列表，逗号分隔',
+  `project_ids_synced` tinyint(1) NOT NULL DEFAULT '0' COMMENT '项目ID是否已同步(0: 未同步, 1: 已同步)',
+  `rule_check_status` tinyint NOT NULL DEFAULT '0' COMMENT '规则检查状态(0: 未检查, 1: 检查中, 2: 已检查)',
   `operator` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作人',
   `create_time` int unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
   `update_time` int unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
