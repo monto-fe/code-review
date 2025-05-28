@@ -10,7 +10,7 @@ const namespace = 'acl';
 export async function queryList(params?: TableQueryParam): Promise<any> {
   return request({
     ...config,
-    url: `/gitlab-info`,
+    url: `/gitlab`,
     method: 'get',
     params,
   });
@@ -19,7 +19,7 @@ export async function queryList(params?: TableQueryParam): Promise<any> {
 export async function createData(params: TableListItem): Promise<any> {
   return request({
     ...config,
-    url: '/gitlab-info',
+    url: '/gitlab',
     method: 'post',
     data: {
       ...params,
@@ -32,7 +32,7 @@ export async function createData(params: TableListItem): Promise<any> {
 export async function updateData(params: TableListItem): Promise<any> {
   return request({
     ...config,
-    url: `/gitlab-info`,
+    url: `/gitlab`,
     method: 'put',
     data: {
       ...params,
@@ -45,7 +45,7 @@ export async function updateData(params: TableListItem): Promise<any> {
 export async function removeData(id: number): Promise<any> {
   return request({
     ...config,
-    url: `/gitlab-info`,
+    url: `/gitlab`,
     method: 'delete',
     data: {
       id,
