@@ -27,7 +27,7 @@ type DatabaseConfig struct {
 // LoadConfig 加载配置
 func LoadConfig() *Config {
 	// 首先尝试加载外层的 .env 文件
-	if err := godotenv.Load("../.env"); err != nil {
+	if err := godotenv.Load(".env"); err != nil {
 		log.Printf("Warning: Could not load outer .env file: %v", err)
 	}
 
