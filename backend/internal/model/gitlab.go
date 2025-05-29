@@ -14,10 +14,10 @@ type GitlabInfo struct {
 	SourceBranch     string `json:"source_branch,omitempty"`
 	TargetBranch     string `json:"target_branch,omitempty"`
 	Prompt           string `json:"prompt,omitempty"`
-	WebhookStatus    int8   `json:"webhook_status,omitempty"`
+	WebhookStatus    int8   `json:"webhook_status,omitempty"` // 1: 启用, 2: 禁用
 	ProjectIds       string `json:"project_ids,omitempty" gorm:"type:text"`
-	ProjectIdsSynced bool   `json:"project_ids_synced" gorm:"default:false"`
-	RuleCheckStatus  int8   `json:"rule_check_status,omitempty"`
+	ProjectIdsSynced int8   `json:"project_ids_synced" gorm:"default:2"` // 1: 缓存失败, 2: 缓存中, 3: 缓存成功
+	RuleCheckStatus  int8   `json:"rule_check_status,omitempty"`         // 1: 启用, 2: 禁用
 	CreateTime       int64  `json:"create_time"`
 	UpdateTime       int64  `json:"update_time"`
 }
@@ -33,15 +33,15 @@ type GitlabInfoCreate struct {
 	Token           string `json:"token" binding:"required"`
 	WebhookURL      string `json:"webhook_url,omitempty"`
 	WebhookName     string `json:"webhook_name,omitempty"`
-	Status          int8   `json:"status" binding:"required"` // 1: 启用, -1: 禁用
+	Status          int8   `json:"status" binding:"required"` // 1: 启用, 2: 禁用
 	GitlabVersion   string `json:"gitlab_version,omitempty"`
 	Expired         int64  `json:"expired,omitempty"`
 	GitlabURL       string `json:"gitlab_url,omitempty"`
 	SourceBranch    string `json:"source_branch,omitempty"`
 	TargetBranch    string `json:"target_branch,omitempty"`
 	Prompt          string `json:"prompt,omitempty" gorm:"type:text"`
-	WebhookStatus   int8   `json:"webhook_status,omitempty"`
-	RuleCheckStatus int8   `json:"rule_check_status,omitempty"`
+	WebhookStatus   int8   `json:"webhook_status,omitempty"`    // 1: 启用, 2: 禁用
+	RuleCheckStatus int8   `json:"rule_check_status,omitempty"` // 1: 启用, 2: 禁用
 }
 
 type GitlabInfoUpdate struct {
@@ -73,28 +73,3 @@ type GitlabCacheItem struct {
 
 // GitlabCache Gitlab 缓存
 type GitlabCache map[string]GitlabCacheItem
-
-// GitlabInfoResponse Gitlab 信息响应模型
-type GitlabInfoResponse struct {
-	ID               uint   `json:"id"`
-	API              string `json:"api"`
-	WebhookURL       string `json:"webhook_url"`
-	WebhookName      string `json:"webhook_name"`
-	Status           int8   `json:"status"`
-	GitlabVersion    string `json:"gitlab_version"`
-	Expired          int64  `json:"expired"`
-	GitlabURL        string `json:"gitlab_url"`
-	SourceBranch     string `json:"source_branch"`
-	TargetBranch     string `json:"target_branch"`
-	Prompt           string `json:"prompt"`
-	ProjectIdsSynced bool   `json:"project_ids_synced"`
-	WebhookStatus    int8   `json:"webhook_status"`
-	RuleCheckStatus  int8   `json:"rule_check_status"`
-	CreateTime       int64  `json:"create_time"`
-	UpdateTime       int64  `json:"update_time"`
-}
-
-// GitlabDeleteRequest Gitlab 删除请求
-type GitlabDeleteRequest struct {
-	ID uint `json:"id" binding:"required"`
-}

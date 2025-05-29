@@ -9,7 +9,7 @@ type AIConfig struct {
 	Model      string `gorm:"type:varchar(50);not null" json:"model"`
 	Type       string `gorm:"type:varchar(50);not null" json:"type"`
 	IsActive   bool   `gorm:"column:is_active;not null;default:false" json:"is_active"`
-	Status     int8   `gorm:"column:status;not null" json:"status"`
+	Status     int8   `gorm:"column:status;not null" json:"status"` // 1: 启用, 2: 禁用
 	CreateTime int64  `gorm:"not null" json:"create_time"`
 	UpdateTime int64  `gorm:"not null" json:"update_time"`
 }

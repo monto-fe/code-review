@@ -23,7 +23,6 @@ const CreateForm: React.FC<ICreateFormProps> = (props) => {
       label: t('page.aicodecheck.gitlab.api'),
       name: 'api',
       type: FormType.Input,
-      required: true,
       tooltip: '假如gitlab部署域名为https://demo.com，则填写https://demo.com/api'
     },
     {

@@ -204,3 +204,10 @@ func CommonGetRequest(method, url, gitlabToken string, body interface{}) ([]byte
 
 	return io.ReadAll(resp.Body)
 }
+
+func MaskString(s string) string {
+	if len(s) <= 8 {
+		return s // 长度不足8直接返回原文
+	}
+	return s[:4] + "***" + s[len(s)-4:]
+}

@@ -150,6 +150,9 @@ export default {
   'page.aicodecheck.gitlab.webhook_url': 'webhook地址',
   'page.aicodecheck.gitlab.source_branch': '源分支',
   'page.aicodecheck.gitlab.target_branch': '目标分支',
+  'page.aicodecheck.gitlab.project_ids_synced': '项目ID同步',
+  'page.aicodecheck.gitlab.webhook_status': 'webhook推送',
+  'page.aicodecheck.gitlab.rule_check_status': '规则检查',
 
   'page.aicodecheck.comment.human_rating': '评分',
   'page.aicodecheck.comment.remark': '备注',

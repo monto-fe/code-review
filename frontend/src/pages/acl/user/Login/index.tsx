@@ -29,11 +29,17 @@ export default memo(
       setSubmitLoading(true);
       try {
         const response: ResponseData<LoginResponseData> = await accountLogin(values);
-        const { data } = response;
-        setToken(data?.jwt_token || '');
-        setLoginStatus('ok');
-        message.success(t('page.user.login.form.login-success'));
-        navigate('/', { replace: true });
+        const { ret_code, data } = response;
+        if (ret_code !== 0) {
+          message.error(t('page.user.login.form.login-error'));
+          return;
+        }else {
+          setToken(data?.jwt_token || '');
+          setLoginStatus('ok');
+          message.success(t('page.user.login.form.login-success'));
+          console.log('data', data);
+          navigate('/', { replace: true });
+        }
       } catch (error: any) {
         if (error.message && error.message === 'CustomError') {
           setLoginStatus('error');

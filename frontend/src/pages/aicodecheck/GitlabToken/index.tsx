@@ -1,5 +1,5 @@
 import { memo, useContext, useRef, useState } from 'react';
-import { Button, FormInstance, message, Popconfirm, PopconfirmProps, Space } from 'antd';
+import { Button, FormInstance, message, Popconfirm, PopconfirmProps, Space, Switch } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import { observer } from 'mobx-react-lite';
 import dayjs from 'dayjs';
@@ -13,6 +13,7 @@ import { renderDateFromTimestamp, timeFormatType } from '@/utils/timeformat';
 import { createData, queryList, removeData, updateData as updateDataService } from './service';
 import { TableQueryParam, TableListItem } from './data';
 import CreateForm from './components/CreateForm';
+import StatusTag from './components/StatusTag';
 
 function App() {
   const tableRef = useRef<ITable<TableListItem>>();
@@ -72,6 +73,49 @@ function App() {
     setCreateFormVisible(true);
   };
 
+  const [loadingId, setLoadingId] = useState<number | null>(null);
+  const [webhookLoadingId, setWebhookLoadingId] = useState<number | null>(null);
+
+  const handleRuleCheckStatusChange = async (id: number, checked: boolean) => {
+    setLoadingId(id);
+    try {
+      const { ret_code } = await updateDataService({id, rule_check_status: checked ? 1 : 2});
+      if (ret_code !== 0) {
+        message.error('状态更新失败');
+        return;
+      }
+      message.success('状态更新成功');
+      reload();
+    } catch (e) {
+      message.error('状态更新失败');
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  const handleWebhookStatusChange = async (record: TableListItem, checked: boolean) => {
+    // 增加逻辑，判断下webhook_url是否为空，如果为空，则提示用户需要先配置webhook_url
+    const { id, webhook_url } = record;
+    if (!webhook_url) {
+      message.error('请先配置webhook_url');
+      return;
+    }
+    setWebhookLoadingId(id);
+    try {
+      const { ret_code } = await updateDataService({id, webhook_status: checked ? 1 : 2});
+      if (ret_code !== 0) {
+        message.error('状态更新失败');
+        return;
+      }
+      message.success('状态更新成功');
+      reload();
+    } catch (e) {
+      message.error('状态更新失败');
+    } finally {
+      setWebhookLoadingId(null);
+    }
+  };
+
   const columns: ColumnsType<TableListItem> = [
     {
       title: 'id',
@@ -111,10 +155,40 @@ function App() {
       render: (text: number) => renderDateFromTimestamp(text, timeFormatType.time)
     },
     {
-      title: t('page.aicodecheck.gitlab.expired'),
-      dataIndex: 'expired',
-      key: 'expired',
-      render: (text: number) => renderDateFromTimestamp(text, timeFormatType.time)
+      title: t('page.aicodecheck.gitlab.project_ids_synced'),
+      dataIndex: 'project_ids_synced',
+      key: 'project_ids_synced',
+      render: (text: number) => {
+        return <StatusTag status={1} />
+      }
+    },
+    {
+      title: t('page.aicodecheck.gitlab.webhook_status'),
+      dataIndex: 'webhook_status',
+      key: 'webhook_status',
+      render: (text: number, record: TableListItem) => {
+        return <Switch
+        checked={text === 1}
+        checkedChildren="开启"
+        unCheckedChildren="关闭"
+        onChange={(checked) => handleWebhookStatusChange(record, checked)}
+        loading={webhookLoadingId === record.id}
+      />
+      }
+    },
+    {
+      title: t('page.aicodecheck.gitlab.rule_check_status'),
+      dataIndex: 'rule_check_status',
+      key: 'rule_check_status',
+      render: (text: number, record: TableListItem) => (
+        <Switch
+          checked={text === 1}
+          checkedChildren="开启"
+          unCheckedChildren="关闭"
+          onChange={(checked) => handleRuleCheckStatusChange(record.id, checked)}
+          loading={loadingId === record.id}
+        />
+      )
     },
     {
       title: t('app.table.action'),
@@ -124,6 +198,9 @@ function App() {
       width: 220,
       render: (text, record: TableListItem) => (
         <Space size='small'>
+          {/* <Button className='btn-group-cell' size='small' type='link' onClick={() => handleUpdate(record)}>
+            {t('app.global.view')}
+          </Button> */}
           <Button className='btn-group-cell' size='small' type='link' onClick={() => handleUpdate(record)}>
             {t('app.global.edit')}
           </Button>
@@ -156,6 +233,7 @@ function App() {
             {t('page.aicodecheck.gitlab.add')}
           </Button>
         }
+        scroll={{ x: 1500 }}
         useTools
       />
 

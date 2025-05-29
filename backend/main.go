@@ -65,7 +65,7 @@ func main() {
 	docs.SwaggerInfo.Title = "Code Review API"
 	docs.SwaggerInfo.Description = "Code Review API documentation"
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "localhost:9000"
+	docs.SwaggerInfo.Host = cfg.IP + ":" + cfg.Port
 	docs.SwaggerInfo.BasePath = ""
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 	docs.SwaggerInfo.InfoInstanceName = "swagger"
@@ -79,7 +79,7 @@ func main() {
 	routes.InitializeWebSocketRoutes(r, hub)
 
 	// 启动服务器
-	log.Printf("Server is running on http://localhost:%s", cfg.Port)
+	log.Printf("Server is running on http://%s:%s", cfg.IP, cfg.Port)
 	if err := r.Run(":" + cfg.Port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}

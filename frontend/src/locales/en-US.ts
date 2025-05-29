@@ -152,6 +152,9 @@ export default {
   'page.aicodecheck.gitlab.webhook_url': 'Webhook URL',
   'page.aicodecheck.gitlab.source_branch': 'Source Branch',
   'page.aicodecheck.gitlab.target_branch': 'Target Branch',
+  'page.aicodecheck.gitlab.project_ids_synced': 'Project IDs Synced',
+  'page.aicodecheck.gitlab.webhook_status': 'Webhook Status',
+  'page.aicodecheck.gitlab.rule_check_status': 'Rule Check Status',
 
   'page.aicodecheck.comment.human_rating': 'rating',
   'page.aicodecheck.comment.remark': 'remark',

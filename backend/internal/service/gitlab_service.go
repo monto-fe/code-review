@@ -1,6 +1,7 @@
 package service
 
 import (
+	dto "code-review-go/internal/dto"
 	"code-review-go/internal/model"
 	"code-review-go/internal/pkg/utils"
 	"encoding/json"
@@ -17,6 +18,13 @@ var (
 	ErrParamsInvalid = errors.New("invalid parameters")
 )
 
+// ProjectIdsSynced 枚举
+const (
+	ProjectIdsSyncedFailed  int8 = 1 // 缓存失败
+	ProjectIdsSyncedPending int8 = 2 // 缓存中
+	ProjectIdsSyncedSuccess int8 = 3 // 缓存成功
+)
+
 // GitlabService Gitlab服务
 type GitlabService struct {
 	db *gorm.DB
@@ -28,17 +36,19 @@ func NewGitlabService(db *gorm.DB) *GitlabService {
 }
 
 // GetGitlabInfo 获取Gitlab信息
-func (s *GitlabService) GetGitlabInfo() ([]model.GitlabInfoResponse, error) {
+func (s *GitlabService) GetGitlabInfo() ([]dto.GitlabInfoResponse, error) {
 	var gitlabList []model.GitlabInfo
 	if err := s.db.Find(&gitlabList).Error; err != nil {
 		return nil, err
 	}
 
 	// 转换为响应模型，过滤敏感信息
-	responseList := make([]model.GitlabInfoResponse, len(gitlabList))
+	responseList := make([]dto.GitlabInfoResponse, len(gitlabList))
 	for i, info := range gitlabList {
-		responseList[i] = model.GitlabInfoResponse{
+		responseList[i] = dto.GitlabInfoResponse{
 			ID:               info.ID,
+			API:              utils.MaskString(info.API),
+			WebhookURL:       utils.MaskString(info.WebhookURL),
 			WebhookName:      info.WebhookName,
 			Status:           info.Status,
 			GitlabVersion:    info.GitlabVersion,
@@ -65,20 +75,21 @@ func (s *GitlabService) CreateGitlabToken(data model.GitlabInfoCreate) (*model.G
 
 	now := time.Now().Unix()
 	gitlabInfo := &model.GitlabInfo{
-		API:             data.API,
-		Token:           data.Token,
-		WebhookName:     data.WebhookName,
-		WebhookURL:      data.WebhookURL,
-		Status:          data.Status,
-		GitlabVersion:   data.GitlabVersion,
-		GitlabURL:       data.GitlabURL,
-		SourceBranch:    data.SourceBranch,
-		TargetBranch:    data.TargetBranch,
-		Prompt:          data.Prompt,
-		WebhookStatus:   data.WebhookStatus,
-		RuleCheckStatus: data.RuleCheckStatus,
-		CreateTime:      now,
-		UpdateTime:      now,
+		API:              data.API,
+		Token:            data.Token,
+		WebhookName:      data.WebhookName,
+		WebhookURL:       data.WebhookURL,
+		Status:           data.Status,
+		GitlabVersion:    data.GitlabVersion,
+		GitlabURL:        data.GitlabURL,
+		SourceBranch:     data.SourceBranch,
+		TargetBranch:     data.TargetBranch,
+		Prompt:           data.Prompt,
+		WebhookStatus:    data.WebhookStatus,
+		RuleCheckStatus:  data.RuleCheckStatus,
+		ProjectIdsSynced: ProjectIdsSyncedPending,
+		CreateTime:       now,
+		UpdateTime:       now,
 	}
 
 	if data.Expired != 0 {
@@ -91,18 +102,28 @@ func (s *GitlabService) CreateGitlabToken(data model.GitlabInfoCreate) (*model.G
 
 	// 异步获取项目列表
 	go func() {
-		projectIDs, err := fetchProjectIDs(data.Token, data.API)
-		if err != nil {
-			fmt.Printf("Failed to fetch project IDs for token %s: %v\n", data.Token, err)
-			return
+		var projectIDsStr string
+		var updateStatus int8
+
+		if data.Token == "" {
+			updateStatus = ProjectIdsSyncedFailed
+		} else {
+			projectIDs, err := fetchProjectIDs(data.Token, data.API)
+			if err != nil || len(projectIDs) == 0 {
+				updateStatus = ProjectIdsSyncedFailed
+			} else {
+				projectIDsStr = strings.Join(projectIDs, ",")
+				updateStatus = ProjectIdsSyncedSuccess
+			}
 		}
 
-		// 更新项目列表和同步状态
-		projectIDsStr := strings.Join(projectIDs, ",")
-		s.db.Model(&model.GitlabInfo{}).Where("id = ?", gitlabInfo.ID).Updates(map[string]interface{}{
+		updateMap := map[string]interface{}{
 			"project_ids":        projectIDsStr,
-			"project_ids_synced": true,
-		})
+			"project_ids_synced": updateStatus,
+		}
+		if dbErr := s.db.Model(&model.GitlabInfo{}).Where("id = ?", gitlabInfo.ID).Updates(updateMap).Error; dbErr != nil {
+			s.db.Model(&model.GitlabInfo{}).Where("id = ?", gitlabInfo.ID).Update("project_ids_synced", ProjectIdsSyncedFailed)
+		}
 	}()
 
 	return gitlabInfo, nil
@@ -130,7 +151,7 @@ func (s *GitlabService) UpdateGitlabInfo(data model.GitlabInfoUpdate) (*model.Gi
 	}
 	if data.Token != "" {
 		updates["token"] = data.Token
-		updates["project_ids_synced"] = false // 如果更新了 token，重置同步状态
+		updates["project_ids_synced"] = ProjectIdsSyncedPending // 如果更新了 token，重置同步状态
 	}
 	if data.WebhookName != "" {
 		updates["webhook_name"] = data.WebhookName
@@ -174,18 +195,23 @@ func (s *GitlabService) UpdateGitlabInfo(data model.GitlabInfoUpdate) (*model.Gi
 	if data.Token != "" {
 		go func() {
 			projectIDs, err := fetchProjectIDs(data.Token, data.API)
-			if err != nil {
-				fmt.Printf("Failed to fetch project IDs for token %s: %v\n", data.Token, err)
-				return
+			projectIDsStr := ""
+			if err == nil {
+				projectIDsStr = strings.Join(projectIDs, ",")
 			}
-
-			// 更新项目列表和同步状态
-			projectIDsStr := strings.Join(projectIDs, ",")
-			s.db.Model(&model.GitlabInfo{}).Where("id = ?", data.ID).Updates(map[string]interface{}{
+			updateMap := map[string]interface{}{
 				"project_ids":        projectIDsStr,
-				"project_ids_synced": true,
-			})
+				"project_ids_synced": ProjectIdsSyncedSuccess,
+			}
+			if err != nil || projectIDsStr == "" {
+				updateMap["project_ids_synced"] = ProjectIdsSyncedFailed
+			}
+			if dbErr := s.db.Model(&model.GitlabInfo{}).Where("id = ?", data.ID).Updates(updateMap).Error; dbErr != nil {
+				s.db.Model(&model.GitlabInfo{}).Where("id = ?", data.ID).Update("project_ids_synced", ProjectIdsSyncedFailed)
+			}
 		}()
+	} else {
+		s.db.Model(&model.GitlabInfo{}).Where("id = ?", data.ID).Update("project_ids_synced", ProjectIdsSyncedFailed)
 	}
 
 	// 获取更新后的记录
