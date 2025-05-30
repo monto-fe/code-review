@@ -13,7 +13,7 @@ export async function queryList(params?: TableQueryParam): Promise<any> {
     url: `/ai/config`,
     method: 'get',
     params,
-  });
+  })
 }
 
 export async function createData(params: TableListItem): Promise<any> {

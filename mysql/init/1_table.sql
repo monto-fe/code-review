@@ -110,26 +110,7 @@ CREATE TABLE IF NOT EXISTS `t_user_role` (
   KEY `role_id` (`role_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
--- ai table --
-
--- 表1: t_ai_manager
-CREATE TABLE IF NOT EXISTS `t_ai_manager` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
-  `model` varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'AI 模型名称',
-  `api` varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'API 名称',
-  `api_key` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'API 密钥',
-  `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态(-1: 禁用；1: 可用)',
-  `expired` int unsigned NOT NULL DEFAULT '0' COMMENT '过期时间',
-  `operator` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作人',
-  `create_time` int unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
-  `update_time` int unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
-  PRIMARY KEY (`id`),
-  KEY `model` (`model`),
-  KEY `api` (`api`),
-  KEY `status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='AI 管理表';
-
-
+-- gitlab table --
 CREATE TABLE IF NOT EXISTS `t_gitlab_info` (
   `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
   `api` varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'GitLab API 名称',
@@ -216,7 +197,7 @@ CREATE TABLE IF NOT EXISTS `t_ai_config` (
   `api_url` VARCHAR(255) NOT NULL COMMENT 'API 请求地址',
   `api_key` VARCHAR(255) NOT NULL COMMENT 'API 密钥',
   `model` VARCHAR(100) NOT NULL COMMENT 'AI 模型名称',
-  `is_active` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否启用该配置（0: 否，1: 是）',
+  `is_active` TINYINT(1) NOT NULL DEFAULT 2 COMMENT '是否启用该配置（1: 启用，2: 禁用）',
   `create_time` int unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
   `update_time` int unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
   PRIMARY KEY (`id`),

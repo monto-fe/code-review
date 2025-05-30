@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"code-review-go/config"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -210,4 +212,17 @@ func MaskString(s string) string {
 		return s // 长度不足8直接返回原文
 	}
 	return s[:4] + "***" + s[len(s)-4:]
+}
+
+// GetQueryInt 获取 query 参数并转换为 int，带默认值
+func GetQueryInt(c *gin.Context, key string, defaultValue int) int {
+	valStr := c.DefaultQuery(key, "")
+	if valStr == "" {
+		return defaultValue
+	}
+	val, err := strconv.Atoi(valStr)
+	if err != nil {
+		return defaultValue
+	}
+	return val
 }

@@ -4,6 +4,7 @@ import (
 	"code-review-go/internal/database"
 	"code-review-go/internal/model"
 	"code-review-go/internal/pkg/response"
+	"code-review-go/internal/pkg/utils"
 	"code-review-go/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -16,9 +17,21 @@ import (
 // @Accept json
 // @Produce json
 // @Param jwt_token header string true "JWT认证Token"
-// @Success 200 {object} response.Response{data=[]model.AIConfigResponse}
+// @Param page query int false "页码"
+// @Param page_size query int false "每页数量"
+// @Success 200 {object} response.Response{data=object}
 // @Router /v1/ai/config [get]
 func GetAIConfig(c *gin.Context) {
+	// 分页参数
+	page := utils.GetQueryInt(c, "page", 1)
+	pageSize := utils.GetQueryInt(c, "page_size", 10)
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 {
+		pageSize = 10
+	}
+
 	// 获取服务实例并查询数据
 	aiConfigManager, err := service.NewAIConfigManager(database.DB)
 	if err != nil {
@@ -26,7 +39,7 @@ func GetAIConfig(c *gin.Context) {
 		return
 	}
 
-	configs, err := aiConfigManager.GetConfigList()
+	configs, total, err := aiConfigManager.GetConfigListPaged(page, pageSize)
 	if err != nil {
 		response.Error(c, err, "获取AI配置列表失败", 500)
 		return
@@ -38,7 +51,10 @@ func GetAIConfig(c *gin.Context) {
 		responseList[i] = config.ToResponse()
 	}
 
-	response.Success(c, responseList, "获取成功", 0)
+	response.Success(c, map[string]interface{}{
+		"data":  responseList,
+		"total": total,
+	}, "获取成功", 0)
 }
 
 // CreateAIConfig 创建 AI 配置
