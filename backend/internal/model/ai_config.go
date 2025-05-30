@@ -58,6 +58,7 @@ type AIConfigResponse struct {
 	ID         uint   `json:"id"`
 	Name       string `json:"name"`
 	APIURL     string `json:"api_url"`
+	APIKey     string `json:"api_key"`
 	Model      string `json:"model"`
 	Type       string `json:"type"`
 	IsActive   int8   `json:"is_active"`
@@ -71,6 +72,7 @@ func (c *AIConfig) ToResponse() AIConfigResponse {
 		ID:         c.ID,
 		Name:       c.Name,
 		APIURL:     c.APIURL,
+		APIKey:     c.APIKey,
 		Model:      c.Model,
 		Type:       c.Type,
 		IsActive:   c.IsActive,
