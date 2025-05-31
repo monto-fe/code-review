@@ -8,6 +8,7 @@ import { useI18n } from '@/store/i18n';
 import { ICreateFormProps, IFormItem } from '@/@types/form';
 import { FormType } from '@/@types/enum';
 import { TableListItem } from '../data';
+import { MODEL_TYPE_OPTIONS } from '../service';
 
 const CreateForm: React.FC<ICreateFormProps> = (props) => {
   const { visible, setVisible, initialValues, onSubmit, onSubmitLoading, onCancel } = props;
@@ -19,6 +20,13 @@ const CreateForm: React.FC<ICreateFormProps> = (props) => {
   const [form] = Form.useForm();
 
   const addFormItems: IFormItem[] = [
+    {
+      label: t('page.aicodecheck.aimodel.type'),
+      name: 'type',
+      required: true,
+      type: FormType.Select,
+      options: MODEL_TYPE_OPTIONS
+    },
     {
       label: t('page.aicodecheck.aimodel.name'),
       name: 'name',

@@ -20,7 +20,7 @@ func (AIConfig) TableName() string {
 
 // AIConfigCreate 创建AI配置请求
 type AIConfigCreate struct {
-	Name     string `json:"name" binding:"required"`
+	Name     string `json:"name"` // 预留字段，暂时不使用
 	APIURL   string `json:"api_url" binding:"required"`
 	APIKey   string `json:"api_key" binding:"required"`
 	Type     string `json:"type" binding:"required"`

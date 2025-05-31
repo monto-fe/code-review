@@ -2,6 +2,7 @@ package gitlab
 
 import (
 	"code-review-go/internal/database"
+	"code-review-go/internal/dto"
 	"code-review-go/internal/model"
 	"code-review-go/internal/pkg/response"
 	"code-review-go/internal/service"
@@ -105,13 +106,11 @@ func UpdateGitlabToken(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param jwt_token header string true "JWT认证Token"
-// @Param data body model.GitlabDeleteRequest true "Gitlab Token ID"
+// @Param data body dto.GitlabDeleteRequest true "Gitlab Token ID"
 // @Success 200 {object} response.Response
 // @Router /v1/gitlab [delete]
 func DeleteGitlabToken(c *gin.Context) {
-	var req struct {
-		ID uint `json:"id" binding:"required"`
-	}
+	var req dto.GitlabDeleteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.Error(c, err, "参数错误", 400)
 		return

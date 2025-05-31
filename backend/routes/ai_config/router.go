@@ -12,5 +12,6 @@ func RegisterRoutes(r *gin.RouterGroup) {
 		aiConfig.GET("/message", GetAIMessage)
 		aiConfig.POST("/message", CreateAIMessage)
 		aiConfig.PUT("/message", UpdateAIMessage)
+		aiConfig.GET("/manager", GetAIManagerList)
 	}
 }

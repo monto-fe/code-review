@@ -38,7 +38,13 @@ export default memo(
           setLoginStatus('ok');
           message.success(t('page.user.login.form.login-success'));
           console.log('data', data);
-          navigate('/', { replace: true });
+          const params = new URLSearchParams(window.location.search);
+          const redirect = params.get('redirect');
+          if (redirect) {
+            navigate(redirect, { replace: true });
+          } else {
+            navigate('/', { replace: true });
+          }
         }
       } catch (error: any) {
         if (error.message && error.message === 'CustomError') {
@@ -82,7 +88,7 @@ export default memo(
           </Form.Item>
 
           <Form.Item>
-            <Button type='primary' className={style.submit} htmlType='submit' size='large' loading={false}>
+            <Button type='primary' className={style.submit} htmlType='submit' size='large' loading={submitLoading}>
               {t('page.user.login.form.btn-submit')}
             </Button>
             {/* <div className={style['text-align-right']}>

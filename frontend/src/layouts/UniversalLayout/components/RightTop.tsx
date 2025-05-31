@@ -1,6 +1,8 @@
 import { memo, Suspense, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { Flex, theme } from 'antd';
+import { GithubOutlined } from '@ant-design/icons';
+import ALink from '@/components/ALink';
 
 import BreadCrumbs from '@/components/BreadCrumbs';
 import SelectLang from '@/components/SelectLang';
@@ -16,6 +18,7 @@ import { IRouter, IPathKeyRouter, BreadcrumbType } from '@/@types/router';
 import { BasicContext } from '@/store/context';
 import { IRoleInfo } from '@/@types/permission';
 import LeftSider from './LeftSider';
+import Issues from './Issues';
 // import { useI18n } from '@/store/i18n';
 
 export interface RightTopProps {
@@ -48,6 +51,10 @@ export default memo(({ menuData, routeItem, userRoles = [], breadCrumbs = [] }: 
                 <BreadCrumbs className='breadcrumb' list={breadCrumbs} />
               </div>
               <Flex gap={12} className='universallayout-top-menu-right'>
+                <ALink to='https://github.com/monto-fe/code-review'>
+                  <GithubOutlined />
+                </ALink>
+                <Issues />
                 <Suspense fallback={<>loading...</>}>
                   <RightTopMessage />
                 </Suspense>
@@ -80,6 +87,10 @@ export default memo(({ menuData, routeItem, userRoles = [], breadCrumbs = [] }: 
                 className='universallayout-top-menu-right'
                 style={{ color: globalConfig.theme === 'light' ? colorTextBase : colorTextLightSolid }}
               >
+                <ALink to='https://github.com/your-repo'>
+                  <GithubOutlined />
+                </ALink>
+                <Issues />
                 <Suspense fallback={<>loading...</>}>
                   <RightTopMessage />
                 </Suspense>

@@ -33,7 +33,8 @@ export default memo(
         if (error.message && error.message === 'CustomError') {
           const { response } = error;
           if (response) {
-            navigate('/user/login', { replace: true });
+            const redirect = window.location.pathname + window.location.search;
+            navigate(`/user/login?redirect=${encodeURIComponent(redirect)}`, { replace: true });
           }
         }
       }

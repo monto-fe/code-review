@@ -150,6 +150,7 @@ export default {
   'page.aicodecheck.gitlab.webhook_url': 'webhook地址',
   'page.aicodecheck.gitlab.source_branch': '源分支',
   'page.aicodecheck.gitlab.target_branch': '目標分支',
+  'page.aicodecheck.aimodel.type': '模型類型',
   'page.aicodecheck.comment.human_rating': '評分',
   'page.aicodecheck.comment.remark': '備註',
 

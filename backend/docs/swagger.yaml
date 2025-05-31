@@ -168,6 +168,13 @@ definitions:
     - password
     - user
     type: object
+  dto.GitlabDeleteRequest:
+    properties:
+      id:
+        type: integer
+    required:
+    - id
+    type: object
   dto.UpdateInnerUserRequest:
     properties:
       email:
@@ -221,13 +228,12 @@ definitions:
       id:
         type: integer
       is_active:
-        type: boolean
+        description: '1: 启用, 2: 禁用'
+        type: integer
       model:
         type: string
       name:
         type: string
-      status:
-        type: integer
       type:
         type: string
       update_time:
@@ -240,19 +246,19 @@ definitions:
       api_url:
         type: string
       is_active:
-        type: boolean
+        description: '1: 启用, 2: 禁用'
+        type: integer
       model:
         type: string
       name:
+        description: 预留字段，暂时不使用
         type: string
       type:
         type: string
     required:
     - api_key
     - api_url
-    - is_active
     - model
-    - name
     - type
     type: object
   model.AIConfigDelete:
@@ -261,25 +267,6 @@ definitions:
         type: integer
     required:
     - id
-    type: object
-  model.AIConfigResponse:
-    properties:
-      api_url:
-        type: string
-      create_time:
-        type: integer
-      id:
-        type: integer
-      is_active:
-        type: boolean
-      model:
-        type: string
-      name:
-        type: string
-      type:
-        type: string
-      update_time:
-        type: integer
     type: object
   model.AIConfigUpdate:
     properties:
@@ -290,28 +277,34 @@ definitions:
       id:
         type: integer
       is_active:
-        type: boolean
+        description: '1: 启用, 2: 禁用'
+        type: integer
       model:
         type: string
       name:
         type: string
       type:
+        description: ucai, deepseek, openai
         type: string
     required:
-    - api_key
-    - api_url
     - id
-    - is_active
-    - model
-    - name
-    - type
     type: object
-  model.GitlabDeleteRequest:
+  model.AIManager:
     properties:
+      api_url:
+        type: string
+      create_time:
+        type: integer
       id:
         type: integer
-    required:
-    - id
+      model:
+        type: string
+      status:
+        type: integer
+      type:
+        type: string
+      update_time:
+        type: integer
     type: object
   model.GitlabInfo:
     properties:
@@ -330,10 +323,12 @@ definitions:
       project_ids:
         type: string
       project_ids_synced:
-        type: boolean
+        description: '1: 缓存失败, 2: 缓存中, 3: 缓存成功'
+        type: integer
       prompt:
         type: string
       rule_check_status:
+        description: '1: 启用, 2: 禁用'
         type: integer
       source_branch:
         type: string
@@ -348,6 +343,7 @@ definitions:
       webhook_name:
         type: string
       webhook_status:
+        description: '1: 启用, 2: 禁用'
         type: integer
       webhook_url:
         type: string
@@ -365,11 +361,12 @@ definitions:
       prompt:
         type: string
       rule_check_status:
+        description: '1: 启用, 2: 禁用'
         type: integer
       source_branch:
         type: string
       status:
-        description: '1: 启用, -1: 禁用'
+        description: '1: 启用, 2: 禁用'
         type: integer
       target_branch:
         type: string
@@ -378,6 +375,7 @@ definitions:
       webhook_name:
         type: string
       webhook_status:
+        description: '1: 启用, 2: 禁用'
         type: integer
       webhook_url:
         type: string
@@ -395,7 +393,7 @@ definitions:
       ret_code:
         type: integer
     type: object
-host: localhost:8080
+host: localhost:9000
 info:
   contact: {}
   description: Code Review API documentation
@@ -439,6 +437,14 @@ paths:
         name: jwt_token
         required: true
         type: string
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        type: integer
       produces:
       - application/json
       responses:
@@ -449,9 +455,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  items:
-                    $ref: '#/definitions/model.AIConfigResponse'
-                  type: array
+                  type: object
               type: object
       summary: 获取 AI 配置
       tags:
@@ -513,11 +517,39 @@ paths:
       summary: 更新 AI 配置
       tags:
       - AI配置
+  /v1/ai/manager:
+    get:
+      consumes:
+      - application/json
+      description: 获取所有AI管理器列表
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.AIManager'
+                  type: array
+              type: object
+      summary: 获取AI管理器列表
+      tags:
+      - AI配置
   /v1/ai/message:
     get:
       consumes:
       - application/json
-      description: 获取AI代码审查消息列表
+      description: 获取AI代码审查记录列表
       parameters:
       - description: JWT认证Token
         in: header
@@ -528,7 +560,7 @@ paths:
         in: query
         name: project_id
         type: integer
-      - description: 消息ID
+      - description: 审查记录ID
         in: query
         name: id
         type: integer
@@ -554,20 +586,20 @@ paths:
                 data:
                   $ref: '#/definitions/dto.AIMessageListResponse'
               type: object
-      summary: 获取AI消息列表
+      summary: 获取AI Code Review列表
       tags:
-      - AI消息
+      - AI Code Review
     post:
       consumes:
       - application/json
-      description: 创建新的AI代码审查消息
+      description: 创建新的AI代码审查记录
       parameters:
       - description: JWT认证Token
         in: header
         name: jwt_token
         required: true
         type: string
-      - description: AI消息信息
+      - description: AI代码审查信息
         in: body
         name: data
         required: true
@@ -585,13 +617,13 @@ paths:
                 data:
                   $ref: '#/definitions/dto.AIMessageCreateResponse'
               type: object
-      summary: 创建AI消息
+      summary: 创建AI Code Review记录
       tags:
-      - AI消息
+      - AI Code Review
     put:
       consumes:
       - application/json
-      description: 更新AI代码审查消息的人工评分和备注
+      description: 更新AI代码审查记录的人工评分和备注
       parameters:
       - description: JWT认证Token
         in: header
@@ -611,9 +643,9 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/response.Response'
-      summary: 更新AI消息
+      summary: 更新AI Code Review记录
       tags:
-      - AI消息
+      - AI Code Review
   /v1/gitlab:
     delete:
       consumes:
@@ -630,7 +662,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/model.GitlabDeleteRequest'
+          $ref: '#/definitions/dto.GitlabDeleteRequest'
       produces:
       - application/json
       responses:

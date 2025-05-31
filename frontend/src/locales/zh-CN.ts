@@ -154,6 +154,8 @@ export default {
   'page.aicodecheck.gitlab.webhook_status': 'webhook推送',
   'page.aicodecheck.gitlab.rule_check_status': '规则检查',
 
+  'page.aicodecheck.aimodel.type': '模型类型',
+
   'page.aicodecheck.comment.human_rating': '评分',
   'page.aicodecheck.comment.remark': '备注',
   'setting.pagestyle': '页面风格',

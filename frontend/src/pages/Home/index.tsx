@@ -1,85 +1,95 @@
-import { Suspense, lazy } from 'react';
-import { Col, Row } from 'antd';
+import { Card, Row, Col, Typography } from 'antd';
+import { useContext } from 'react';
+import { BasicContext } from '@/store/context';
+import { GuideStepsForm, UpdateLog, UpdatePlan } from './components';
+import MergeStats from './components/MergeStats';
+import AIDetectionChart from './components/AIDetectionChart';
+import RecentRecords from './components/RecentRecords';
+import { SearchOutlined, BugOutlined } from '@ant-design/icons';
+import DocLinksCard from './components/DocLinksCard';
+import AlertTips from './components/AlertTips';
+import { queryList } from '@/pages/aicodecheck/AIModelManager/service';
+import BilibiliVideoCard from './components/BilibiliVideoCard';
 
-import PageLoading from '@/components/PageLoading';
+const { Title } = Typography;
 
-const ArticleChartCard = lazy(() => import('./components/ArticleChartCard'));
-const WorksChartCard = lazy(() => import('./components/WorksChartCard'));
-const TopicsChartCard = lazy(() => import('./components/TopicsChartCard'));
-const LinksChartCard = lazy(() => import('./components/LinksChartCard'));
+function Dashboard() {
+  const { storeContext } = useContext(BasicContext) as any;
+  const { aiModel, gitlabToken } = storeContext.userConfig || {};
 
-const HotSearchCard = lazy(() => import('./components/HotSearchCard'));
-const HotTagsCard = lazy(() => import('./components/HotTagsCard'));
-const ArticleHitCard = lazy(() => import('./components/ArticleHitCard'));
-const WorksHitCard = lazy(() => import('./components/WorksHitCard'));
+  const showConfigAlert = !aiModel || !gitlabToken;
+  // const showConfigAlert = false;
 
-const ChartColProps = {
-  xs: 24,
-  sm: 12,
-  md: 12,
-  lg: 12,
-  xl: 6,
-};
-
-const TableColProps = {
-  xs: 24,
-  sm: 24,
-  md: 24,
-  lg: 12,
-  xl: 12,
-};
-
-function App() {
   return (
-    <div className='layout-main-conent'>
-      <Row gutter={24}>
-        <Col {...ChartColProps}>
-          <Suspense fallback={<PageLoading />}>
-            <ArticleChartCard />
-          </Suspense>
-        </Col>
-        <Col {...ChartColProps}>
-          <Suspense fallback={<PageLoading />}>
-            <WorksChartCard />
-          </Suspense>
-        </Col>
-        <Col {...ChartColProps}>
-          <Suspense fallback={<PageLoading />}>
-            <TopicsChartCard />
-          </Suspense>
-        </Col>
-        <Col {...ChartColProps}>
-          <Suspense fallback={<PageLoading />}>
-            <LinksChartCard />
-          </Suspense>
-        </Col>
-      </Row>
-      <Row gutter={24}>
-        <Col {...TableColProps}>
-          <Suspense fallback={<PageLoading />}>
-            <HotSearchCard />
-          </Suspense>
-        </Col>
-        <Col {...TableColProps}>
-          <Suspense fallback={<PageLoading />}>
-            <HotTagsCard />
-          </Suspense>
-        </Col>
-      </Row>
-      <Row gutter={24}>
-        <Col {...TableColProps}>
-          <Suspense fallback={<PageLoading />}>
-            <ArticleHitCard />
-          </Suspense>
-        </Col>
-        <Col {...TableColProps}>
-          <Suspense fallback={<PageLoading />}>
-            <WorksHitCard />
-          </Suspense>
+    <div className="layout-main-conent" style={{ background: '#fafbfc', minHeight: '100vh', padding: 24 }}>
+      <AlertTips AIConfig={aiModel} GitlabConfig={gitlabToken} />
+      
+      <Row gutter={32}>
+        {/* 主内容区 */}
+        {!showConfigAlert && <Col xs={24} md={16}>
+          {/* 统计卡片 */}
+          <Row gutter={24} style={{ marginBottom: 24 }}>
+            <Col span={12}>
+              <Card>
+                <Row gutter={32}>
+                  <Col flex="32px">
+                    <SearchOutlined style={{ fontSize: 32, color: '#1890ff' }} />
+                  </Col>
+                  <Col flex="auto">
+                    <div style={{ fontSize: 16, color: '#666' }}>检测次数（近30天）</div>
+                    <div style={{ fontSize: 36, fontWeight: 600, margin: '8px 0' }}>
+                      <MergeStats />
+                    </div>
+                  </Col>
+                </Row>
+              </Card>
+            </Col>
+            <Col span={12}>
+              <Card>
+                <Row gutter={32}>
+                  <Col flex="32px">
+                    <BugOutlined style={{ fontSize: 32, color: '#fa541c' }} />
+                  </Col>
+                  <Col flex="auto">
+                    <div style={{ fontSize: 16, color: '#666' }}>发现问题数（近30天）</div>
+                    <div style={{ fontSize: 36, fontWeight: 600, margin: '8px 0' }}>
+                      <MergeStats />
+                    </div>
+                  </Col>
+                </Row>
+              </Card>
+            </Col>
+          </Row>
+          {/* AI检测效果 */}
+          <Card style={{ marginBottom: 24 }}>
+            <Title level={5} style={{ marginBottom: 16 }}>AI检测效果（近30天）</Title>
+            <AIDetectionChart />
+            <div style={{ marginTop: 16, color: '#888' }}>Level 5 为最严重瞄题</div>
+          </Card>
+          {/* 最近提交和审核记录 */}
+            <RecentRecords />
+        </Col>}
+        {showConfigAlert && <Col xs={24} md={16}>
+          <Card style={{ marginBottom: 24 }}><GuideStepsForm /></Card>
+          <Card title="配置视频教程" style={{ marginBottom: 24 }}>
+            <BilibiliVideoCard />
+          </Card>
+        </Col>}
+        {/* 右侧辅助区 */}
+        <Col xs={24} md={8}>
+          <Card title="产品能力" style={{ marginBottom: 24 }}>
+            <UpdatePlan />
+          </Card>
+          <Card title="使用文档与操作说明" style={{ marginBottom: 24 }}>
+            <DocLinksCard />
+          </Card>
+          <Card title="更新日志">
+            <UpdateLog />
+          </Card>
         </Col>
       </Row>
     </div>
   );
 }
 
-export default App;
+export default Dashboard; 

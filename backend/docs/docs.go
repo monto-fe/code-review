@@ -35,6 +35,18 @@ const docTemplate = `{
                         "name": "jwt_token",
                         "in": "header",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量",
+                        "name": "page_size",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -49,10 +61,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/model.AIConfigResponse"
-                                            }
+                                            "type": "object"
                                         }
                                     }
                                 }
@@ -191,9 +200,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/ai/message": {
+        "/v1/ai/manager": {
             "get": {
-                "description": "获取AI代码审查消息列表",
+                "description": "获取所有AI管理器列表",
                 "consumes": [
                     "application/json"
                 ],
@@ -201,9 +210,56 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "AI消息"
+                    "AI配置"
                 ],
-                "summary": "获取AI消息列表",
+                "summary": "获取AI管理器列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/model.AIManager"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/ai/message": {
+            "get": {
+                "description": "获取AI代码审查记录列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI Code Review"
+                ],
+                "summary": "获取AI Code Review列表",
                 "parameters": [
                     {
                         "type": "string",
@@ -220,7 +276,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "消息ID",
+                        "description": "审查记录ID",
                         "name": "id",
                         "in": "query"
                     },
@@ -261,7 +317,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "更新AI代码审查消息的人工评分和备注",
+                "description": "更新AI代码审查记录的人工评分和备注",
                 "consumes": [
                     "application/json"
                 ],
@@ -269,9 +325,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "AI消息"
+                    "AI Code Review"
                 ],
-                "summary": "更新AI消息",
+                "summary": "更新AI Code Review记录",
                 "parameters": [
                     {
                         "type": "string",
@@ -300,7 +356,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "创建新的AI代码审查消息",
+                "description": "创建新的AI代码审查记录",
                 "consumes": [
                     "application/json"
                 ],
@@ -308,9 +364,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "AI消息"
+                    "AI Code Review"
                 ],
-                "summary": "创建AI消息",
+                "summary": "创建AI Code Review记录",
                 "parameters": [
                     {
                         "type": "string",
@@ -320,7 +376,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "AI消息信息",
+                        "description": "AI代码审查信息",
                         "name": "data",
                         "in": "body",
                         "required": true,
@@ -486,7 +542,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.GitlabDeleteRequest"
+                            "$ref": "#/definitions/dto.GitlabDeleteRequest"
                         }
                     }
                 ],
@@ -1079,6 +1135,17 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.GitlabDeleteRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.UpdateInnerUserRequest": {
             "type": "object",
             "required": [
@@ -1156,16 +1223,14 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "is_active": {
-                    "type": "boolean"
+                    "description": "1: 启用, 2: 禁用",
+                    "type": "integer"
                 },
                 "model": {
                     "type": "string"
                 },
                 "name": {
                     "type": "string"
-                },
-                "status": {
-                    "type": "integer"
                 },
                 "type": {
                     "type": "string"
@@ -1180,9 +1245,7 @@ const docTemplate = `{
             "required": [
                 "api_key",
                 "api_url",
-                "is_active",
                 "model",
-                "name",
                 "type"
             ],
             "properties": {
@@ -1193,12 +1256,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "is_active": {
-                    "type": "boolean"
+                    "description": "1: 启用, 2: 禁用",
+                    "type": "integer"
                 },
                 "model": {
                     "type": "string"
                 },
                 "name": {
+                    "description": "预留字段，暂时不使用",
                     "type": "string"
                 },
                 "type": {
@@ -1217,45 +1282,10 @@ const docTemplate = `{
                 }
             }
         },
-        "model.AIConfigResponse": {
-            "type": "object",
-            "properties": {
-                "api_url": {
-                    "type": "string"
-                },
-                "create_time": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "model": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                },
-                "update_time": {
-                    "type": "integer"
-                }
-            }
-        },
         "model.AIConfigUpdate": {
             "type": "object",
             "required": [
-                "api_key",
-                "api_url",
-                "id",
-                "is_active",
-                "model",
-                "name",
-                "type"
+                "id"
             ],
             "properties": {
                 "api_key": {
@@ -1268,7 +1298,8 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "is_active": {
-                    "type": "boolean"
+                    "description": "1: 启用, 2: 禁用",
+                    "type": "integer"
                 },
                 "model": {
                     "type": "string"
@@ -1277,17 +1308,33 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
+                    "description": "ucai, deepseek, openai",
                     "type": "string"
                 }
             }
         },
-        "model.GitlabDeleteRequest": {
+        "model.AIManager": {
             "type": "object",
-            "required": [
-                "id"
-            ],
             "properties": {
+                "api_url": {
+                    "type": "string"
+                },
+                "create_time": {
+                    "type": "integer"
+                },
                 "id": {
+                    "type": "integer"
+                },
+                "model": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "update_time": {
                     "type": "integer"
                 }
             }
@@ -1317,12 +1364,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "project_ids_synced": {
-                    "type": "boolean"
+                    "description": "1: 缓存失败, 2: 缓存中, 3: 缓存成功",
+                    "type": "integer"
                 },
                 "prompt": {
                     "type": "string"
                 },
                 "rule_check_status": {
+                    "description": "1: 启用, 2: 禁用",
                     "type": "integer"
                 },
                 "source_branch": {
@@ -1344,6 +1393,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "webhook_status": {
+                    "description": "1: 启用, 2: 禁用",
                     "type": "integer"
                 },
                 "webhook_url": {
@@ -1375,13 +1425,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "rule_check_status": {
+                    "description": "1: 启用, 2: 禁用",
                     "type": "integer"
                 },
                 "source_branch": {
                     "type": "string"
                 },
                 "status": {
-                    "description": "1: 启用, -1: 禁用",
+                    "description": "1: 启用, 2: 禁用",
                     "type": "integer"
                 },
                 "target_branch": {
@@ -1394,6 +1445,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "webhook_status": {
+                    "description": "1: 启用, 2: 禁用",
                     "type": "integer"
                 },
                 "webhook_url": {
@@ -1420,7 +1472,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "localhost:9000",
 	BasePath:         "/v1",
 	Schemes:          []string{},
 	Title:            "Code Review API",

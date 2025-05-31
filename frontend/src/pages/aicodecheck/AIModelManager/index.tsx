@@ -8,7 +8,7 @@ import { ITable } from '@/pages/component/Table/data';
 import { BasicContext } from '@/store/context';
 import { useI18n } from '@/store/i18n';
 
-import { createData, queryList, updateData as updateDataService } from './service';
+import { createData, MODEL_TYPE_OPTIONS, queryList, updateData as updateDataService } from './service';
 import { TableQueryParam, TableListItem } from './data';
 import CreateForm from './components/CreateForm';
 
@@ -78,9 +78,17 @@ function App() {
 
   const columns: ColumnsType<TableListItem> = [
     {
-      title: 'id',
+      title: 'ID',
       dataIndex: 'id',
       key: 'id',
+    },
+    {
+      title: t('page.aicodecheck.aimodel.type'),
+      dataIndex: 'type',
+      key: 'type',
+      render: (text: string) => {
+        return MODEL_TYPE_OPTIONS.find(item => item.value === text)?.label;
+      }
     },
     {
       title: t('page.aicodecheck.aimodel.name'),
@@ -91,6 +99,11 @@ function App() {
       title: t('page.aicodecheck.aimodel.api_url'),
       dataIndex: 'api_url',
       key: 'api_url',
+    },
+    {
+      title: t('page.aicodecheck.aimodel.api_key'),
+      dataIndex: 'api_key',
+      key: 'api_key',
     },
     {
       title: t('page.aicodecheck.aimodel.model'),

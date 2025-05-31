@@ -5,6 +5,12 @@ const config = {
   baseURL: import.meta.env.VITE_APP_APIHOST || '',
 }
 
+export const MODEL_TYPE_OPTIONS = [
+  { label: 'UCloud', value: 'ucai' },
+  { label: 'DeepSeek', value: 'deepseek' },
+  { label: 'OpenAI', value: 'openai' },
+];
+
 const namespace = 'acl';
 
 export async function queryList(params?: TableQueryParam): Promise<any> {

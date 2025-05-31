@@ -99,22 +99,22 @@ const universalLayoutRotes: IRouter[] = [
         },
         component: lazy(() => import('@/pages/aicodecheck/CommentList')),
       },
-      {
-        path: 'commonRule',
-        meta: {
-          icon: OrderedListOutlined,
-          title: 'universal-layout.menu.aicodecheck.commonrule',
-        },
-        component: lazy(() => import('@/pages/aicodecheck/CommonRuleList')),
-      },
-      {
-        path: 'customRule',
-        meta: {
-          icon: OrderedListOutlined,
-          title: 'universal-layout.menu.aicodecheck.customrule',
-        },
-        component: lazy(() => import('@/pages/aicodecheck/CustomRuleList')),
-      },
+      // {
+      //   path: 'commonRule',
+      //   meta: {
+      //     icon: OrderedListOutlined,
+      //     title: 'universal-layout.menu.aicodecheck.commonrule',
+      //   },
+      //   component: lazy(() => import('@/pages/aicodecheck/CommonRuleList')),
+      // },
+      // {
+      //   path: 'customRule',
+      //   meta: {
+      //     icon: OrderedListOutlined,
+      //     title: 'universal-layout.menu.aicodecheck.customrule',
+      //   },
+      //   component: lazy(() => import('@/pages/aicodecheck/CustomRuleList')),
+      // },
       {
         path: 'AIModel',
         meta: {
@@ -150,22 +150,22 @@ const universalLayoutRotes: IRouter[] = [
         },
         component: lazy(() => import('@/pages/acl/user/List')),
       },
-      {
-        path: 'role',
-        meta: {
-          icon: TeamOutlined,
-          title: 'universal-layout.menu.roles.role',
-        },
-        component: lazy(() => import('@/pages/acl/role/List')),
-      },
-      {
-        path: 'resource',
-        meta: {
-          icon: KeyOutlined,
-          title: 'universal-layout.menu.roles.resource',
-        },
-        component: lazy(() => import('@/pages/acl/resource/List')),
-      },
+      // {
+      //   path: 'role',
+      //   meta: {
+      //     icon: TeamOutlined,
+      //     title: 'universal-layout.menu.roles.role',
+      //   },
+      //   component: lazy(() => import('@/pages/acl/role/List')),
+      // },
+      // {
+      //   path: 'resource',
+      //   meta: {
+      //     icon: KeyOutlined,
+      //     title: 'universal-layout.menu.roles.resource',
+      //   },
+      //   component: lazy(() => import('@/pages/acl/resource/List')),
+      // },
     ],
   },
 ];

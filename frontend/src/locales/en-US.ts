@@ -156,6 +156,8 @@ export default {
   'page.aicodecheck.gitlab.webhook_status': 'Webhook Status',
   'page.aicodecheck.gitlab.rule_check_status': 'Rule Check Status',
 
+  'page.aicodecheck.aimodel.type': 'model type',
+
   'page.aicodecheck.comment.human_rating': 'rating',
   'page.aicodecheck.comment.remark': 'remark',
 
