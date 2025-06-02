@@ -105,6 +105,7 @@ func (m *AIConfigManager) AddAIConfig(data model.AIConfigCreate) (*model.AIConfi
 		APIURL:     data.APIURL,
 		APIKey:     data.APIKey,
 		Model:      data.Model,
+		Type:       data.Type,
 		IsActive:   data.IsActive,
 		CreateTime: now,
 		UpdateTime: now,

@@ -93,9 +93,9 @@ func CheckMergeRequestWithAI(mergeRequest *model.MergeRequestInfo, diff []model.
 	// 根据aiConfig.Type选择AIProvider
 	var provider providers.AIProvider
 	switch aiConfig.Type {
-	case "ucai":
+	case "UCloud":
 		provider = providers.NewUCAIProvider(aiConfig)
-	case "deepseek":
+	case "DeepSeek":
 		provider = providers.NewDeepSeekProvider(aiConfig)
 	default:
 		return "", 0, fmt.Errorf("不支持的AI模型类型: %s", aiConfig.Type)

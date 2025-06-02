@@ -172,6 +172,9 @@ CREATE TABLE IF NOT EXISTS `t_custom_rule` (
 CREATE TABLE IF NOT EXISTS `t_ai_message` (
   `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
   `project_id` varchar(255) NOT NULL COMMENT '项目 ID',
+  `project_name` varchar(255) NOT NULL COMMENT '项目名称',
+  `project_namespace` varchar(255) NOT NULL COMMENT '项目组',
+  `merge_description` text COLLATE utf8mb4_general_ci NOT NULL COMMENT '合并请求的描述',
   `merge_id` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '合并请求的 ID',
   `merge_url` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '合并请求的 URL',
   `ai_model` varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'AI 模型名称',
@@ -187,7 +190,6 @@ CREATE TABLE IF NOT EXISTS `t_ai_message` (
   `operator` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作人',
   PRIMARY KEY (`id`),
   KEY `project_id` (`project_id`),
-  KEY `rule_id` (`rule_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='AI 检测消息表';
 
 -- t_ai_config

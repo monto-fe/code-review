@@ -21,11 +21,11 @@ func NewAIProviderFactory() *AIProviderFactory {
 		providers: make(map[string]func(*model.AIConfig) AIProvider),
 	}
 	// 注册OpenAI提供者
-	factory.RegisterProvider("deepseek", func(config *model.AIConfig) AIProvider {
+	factory.RegisterProvider("DeepSeek", func(config *model.AIConfig) AIProvider {
 		return NewDeepSeekProvider(config)
 	})
-	// 注册UCAI提供者
-	factory.RegisterProvider("ucai", func(config *model.AIConfig) AIProvider {
+	// 注册UCloud提供者
+	factory.RegisterProvider("UCloud", func(config *model.AIConfig) AIProvider {
 		return NewUCAIProvider(config)
 	})
 	return factory

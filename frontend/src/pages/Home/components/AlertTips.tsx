@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Alert } from 'antd';
+import { Alert, Typography } from 'antd';
+
+const { Paragraph } = Typography;
 
 const DOC_URL = 'https://example.com/ai-gitlab-config-doc';
+const WEBHOOK_URL = 'http://ip:9000/webhook';
 
 export default function AlertTips({ AIConfig, GitlabConfig }: { AIConfig: boolean, GitlabConfig: boolean }) {
   const [closed, setClosed] = useState(false);
@@ -20,10 +23,13 @@ export default function AlertTips({ AIConfig, GitlabConfig }: { AIConfig: boolea
   let closable = false;
   let type: 'success' | 'error' = 'error';
 
+  console.log("AIConfig", AIConfig);
+  console.log("GitlabConfig", GitlabConfig);
+
   if (AIConfig && GitlabConfig) {
     message = (
       <span>
-        恭喜您配置成功，Gitlab接入地址为：<b>http://ip:9000/webhook</b>，
+        恭喜您配置成功，Gitlab配置webhook地址为：<Paragraph style={{ display: 'inline-block', marginBottom: 0 }} copyable={{ text: WEBHOOK_URL }}>{WEBHOOK_URL}</Paragraph>。
         <a href={DOC_URL} target="_blank" rel="noopener noreferrer">参考文档</a>
       </span>
     );

@@ -1,5 +1,5 @@
 import request from '@/utils/request';
-import { TableQueryParam, TableListItem } from './data';
+import { TableQueryParam, TableListItem, AIModelCreateItem } from './data';
 
 const config = {
   baseURL: import.meta.env.VITE_APP_APIHOST || '',
@@ -22,14 +22,13 @@ export async function queryList(params?: TableQueryParam): Promise<any> {
   })
 }
 
-export async function createData(params: TableListItem): Promise<any> {
+export async function createData(params: AIModelCreateItem): Promise<any> {
   return request({
     ...config,
     url: '/ai/config',
     method: 'post',
     data: {
-      ...params,
-      is_active: 1
+      ...params
     },
   });
 }

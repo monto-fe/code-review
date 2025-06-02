@@ -40,6 +40,18 @@ func GetAIMessage(c *gin.Context) {
 	if req.ID > 0 {
 		params["id"] = req.ID
 	}
+	if req.ProjectNamespace != "" {
+		params["projectNamespace"] = req.ProjectNamespace
+	}
+	if req.ProjectName != "" {
+		params["projectName"] = req.ProjectName
+	}
+	if req.CreateTime > 0 {
+		params["createTime"] = req.CreateTime
+	}
+	if req.Passed {
+		params["passed"] = req.Passed
+	}
 
 	// 计算分页参数
 	if req.Current <= 0 {

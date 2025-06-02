@@ -16,7 +16,7 @@ export async function queryList(params?: TableQueryParam): Promise<any> {
   });
 }
 
-export async function createData(params: TableListItem): Promise<any> {
+export async function createData(params: any): Promise<any> {
   return request({
     ...config,
     url: '/gitlab',

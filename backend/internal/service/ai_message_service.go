@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -17,11 +18,20 @@ import (
 
 // AIMessageService AI消息服务
 type AIMessageService struct {
-	db *gorm.DB
+	db         *gorm.DB
+	ragService RAGService
 }
 
-func NewAIMessageService(db *gorm.DB) *AIMessageService {
-	return &AIMessageService{db: db}
+// RAGService RAG服务接口
+type RAGService interface {
+	AnalyzeCode(gitURL string, branch string, diffFiles []string, codeChanges string) (string, error)
+}
+
+func NewAIMessageService(db *gorm.DB, ragService RAGService) *AIMessageService {
+	return &AIMessageService{
+		db:         db,
+		ragService: ragService,
+	}
 }
 
 // GetAIMessage 获取AI消息列表
@@ -37,6 +47,18 @@ func (s *AIMessageService) GetAIMessage(params map[string]interface{}) ([]dto.AI
 	}
 	if id, ok := params["id"].(uint); ok && id > 0 {
 		query = query.Where("id = ?", id)
+	}
+	if projectNamespace, ok := params["projectNamespace"].(string); ok && projectNamespace != "" {
+		query = query.Where("project_namespace = ?", projectNamespace)
+	}
+	if projectName, ok := params["projectName"].(string); ok && projectName != "" {
+		query = query.Where("project_name = ?", projectName)
+	}
+	if createTime, ok := params["createTime"].(int64); ok && createTime > 0 {
+		query = query.Where("create_time >= ?", createTime)
+	}
+	if passed, ok := params["passed"].(bool); ok {
+		query = query.Where("passed = ?", passed)
 	}
 
 	// 获取总数
@@ -142,4 +164,53 @@ func SendMarkdownToWechatBot(webhookURL, markdownContent string) error {
 	}
 
 	return nil
+}
+
+// AnalyzeCodeWithRAG 使用RAG服务分析代码
+func (s *AIMessageService) AnalyzeCodeWithRAG(projectID uint, mergeURL string, diffFiles []string) (string, error) {
+	// 从mergeURL中提取gitURL和branch
+	gitURL, branch, err := extractGitInfo(mergeURL)
+	if err != nil {
+		return "", fmt.Errorf("解析Git信息失败: %v", err)
+	}
+
+	// 获取代码变更内容
+	codeChanges, err := s.getCodeChanges(gitURL, branch, diffFiles)
+	if err != nil {
+		return "", fmt.Errorf("获取代码变更失败: %v", err)
+	}
+
+	// 调用RAG服务分析代码
+	review, err := s.ragService.AnalyzeCode(gitURL, branch, diffFiles, codeChanges)
+	if err != nil {
+		return "", fmt.Errorf("RAG分析失败: %v", err)
+	}
+
+	return review, nil
+}
+
+// getCodeChanges 获取代码变更内容
+func (s *AIMessageService) getCodeChanges(gitURL string, branch string, diffFiles []string) (string, error) {
+	// TODO: 实现从GitLab API获取代码变更的逻辑
+	// 这里需要调用GitLab API获取代码变更内容
+	// 返回格式化的代码变更字符串
+	return "", nil
+}
+
+// extractGitInfo 从mergeURL中提取gitURL和branch
+func extractGitInfo(mergeURL string) (string, string, error) {
+	// 示例: https://gitlab.com/group/project/-/merge_requests/123
+	parts := strings.Split(mergeURL, "/-/merge_requests/")
+	if len(parts) != 2 {
+		return "", "", fmt.Errorf("invalid merge URL format")
+	}
+
+	baseURL := parts[0]
+	gitURL := fmt.Sprintf("%s.git", baseURL)
+
+	// 获取当前分支信息
+	// 这里需要根据实际情况实现，可能需要调用Gitlab API
+	branch := "main" // 默认分支
+
+	return gitURL, branch, nil
 }

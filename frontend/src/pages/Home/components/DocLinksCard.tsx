@@ -9,7 +9,6 @@ const docLinks = [
 
 export default function DocLinksCard() {
   return (
-    <Card title="使用文档与操作说明" style={{ marginBottom: 24 }}>
       <List
         dataSource={docLinks}
         renderItem={item => (
@@ -18,6 +17,5 @@ export default function DocLinksCard() {
           </List.Item>
         )}
       />
-    </Card>
   );
 }

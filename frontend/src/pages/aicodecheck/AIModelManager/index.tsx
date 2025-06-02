@@ -52,7 +52,7 @@ function App() {
     setUpdateData({});
     setCreateFormVisible(true);
   };
-  const createSubmit = (values: TableListItem, form: FormInstance) => {
+  const createSubmit = (values: any, form: FormInstance) => {
     setCreateSubmitLoading(true);
     const request = updateData.id ? updateDataService : createData;
     request({ ...values, id: updateData.id as number })

@@ -45,10 +45,14 @@ type AIMessageCreateResponse struct {
 
 // AIMessageListRequest AI消息列表请求
 type AIMessageListRequest struct {
-	ProjectID uint `form:"projectId"` // 项目ID
-	ID        uint `form:"id"`        // 消息ID
-	Current   int  `form:"current"`   // 当前页码
-	PageSize  int  `form:"pageSize"`  // 每页数量
+	ProjectNamespace string `form:"project_namespace"` // 项目组
+	ProjectName      string `form:"project_name"`      // 项目名称
+	Passed           bool   `form:"passed"`            // 是否通过
+	CreateTime       int64  `form:"create_time"`       // 创建时间
+	ProjectID        uint   `form:"project_id"`        // 项目ID
+	ID               uint   `form:"id"`                // 消息ID
+	Current          int    `form:"current"`           // 当前页码
+	PageSize         int    `form:"page_size"`         // 每页数量
 }
 
 // AIMessageListResponse AI消息列表响应

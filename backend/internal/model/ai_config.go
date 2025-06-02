@@ -35,7 +35,7 @@ type AIConfigUpdate struct {
 	APIURL   string `json:"api_url"`
 	APIKey   string `json:"api_key"`
 	Model    string `json:"model"`
-	Type     string `json:"type"`      // ucai, deepseek, openai
+	Type     string `json:"type"`      // UCloud, DeepSeek, OpenAI
 	IsActive int8   `json:"is_active"` // 1: 启用, 2: 禁用
 }
 
