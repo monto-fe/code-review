@@ -3,7 +3,7 @@ import { Spin, Statistic, message } from 'antd';
 import { ResponseData } from '@/utils/request';
 import { getMergeStats } from './service';
 
-const MergeStats = () => {
+const MergeProblemStats = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [stats, setStats] = useState<number>(0);
 
@@ -11,7 +11,7 @@ const MergeStats = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response: ResponseData<{ count: number }> = await getMergeStats({});
+        const response: ResponseData<{ count: number }> = await getMergeStats({passed: 1});
         const { data, ret_code, message: errorMessage } = response;
         if (ret_code === 0) {
           setStats(data?.count || 0);
@@ -38,4 +38,4 @@ const MergeStats = () => {
   );
 };
 
-export default MergeStats; 
+export default MergeProblemStats; 

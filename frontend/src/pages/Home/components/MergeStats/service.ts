@@ -1,8 +1,9 @@
 import request from '@/utils/request';
 
-export async function getMergeStats(): Promise<any> {
+export async function getMergeStats(data: any): Promise<any> {
   return request({
-    url: '/api/merge/stats',
+    url: '/ai/merge/check-count',
     method: 'GET',
+    params: data,
   });
 } 

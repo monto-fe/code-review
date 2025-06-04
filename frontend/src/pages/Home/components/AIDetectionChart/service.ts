@@ -2,7 +2,7 @@ import request from '@/utils/request';
 
 export async function getAIDetectionStats(): Promise<any> {
   return request({
-    url: '/api/ai/detection/stats',
+    url: '/ai/merge/problem-chart',
     method: 'GET',
   });
 } 

@@ -10,9 +10,9 @@ export interface RecordItem {
   url: string;
 }
 
-export async function getRecentRecords(): Promise<{ data: RecordItem[] }> {
+export async function getRecentRecords(): Promise<any> {
   return request({
-    url: '/api/records/recent',
+    url: '/ai/message',
     method: 'GET',
   });
 } 

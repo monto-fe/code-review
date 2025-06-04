@@ -1,7 +1,24 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Spin } from 'antd';
+import { Spin, message } from 'antd';
 import useEcharts, { EChartsOption } from '@/hooks/useEcharts';
 import { getAIDetectionStats } from './service';
+
+const levelMap = [
+  '', // level 0 占位
+  '完全误导性建议',
+  '发现BUG但无实用价值',
+  '找到Bug',
+  '精准定位并提供建议',
+  '超出预期的指导'
+];
+
+const pieColors = [
+  '#5470C6', // 蓝
+  '#91CC75', // 绿
+  '#FAC858', // 黄
+  '#EE6666', // 红
+  '#73C0DE'  // 青
+];
 
 const pieChartOption: EChartsOption = {
   tooltip: {
@@ -17,7 +34,7 @@ const pieChartOption: EChartsOption = {
     {
       name: 'AI Detection Level',
       type: 'pie',
-      radius: ['50%', '70%'],
+      // radius: ['50%', '70%'],
       avoidLabelOverlap: false,
       label: {
         show: false,
@@ -51,14 +68,34 @@ const AIDetectionChart = () => {
   useEcharts(chartRef, pieChartOption, async (chart) => {
     setLoading(true);
     try {
+      let result = [];
       const response = await getAIDetectionStats();
-      const data = response.data || [];
-      
+      const { data, ret_code, message: errorMessage } = response;
+      if (ret_code === 0) {
+        result = data || [];
+      } else {
+        message.error(errorMessage);
+      }
+      console.log("result", result);
       const option: EChartsOption = {
+        color: pieColors,
+        legend: {
+          orient: 'vertical',
+          left: 'left',
+          data: levelMap.slice(1)
+        },
         series: [{
-          data: data.map((item: any) => ({
-            value: item.value,
-            name: `Level ${item.level}`
+          name: 'AI Detection Level',
+          type: 'pie',
+          avoidLabelOverlap: false,
+          label: { show: false, position: 'center' },
+          emphasis: {
+            label: { show: true, fontSize: 20, fontWeight: 'bold' }
+          },
+          labelLine: { show: false },
+          data: result.map((item: any) => ({
+            value: item.count,
+            name: levelMap[item.level]
           }))
         }]
       };

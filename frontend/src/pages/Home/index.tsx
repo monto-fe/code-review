@@ -3,6 +3,7 @@ import { Card, Row, Col, Typography, Spin } from 'antd';
 // import { BasicContext } from '@/store/context';
 import { GuideStepsForm, UpdateLog, UpdatePlan } from './components';
 import MergeStats from './components/MergeStats';
+import MergeProblemStats from './components/MergeStats/MergeProblemStats';
 import AIDetectionChart from './components/AIDetectionChart';
 import RecentRecords from './components/RecentRecords';
 import { SearchOutlined, BugOutlined } from '@ant-design/icons';
@@ -88,7 +89,7 @@ function Dashboard() {
                   <Col flex="auto">
                     <div style={{ fontSize: 16, color: '#666' }}>发现问题数（近30天）</div>
                     <div style={{ fontSize: 36, fontWeight: 600, margin: '8px 0' }}>
-                      <MergeStats />
+                      <MergeProblemStats />
                     </div>
                   </Col>
                 </Row>
@@ -99,7 +100,6 @@ function Dashboard() {
           <Card style={{ marginBottom: 24 }}>
             <Title level={5} style={{ marginBottom: 16 }}>AI检测效果（近30天）</Title>
             <AIDetectionChart />
-            <div style={{ marginTop: 16, color: '#888' }}>Level 5 为最严重瞄题</div>
           </Card>
           {/* 最近提交和审核记录 */}
             <RecentRecords />
