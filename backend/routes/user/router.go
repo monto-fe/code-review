@@ -22,8 +22,6 @@ func RegisterRoutes(r *gin.RouterGroup) {
 			users.PUT("", UpdateInnerUser)  // 更新内部用户
 			users.DELETE("", DeleteUser)    // 删除用户
 			users.GET("/info", GetUserInfo) // 获取用户信息
-			users.GET("/list", GetUserList) // 获取用户列表
-
 		}
 	}
 	// role

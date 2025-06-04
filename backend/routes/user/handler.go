@@ -56,21 +56,36 @@ func Login(c *gin.Context) {
 	}, "Login successful", 0)
 }
 
+// GetUserList 获取用户列表
+// @Summary 获取用户列表
+// @Description 获取指定命名空间的用户列表
+// @Tags 用户管理
+// @Accept json
+// @Produce json
+// @Param jwt_token header string true "JWT认证Token"
+// @Security ApiKeyAuth
 func GetUserList(c *gin.Context) {
+	namespace := c.Query("namespace")
+	if namespace == "" {
+		response.Error(c, nil, "Namespace is required", 10001)
+		return
+	}
+
 	userService := service.NewUserService(database.DB)
 	query := model.UserListQuery{
 		Current:   1,
 		PageSize:  10,
-		Namespace: "default",
+		Namespace: namespace,
 	}
-	userList, err := userService.GetUserList(query)
+	userList, total, err := userService.GetUserList(query)
 	if err != nil {
 		response.Error(c, err, "Failed to get user list", 10004)
 		return
 	}
 
 	response.Success(c, gin.H{
-		"data": userList,
+		"data":  userList,
+		"count": total,
 	}, "Success", 0)
 }
 

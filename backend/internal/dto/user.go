@@ -85,3 +85,13 @@ type RoleListResponse struct {
 	Data  []Role `json:"data"`
 	Count int64  `json:"count"`
 }
+
+type UserListItem struct {
+	ID          uint   `json:"id"`
+	User        string `json:"user"`
+	Name        string `json:"name"`
+	Job         string `json:"job"`
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phone_number"`
+	Namespace   string `json:"namespace"`
+}
