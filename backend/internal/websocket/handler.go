@@ -9,6 +9,8 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// TODO: 后续优化，在GitlabToken加载时同步前端状态
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,

@@ -74,3 +74,14 @@ type UpdateInnerUserRequest struct {
 	PhoneNumber *string `json:"phone_number,omitempty"`
 	RoleIDs     []uint  `json:"role_ids"`
 }
+
+// role
+type Role struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
+}
+
+type RoleListResponse struct {
+	Data  []Role `json:"data"`
+	Count int64  `json:"count"`
+}

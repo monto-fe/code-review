@@ -4,8 +4,8 @@ import (
 	"code-review-go/internal/cache"
 	"code-review-go/internal/database"
 	"code-review-go/internal/model"
-	"code-review-go/internal/service/providers"
 	"fmt"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -85,37 +85,54 @@ func CheckMergeRequestWithAI(mergeRequest *model.MergeRequestInfo, diff []model.
 		finalRule = gitlabPrompt
 	}
 
-	// 生成提示词
-	prompt := generatePrompt(finalRule, mergeRequest, diff)
+	// 创建RAG客户端
+	ragClient := NewRAGClient("http://localhost:8000")
 
-	fmt.Println("prompt", prompt)
-
-	// 根据aiConfig.Type选择AIProvider
-	var provider providers.AIProvider
-	switch aiConfig.Type {
-	case "UCloud":
-		provider = providers.NewUCAIProvider(aiConfig)
-	case "DeepSeek":
-		provider = providers.NewDeepSeekProvider(aiConfig)
-	default:
-		return "", 0, fmt.Errorf("不支持的AI模型类型: %s", aiConfig.Type)
+	// 将diff转换为字符串
+	diffStr := ""
+	for _, change := range diff {
+		diffStr += fmt.Sprintf("diff --git a/%s b/%s\n", change.OldPath, change.NewPath)
+		diffStr += change.Diff + "\n"
 	}
 
-	comments, err := provider.CallAI(prompt)
+	// 准备请求
+	req := &CodeReviewRequest{
+		GitURL:      mergeRequest.WebURL, // 使用WebURL作为git_url
+		Branch:      mergeRequest.SourceBranch,
+		DiffContent: diffStr,
+		Query:       finalRule, // 直接使用规则作为查询
+		GitlabToken: gitlabInfo.Token,
+	}
+
+	// 调用RAG服务获取代码分析结果
+	_, err = ragClient.AnalyzeCodeWithRequest(req)
 	if err != nil {
-		return "", 0, fmt.Errorf("调用AI接口失败: %v", err)
+		return "", 0, fmt.Errorf("调用RAG服务失败: %v", err)
 	}
-	fmt.Println("AI检查结果:", comments)
+
+	// 使用大模型生成审查结果
+	comments, err := ragClient.GenerateReview(req)
+	if err != nil {
+		return "", 0, fmt.Errorf("生成审查结果失败: %v", err)
+	}
+
+	fmt.Println("代码审查结果:", comments)
 
 	// 保存AI消息
+	passed := -1
+	if strings.Contains(comments, "未发现Bug") {
+		passed = 1
+	}
+
 	aiMessage := &model.AImessage{
 		ProjectID:  mergeRequest.ProjectID,
 		MergeURL:   mergeRequest.WebURL,
 		MergeID:    fmt.Sprintf("%d", mergeRequest.IID),
-		AIModel:    aiConfig.Model,
+		AIModel:    aiConfig.Model,    // 使用配置的模型
 		Rule:       model.RuleType(1), // 默认规则类型
 		RuleID:     1,                 // 默认规则ID
 		Result:     comments,
+		Passed:     passed,
 		CreateTime: time.Now().Unix(),
 	}
 

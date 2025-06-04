@@ -22,11 +22,6 @@ type AIMessageService struct {
 	ragService RAGService
 }
 
-// RAGService RAG服务接口
-type RAGService interface {
-	AnalyzeCode(gitURL string, branch string, diffFiles []string, codeChanges string) (string, error)
-}
-
 func NewAIMessageService(db *gorm.DB, ragService RAGService) *AIMessageService {
 	return &AIMessageService{
 		db:         db,
@@ -57,7 +52,7 @@ func (s *AIMessageService) GetAIMessage(params map[string]interface{}) ([]dto.AI
 	if createTime, ok := params["createTime"].(int64); ok && createTime > 0 {
 		query = query.Where("create_time >= ?", createTime)
 	}
-	if passed, ok := params["passed"].(bool); ok {
+	if passed, ok := params["passed"].(int); ok {
 		query = query.Where("passed = ?", passed)
 	}
 
@@ -181,7 +176,7 @@ func (s *AIMessageService) AnalyzeCodeWithRAG(projectID uint, mergeURL string, d
 	}
 
 	// 调用RAG服务分析代码
-	review, err := s.ragService.AnalyzeCode(gitURL, branch, diffFiles, codeChanges)
+	review, err := s.ragService.LegacyAnalyzeCode(gitURL, branch, diffFiles, codeChanges)
 	if err != nil {
 		return "", fmt.Errorf("RAG分析失败: %v", err)
 	}
@@ -213,4 +208,75 @@ func extractGitInfo(mergeURL string) (string, string, error) {
 	branch := "main" // 默认分支
 
 	return gitURL, branch, nil
+}
+
+func (s *AIMessageService) GetCheckCount(req dto.CheckCountRequest) (int64, error) {
+	query := s.db.Model(&model.AImessage{})
+
+	// 只有传入时才加条件
+	if req.Passed != 0 {
+		query = query.Where("passed = ?", req.Passed)
+	}
+
+	if req.ProjectID > 0 {
+		query = query.Where("project_id = ?", req.ProjectID)
+	}
+	if req.ProjectNamespace != "" {
+		query = query.Where("project_namespace = ?", req.ProjectNamespace)
+	}
+	if req.ProjectName != "" {
+		query = query.Where("project_name = ?", req.ProjectName)
+	}
+
+	query = query.Where("create_time >= ?", req.StartTime)
+	query = query.Where("create_time <= ?", req.EndTime)
+
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return 0, err
+	}
+
+	return total, nil
+}
+
+func (s *AIMessageService) GetProblemChart(req dto.AIProblemCountRequest) ([]dto.HumanRatingStat, error) {
+	query := s.db.Model(&model.AImessage{})
+
+	query = query.Where("create_time >= ?", req.StartTime)
+	query = query.Where("create_time <= ?", req.EndTime)
+
+	// 统计各等级数量
+	type result struct {
+		Level int   `json:"level"`
+		Count int64 `json:"count"`
+	}
+	var results []result
+
+	err := query.Select("human_rating as level, COUNT(*) as count").
+		Where("human_rating BETWEEN ? AND ?", 1, 5).
+		Group("human_rating").
+		Scan(&results).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// 保证每个level都有（即使为0）
+	stats := make(map[int]int64)
+	for i := 1; i <= 5; i++ {
+		stats[i] = 0
+	}
+	for _, r := range results {
+		stats[r.Level] = r.Count
+	}
+
+	// 返回数组
+	resp := make([]dto.HumanRatingStat, 0, 5)
+	for i := 1; i <= 5; i++ {
+		resp = append(resp, dto.HumanRatingStat{
+			Level: i,
+			Count: stats[i],
+		})
+	}
+
+	return resp, nil
 }

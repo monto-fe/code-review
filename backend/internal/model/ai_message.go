@@ -51,7 +51,7 @@ type AImessage struct {
 	Result      string      `gorm:"type:text;not null" json:"result"`
 	HumanRating HumanRating `gorm:"type:tinyint;not null" json:"human_rating"`
 	Remark      string      `gorm:"type:varchar(200)" json:"remark"`
-	Passed      bool        `gorm:"type:tinyint" json:"passed,omitempty"` // 默认为 false
+	Passed      int         `gorm:"type:tinyint" json:"passed,omitempty"` // 默认 -1 未通过 1 通过
 	CheckedBy   string      `gorm:"type:varchar(50)" json:"checked_by,omitempty"`
 	CreateTime  int64       `gorm:"not null" json:"create_time"`
 }

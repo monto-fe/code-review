@@ -3,6 +3,7 @@ package service
 import (
 	"time"
 
+	dto "code-review-go/internal/dto"
 	"code-review-go/internal/model"
 
 	"gorm.io/gorm"
@@ -38,7 +39,7 @@ func (s *ResourceService) Create(req *model.ResourceReq) (*model.Resource, error
 }
 
 // Update 更新资源
-func (s *ResourceService) Update(resource *model.Resource) error {
+func (s *ResourceService) Update(resource *dto.UpdateResourceReq) error {
 	resource.UpdateTime = time.Now().Unix()
 	return s.db.Model(resource).Updates(resource).Error
 }
@@ -103,4 +104,26 @@ func (s *ResourceService) FindByNamespaceAndName(namespace, name string) (*model
 		return nil, err
 	}
 	return &resource, nil
+}
+
+// 获取资源列表
+func (s *ResourceService) GetResourceList(query model.ResourceQuery) ([]model.Resource, int64, error) {
+	db := s.db.Model(&model.Resource{})
+	db = db.Where("namespace = ?", query.Namespace)
+	if query.Resource != "" {
+		db = db.Where("resource = ?", query.Resource)
+	}
+	if query.Name != "" {
+		db = db.Where("name = ?", query.Name)
+	}
+	if len(query.Category) > 0 {
+		db = db.Where("category IN ?", query.Category)
+	}
+	var total int64
+	db.Count(&total)
+	var resources []model.Resource
+	if err := db.Limit(query.Limit).Offset(query.Offset).Find(&resources).Error; err != nil {
+		return nil, 0, err
+	}
+	return resources, total, nil
 }

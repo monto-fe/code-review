@@ -12,6 +12,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func getAIMessageService() *service.AIMessageService {
+	// 或 database.DB，确保不是 nil
+	ragClient := service.NewRAGClient("")
+	return service.NewAIMessageService(database.DB, ragClient)
+}
+
 // GetAIMessage 获取AI Code Review列表
 // @Summary 获取AI Code Review列表
 // @Description 获取AI代码审查记录列表
@@ -49,7 +55,7 @@ func GetAIMessage(c *gin.Context) {
 	if req.CreateTime > 0 {
 		params["createTime"] = req.CreateTime
 	}
-	if req.Passed {
+	if req.Passed != 0 {
 		params["passed"] = req.Passed
 	}
 
@@ -64,8 +70,7 @@ func GetAIMessage(c *gin.Context) {
 	params["limit"] = req.PageSize
 
 	// 获取服务实例并查询数据
-	aiMessageService := service.NewAIMessageService(database.DB)
-	rows, total, err := aiMessageService.GetAIMessage(params)
+	rows, total, err := getAIMessageService().GetAIMessage(params)
 	if err != nil {
 		response.Error(c, err, "获取AI消息列表失败", 500)
 		return
@@ -73,7 +78,7 @@ func GetAIMessage(c *gin.Context) {
 
 	response.Success(c, dto.AIMessageListResponse{
 		Data:  rows,
-		Total: total,
+		Count: total,
 	}, "获取成功", 0)
 }
 
@@ -107,8 +112,7 @@ func CreateAIMessage(c *gin.Context) {
 	}
 
 	// 获取服务实例并创建数据
-	aiMessageService := service.NewAIMessageService(database.DB)
-	id, err := aiMessageService.CreateAIMessage(aiMessage)
+	id, err := getAIMessageService().CreateAIMessage(aiMessage)
 	if err != nil {
 		response.Error(c, err, "创建AI消息失败", 500)
 		return
@@ -138,8 +142,7 @@ func UpdateAIMessage(c *gin.Context) {
 	}
 
 	// 获取服务实例并更新数据
-	aiMessageService := service.NewAIMessageService(database.DB)
-	err := aiMessageService.UpdateHumanRatingAndRemark(model.AIMessageUpdate{
+	err := getAIMessageService().UpdateHumanRatingAndRemark(model.AIMessageUpdate{
 		ID:          req.ID,
 		HumanRating: req.HumanRating,
 		Remark:      req.Remark,
@@ -150,4 +153,84 @@ func UpdateAIMessage(c *gin.Context) {
 	}
 
 	response.Success(c, nil, "更新成功", 0)
+}
+
+// GetCheckCount 获取检查数量
+// @Summary 获取检查数量
+// @Description 获取检查数量
+// @Tags AI Code Review
+// @Accept json
+// @Produce json
+// @Param jwt_token header string true "JWT认证Token"
+// @Param start_time query int false "开始时间"
+// @Param end_time query int false "结束时间"
+// @Param project_id query int false "项目ID"
+// @Param project_namespace query string false "项目命名空间"
+// @Param project_name query string false "项目名称"
+// @Param passed query int false "-1未通过 1通过"
+// @Success 200 {object} response.Response{data=dto.CheckCountResponse}
+// @Router /v1/ai/merge/check-count [get]
+func GetCheckCount(c *gin.Context) {
+	// 检查t_message表中，passed为false的记录，统计每个项目的数量，查询最近30天的数据
+	var req dto.CheckCountRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.Error(c, err, "参数错误", 400)
+		return
+	}
+	// 检查开始时间和结束时间是否存在，查询对应的范围
+	if req.StartTime == 0 {
+		req.StartTime = time.Now().AddDate(0, 0, -30).Unix()
+	}
+	if req.EndTime == 0 {
+		req.EndTime = time.Now().Unix()
+	}
+
+	total, err := getAIMessageService().GetCheckCount(req)
+	if err != nil {
+		response.Error(c, err, "获取失败", 500)
+		return
+	}
+
+	response.Success(c, dto.CheckCountResponse{
+		Count: int(total),
+	}, "获取成功", 0)
+}
+
+// GetProblemChart 获取问题图表
+// @Summary 获取问题图表
+// @Description 获取问题图表
+// @Tags AI Code Review
+// @Accept json
+// @Produce json
+// @Param jwt_token header string true "JWT认证Token"
+// @Param start_time query int false "开始时间"
+// @Param end_time query int false "结束时间"
+// @Param project_id query int false "项目ID"
+// @Param project_namespace query string false "项目命名空间"
+// @Param project_name query string false "项目名称"
+// @Param passed query int false "-1未通过 1通过"
+// @Success 200 {object} response.Response{data=dto.AIProblemCountResponse}
+// @Router /v1/ai/merge/problem-chart [get]
+func GetProblemChart(c *gin.Context) {
+	// 检查t_message表中，passed为false的记录，统计每个项目的数量，查询最近30天的数据
+	var req dto.AIProblemCountRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.Error(c, err, "参数错误", 400)
+		return
+	}
+	// 检查开始时间和结束时间是否存在，查询对应的范围
+	if req.StartTime == 0 {
+		req.StartTime = time.Now().AddDate(0, 0, -30).Unix()
+	}
+	if req.EndTime == 0 {
+		req.EndTime = time.Now().Unix()
+	}
+	// 拉取最近30天的数据
+	rows, err := getAIMessageService().GetProblemChart(req)
+	if err != nil {
+		response.Error(c, err, "获取失败", 500)
+		return
+	}
+
+	response.Success(c, rows, "获取成功", 0)
 }

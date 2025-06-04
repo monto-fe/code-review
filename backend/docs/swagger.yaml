@@ -93,7 +93,7 @@ definitions:
         type: string
       passed:
         description: 是否通过
-        type: boolean
+        type: integer
       project_id:
         description: 项目ID
         type: integer
@@ -118,14 +118,14 @@ definitions:
     type: object
   dto.AIMessageListResponse:
     properties:
+      count:
+        description: 总数
+        type: integer
       data:
         description: 消息列表
         items:
           $ref: '#/definitions/dto.AIMessageItem'
         type: array
-      total:
-        description: 总数
-        type: integer
     type: object
   dto.AIMessageUpdateRequest:
     properties:
@@ -139,6 +139,20 @@ definitions:
     - human_rating
     - id
     - remark
+    type: object
+  dto.AIProblemCountResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.HumanRatingStat'
+        type: array
+      period:
+        type: string
+    type: object
+  dto.CheckCountResponse:
+    properties:
+      count:
+        type: integer
     type: object
   dto.CreateInnerUserRequest:
     properties:
@@ -174,6 +188,42 @@ definitions:
         type: integer
     required:
     - id
+    type: object
+  dto.HumanRatingStat:
+    properties:
+      count:
+        type: integer
+      level:
+        type: integer
+    type: object
+  dto.Resource:
+    properties:
+      category:
+        type: string
+      create_time:
+        type: integer
+      id:
+        description: 根据你的 Resource 字段定义
+        type: integer
+      name:
+        type: string
+      namespace:
+        type: string
+      operator:
+        type: string
+      resource:
+        type: string
+      update_time:
+        type: integer
+    type: object
+  dto.ResourceListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.Resource'
+        type: array
+      total:
+        type: integer
     type: object
   dto.UpdateInnerUserRequest:
     properties:
@@ -284,7 +334,7 @@ definitions:
       name:
         type: string
       type:
-        description: ucai, deepseek, openai
+        description: UCloud, DeepSeek, OpenAI
         type: string
     required:
     - id
@@ -521,7 +571,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: 获取所有AI管理器列表
+      description: 获取所有AI管理器列表，服务的集成能力，不允许删除
       parameters:
       - description: JWT认证Token
         in: header
@@ -545,6 +595,106 @@ paths:
       summary: 获取AI管理器列表
       tags:
       - AI配置
+  /v1/ai/merge/check-count:
+    get:
+      consumes:
+      - application/json
+      description: 获取检查数量
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 开始时间
+        in: query
+        name: start_time
+        type: integer
+      - description: 结束时间
+        in: query
+        name: end_time
+        type: integer
+      - description: 项目ID
+        in: query
+        name: project_id
+        type: integer
+      - description: 项目命名空间
+        in: query
+        name: project_namespace
+        type: string
+      - description: 项目名称
+        in: query
+        name: project_name
+        type: string
+      - description: -1未通过 1通过
+        in: query
+        name: passed
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.CheckCountResponse'
+              type: object
+      summary: 获取检查数量
+      tags:
+      - AI Code Review
+  /v1/ai/merge/problem-chart:
+    get:
+      consumes:
+      - application/json
+      description: 获取问题图表
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 开始时间
+        in: query
+        name: start_time
+        type: integer
+      - description: 结束时间
+        in: query
+        name: end_time
+        type: integer
+      - description: 项目ID
+        in: query
+        name: project_id
+        type: integer
+      - description: 项目命名空间
+        in: query
+        name: project_namespace
+        type: string
+      - description: 项目名称
+        in: query
+        name: project_name
+        type: string
+      - description: -1未通过 1通过
+        in: query
+        name: passed
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AIProblemCountResponse'
+              type: object
+      summary: 获取问题图表
+      tags:
+      - AI Code Review
   /v1/ai/message:
     get:
       consumes:
@@ -941,6 +1091,119 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: 获取用户信息
+      tags:
+      - 用户管理
+  /v1/user/resource:
+    delete:
+      consumes:
+      - application/json
+      description: 删除资源
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.Resource'
+              type: object
+      summary: 删除资源
+      tags:
+      - 用户管理
+    get:
+      consumes:
+      - application/json
+      description: 获取资源列表
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ResourceListResponse'
+              type: object
+      summary: 获取资源列表
+      tags:
+      - 用户管理
+    post:
+      consumes:
+      - application/json
+      description: 创建资源
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 资源
+        in: body
+        name: resource
+        required: true
+        schema:
+          $ref: '#/definitions/dto.Resource'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.Resource'
+              type: object
+      summary: 创建资源
+      tags:
+      - 用户管理
+    put:
+      consumes:
+      - application/json
+      description: 更新资源
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 资源
+        in: body
+        name: resource
+        required: true
+        schema:
+          $ref: '#/definitions/dto.Resource'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.Resource'
+              type: object
+      summary: 更新资源
       tags:
       - 用户管理
   /v1/webhook/merge:

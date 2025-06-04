@@ -13,5 +13,7 @@ func RegisterRoutes(r *gin.RouterGroup) {
 		aiConfig.POST("/message", CreateAIMessage)
 		aiConfig.PUT("/message", UpdateAIMessage)
 		aiConfig.GET("/manager", GetAIManagerList)
+		aiConfig.GET("/merge/check-count", GetCheckCount)
+		aiConfig.GET("/merge/problem-chart", GetProblemChart)
 	}
 }
