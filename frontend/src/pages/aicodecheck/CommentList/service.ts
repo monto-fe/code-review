@@ -23,8 +23,7 @@ export async function updateRating(id: number, human_rating: number): Promise<an
     method: 'put',
     data: {
       id,
-      human_rating,
-      namespace,
+      human_rating
     },
   });
 }

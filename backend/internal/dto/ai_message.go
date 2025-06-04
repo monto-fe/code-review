@@ -84,7 +84,7 @@ type AIMessageItem struct {
 type AIMessageUpdateRequest struct {
 	ID          uint   `json:"id" binding:"required"`
 	HumanRating int    `json:"human_rating" binding:"required"`
-	Remark      string `json:"remark" binding:"required"`
+	Remark      string `json:"remark"`
 }
 
 type CheckCountRequest struct {
