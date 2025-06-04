@@ -259,31 +259,20 @@ func UpdateInnerUser(c *gin.Context) {
 // @Produce json
 // @Param jwt_token header string true "JWT认证Token"
 // @Security ApiKeyAuth
-// @Param id query uint true "用户ID"
-// @Param namespace query string true "命名空间"
-// @Param user query string true "用户名"
+// @Param body body dto.DeleteUserRequest true "删除用户参数"
 // @Success 200 {object} response.Response "删除成功"
 // @Failure 400 {object} response.Response "请求参数错误"
 // @Failure 500 {object} response.Response "服务器内部错误"
 // @Router /v1/user [delete]
 func DeleteUser(c *gin.Context) {
-	idStr := c.Query("id")
-	namespace := c.Query("namespace")
-	user := c.Query("user")
-
-	if idStr == "" || namespace == "" || user == "" {
-		response.Error(c, nil, "Missing required parameters", 10001)
-		return
-	}
-
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		response.Error(c, err, "Invalid user ID", 10007)
+	var req dto.DeleteUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, err, "参数错误", 400)
 		return
 	}
 
 	userService := service.NewUserService(database.DB)
-	if err := userService.DeleteUser(uint(id), namespace, user); err != nil {
+	if err := userService.DeleteUser(req.ID, req.Namespace, req.User); err != nil {
 		response.Error(c, err, "Failed to delete user", 10013)
 		return
 	}
