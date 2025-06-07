@@ -130,30 +130,39 @@ func (m *AIConfigManager) AddAIConfig(data model.AIConfigCreate) (*model.AIConfi
 func (m *AIConfigManager) UpdateAIConfig(data model.AIConfigUpdate) error {
 	now := time.Now().Unix()
 
+	// 查找当前记录
+	var current model.AIConfig
+	if err := m.db.First(&current, data.ID).Error; err != nil {
+		return err
+	}
+
 	// 如果本次要激活该模型
 	if data.IsActive == AIConfigActive {
 		// 查找当前已激活的模型
-		var current model.AIConfig
-		err := m.db.Where("is_active = ?", AIConfigActive).First(&current).Error
-		if err == nil && current.ID != data.ID {
+		var active model.AIConfig
+		err := m.db.Where("is_active = ?", AIConfigActive).First(&active).Error
+		if err == nil && active.ID != data.ID {
 			// 取消当前激活
-			if err := m.db.Model(&model.AIConfig{}).Where("id = ?", current.ID).Update("is_active", AIConfigInactive).Error; err != nil {
+			if err := m.db.Model(&model.AIConfig{}).Where("id = ?", active.ID).Update("is_active", AIConfigInactive).Error; err != nil {
 				return err
 			}
 		}
 	}
 
-	// 更新目标模型
+	// 构造更新字段
+	updateMap := map[string]interface{}{
+		"name":        chooseString(data.Name, current.Name),
+		"api_url":     chooseString(data.APIURL, current.APIURL),
+		"api_key":     chooseString(data.APIKey, current.APIKey),
+		"model":       chooseString(data.Model, current.Model),
+		"type":        chooseString(data.Type, current.Type),
+		"is_active":   chooseInt8(data.IsActive, current.IsActive),
+		"update_time": now,
+	}
+
 	if err := m.db.Model(&model.AIConfig{}).
 		Where("id = ?", data.ID).
-		Updates(map[string]interface{}{
-			"name":        data.Name,
-			"api_url":     data.APIURL,
-			"api_key":     data.APIKey,
-			"model":       data.Model,
-			"is_active":   data.IsActive,
-			"update_time": now,
-		}).Error; err != nil {
+		Updates(updateMap).Error; err != nil {
 		return err
 	}
 
@@ -163,6 +172,22 @@ func (m *AIConfigManager) UpdateAIConfig(data model.AIConfigUpdate) error {
 	}
 
 	return nil
+}
+
+// chooseString returns a if a is not empty, otherwise b
+func chooseString(a, b string) string {
+	if a != "" {
+		return a
+	}
+	return b
+}
+
+// chooseInt8 returns a if a != 0, otherwise b
+func chooseInt8(a, b int8) int8 {
+	if a != 0 {
+		return a
+	}
+	return b
 }
 
 // GetConfigList 获取配置列表
