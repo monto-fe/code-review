@@ -138,3 +138,25 @@ func DeleteGitlabToken(c *gin.Context) {
 func RefreshGitlabToken(c *gin.Context) {
 	// TODO: 实现刷新 Gitlab Token 逻辑
 }
+
+// GetGitlabTokenDetail 获取 Gitlab Token 详情
+// @Summary 获取 Gitlab Token 详情
+// @Description 获取指定的 Gitlab Token 详情
+// @Tags Gitlab
+// @Accept json
+// @Produce json
+// @Param jwt_token header string true "JWT认证Token"
+// @Param id path string true "Gitlab Token ID"
+// @Success 200 {object} response.Response
+// @Router /v1/gitlab/token/{id} [get]
+func GetGitlabTokenDetail(c *gin.Context) {
+	gitlabService := service.NewGitlabService(database.DB)
+	gitlabList, err := gitlabService.GetGitlabInfo()
+	if err != nil {
+		response.Error(c, err, "获取Gitlab Token 详情失败", 500)
+		return
+	}
+	response.Success(c, gin.H{
+		"data": gitlabList,
+	}, "获取Gitlab Token 详情成功", 0)
+}

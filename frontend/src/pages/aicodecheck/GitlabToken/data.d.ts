@@ -15,4 +15,5 @@ export interface TableListItem {
   target_branch?: string;
   webhook_status?: number;
   rule_check_status?: number;
+  status?: number;
 }

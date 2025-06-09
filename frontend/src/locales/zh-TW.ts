@@ -5,6 +5,7 @@ export default {
   'app.global.tip.delete.success': '刪除成功',
   'app.global.tip.update.success': '更新成功',
   'app.global.tip.create.success': '創建成功',
+  'app.global.confirm': '確定',
   'app.global.close': '關閉',
   'app.global.delete': '刪除',
   'app.global.edit': '編輯',
@@ -98,6 +99,8 @@ export default {
   'universal-layout.menu.aicodecheck.commentlist': '評論列表',
   'universal-layout.menu.aicodecheck.AIModel': 'AI模型管理',
   'universal-layout.menu.aicodecheck.GitlabToken': 'Gitlab Token',
+  'universal-layout.menu.aicodecheck.GitlabConfig': 'Gitlab 配置',
+  'universal-layout.menu.aicodecheck.GitlabTokenDetail': 'Gitlab Token 詳情',
 
   'page.resource.name': '資源名稱',
   'page.resource.key': '資源標識',
@@ -141,6 +144,9 @@ export default {
   'page.aicodecheck.aimodel.api_url': 'API地址',
   'page.aicodecheck.aimodel.api_key': 'API密鑰',
   'page.aicodecheck.aimodel.add': '新增模型',
+  'page.aicodecheck.aimodel.resource': '模型來源',
+  'page.aicodecheck.aimodel.using': '啟用',
+  'page.aicodecheck.comment.improve_suggestion': '改進建議',
 
   'page.aicodecheck.gitlab.add': '新增TOKEN',
   'page.aicodecheck.gitlab.api': 'API',
@@ -157,6 +163,7 @@ export default {
   'page.aicodecheck.gitlab.project_ids_synced': '專案ID同步',
   'page.aicodecheck.gitlab.webhook_status': 'webhook推送',
   'page.aicodecheck.gitlab.rule_check_status': '規則檢查',
+  'page.aicodecheck.gitlab.status': '狀態',
 
   'setting.pagestyle': '頁面風格',
   'setting.navigationmode': '導航風格',

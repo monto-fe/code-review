@@ -1,13 +1,14 @@
 import React, { useContext } from 'react';
 import { Form } from 'antd';
 
-import FormModal from '@/pages/component/Form/FormModal';
+// import FormModal from '@/pages/component/Form/FormModal';
 import { BasicContext } from '@/store/context';
 import { useI18n } from '@/store/i18n';
 
 import { ICreateFormProps, IFormItem } from '@/@types/form';
 import { FormType } from '@/@types/enum';
 import { TableListItem } from '../data';
+import FormDrawer from '@/pages/component/Form/FormDrawer';
 
 const CreateForm: React.FC<ICreateFormProps> = (props) => {
   const { visible, setVisible, initialValues, onSubmit, onSubmitLoading, onCancel } = props;
@@ -68,7 +69,8 @@ const CreateForm: React.FC<ICreateFormProps> = (props) => {
 
   return (
     <>
-      <FormModal
+      <FormDrawer
+        width={800}
         visible={visible}
         setVisible={setVisible}
         confirmLoading={onSubmitLoading}

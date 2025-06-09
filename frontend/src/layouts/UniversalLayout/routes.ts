@@ -10,10 +10,6 @@ import {
   DashboardOutlined,
   InsuranceOutlined,
   UserOutlined,
-  TeamOutlined,
-  KeyOutlined,
-  ToolOutlined,
-  QuestionCircleTwoTone,
   CodeOutlined,
   OrderedListOutlined
 } from '@ant-design/icons';
@@ -130,6 +126,24 @@ const universalLayoutRotes: IRouter[] = [
           title: 'universal-layout.menu.aicodecheck.GitlabToken',
         },
         component: lazy(() => import('@/pages/aicodecheck/GitlabToken')),
+      },
+      {
+        path: 'GitlabConfig',
+        meta: {
+          icon: OrderedListOutlined,
+          hidden: true,
+          title: 'universal-layout.menu.aicodecheck.GitlabConfig',
+        },
+        component: lazy(() => import('@/pages/aicodecheck/GitlabToken/CreateToken')),
+      },
+      {
+        path: 'GitlabTokenDetail',
+        meta: {
+          icon: OrderedListOutlined,
+          hidden: true,
+          title: 'universal-layout.menu.aicodecheck.GitlabTokenDetail',
+        },
+        component: lazy(() => import('@/pages/aicodecheck/GitlabToken/detail')),
       },
     ],
   },

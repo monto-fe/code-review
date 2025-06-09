@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Modal, Form } from 'antd';
+import { Drawer, Form } from 'antd';
 import FormItemComponent from './Item';
 import { BasicContext } from '@/store/context';
 import { useI18n } from '@/store/i18n';
@@ -23,7 +23,7 @@ const layout = {
  * }
  * @param initialValues 表单整体的默认值，不再使用单个表单默认值
  * */
-function FormModal(props: IFormModal) {
+function FormDrawer(props: IFormModal) {
   const {
     formInstance,
     visible,
@@ -63,20 +63,17 @@ function FormModal(props: IFormModal) {
   };
 
   return (
-    <Modal
+    <Drawer
       title={title}
       open={visible}
-      onCancel={() => {
+      onClose={() => {
         onCancel && onCancel();
         setVisible(false);
         form.resetFields();
       }}
       destroyOnClose
       maskClosable={false}
-      onOk={onOk}
       width={width}
-      cancelText={t('app.global.close')}
-      confirmLoading={confirmLoading}
     >
       {description && <Form.Item>{description}</Form.Item>}
       {visible ? (
@@ -113,8 +110,8 @@ function FormModal(props: IFormModal) {
         </Form>
       ) : null}
       {footer}
-    </Modal>
+    </Drawer>
   );
 }
 
-export default FormModal;
+export default FormDrawer;

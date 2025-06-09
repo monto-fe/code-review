@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Card, Row, Col, Typography, Spin } from 'antd';
 // import { BasicContext } from '@/store/context';
-import { GuideStepsForm, UpdateLog, UpdatePlan } from './components';
+import { GuideStepsForm, UpdateLog, ProductAbility } from './components';
 import MergeStats from './components/MergeStats';
 import MergeProblemStats from './components/MergeStats/MergeProblemStats';
 import AIDetectionChart from './components/AIDetectionChart';
@@ -121,7 +121,7 @@ function Dashboard() {
         {/* 右侧辅助区 */}
         <Col xs={24} md={8}>
           <Card title="产品能力" style={{ marginBottom: 24 }}>
-            <UpdatePlan />
+            <ProductAbility />
           </Card>
           <Card title="使用文档与操作说明" style={{ marginBottom: 24 }}>
             <DocLinksCard />

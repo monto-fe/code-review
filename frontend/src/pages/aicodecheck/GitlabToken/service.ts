@@ -53,3 +53,12 @@ export async function removeData(id: number): Promise<any> {
     },
   });
 }
+
+export async function getDetail(id: number): Promise<any> {
+  const res = await request({
+    ...config,
+    url: `/gitlab/token/${id}`,
+    method: 'get',
+  });
+  return res.data as unknown as any;
+}

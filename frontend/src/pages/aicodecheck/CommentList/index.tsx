@@ -1,5 +1,5 @@
 import { memo, useContext, useRef } from 'react';
-import { Typography } from 'antd';
+import { Typography, message } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import { observer } from 'mobx-react-lite';
 import ReactMarkdown from 'react-markdown';
@@ -12,9 +12,10 @@ import { ITable } from '@/pages/component/Table/data';
 import { BasicContext } from '@/store/context';
 import { useI18n } from '@/store/i18n';
 import Rate from './rate';
-import { queryList } from './service';
+import { queryList, updateRating } from './service';
 import { TableListItem } from './data.d';
 import { renderDateFromTimestamp, timeFormatType } from '@/utils/timeformat';
+import Editable from './editable';
 
 function App() {
   const tableRef = useRef<ITable<TableListItem>>();
@@ -23,6 +24,12 @@ function App() {
   const t = useI18n(i18nLocale);
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id');
+
+  const updateRemark = (record: any, val: string) => {
+    updateRating(record.id, record.human_rating, val).then(() => {
+      message.success(t('app.global.tip.update.success'));
+    });
+  }
 
   const columns: ColumnsType<TableListItem> = [
     {
@@ -53,7 +60,17 @@ function App() {
       title: t('page.aicodecheck.comment.human_rating'),
       dataIndex: 'human_rating',
       key: 'human_rating',
+      width: 200,
       render: (_, record:any) => <Rate id={record.id} initialValue={record.human_rating} />
+    },
+    {
+      title: t('page.aicodecheck.comment.improve_suggestion'),
+      dataIndex: 'remark',
+      key: 'remark',
+      width: 200,
+      render: (_, record:any) => {
+        return <Editable value={record.remark} onChange={(val) => {updateRemark(record, val)}} />
+      }
     },
     {
       title: t('page.aicodecheck.comment.createtime'),
@@ -85,6 +102,7 @@ function App() {
         columns={columns}
         queryList={handleQueryList}
         useTools
+        scroll={{ x: 1200 }}
       />
     </div>
   );

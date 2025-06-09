@@ -1,5 +1,5 @@
-import { memo, useContext, useRef, useState } from 'react';
-import { Button, FormInstance, message, Popconfirm, PopconfirmProps, Space } from 'antd';
+import { memo, useContext, useRef, useState, useEffect } from 'react';
+import { Button, FormInstance, message, Popconfirm, PopconfirmProps, Space, Switch } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import { observer } from 'mobx-react-lite';
 
@@ -7,16 +7,14 @@ import CommonTable from '@/pages/component/Table';
 import { ITable } from '@/pages/component/Table/data';
 import { BasicContext } from '@/store/context';
 import { useI18n } from '@/store/i18n';
+import { getModelOptions, removeData } from './service';
 
-import { createData, MODEL_TYPE_OPTIONS, queryList, updateData as updateDataService } from './service';
+import { createData, queryList, updateData as updateDataService } from './service';
 import { TableQueryParam, TableListItem } from './data';
 import CreateForm from './components/CreateForm';
 
-const initialValues = {
-    name: 'DeepSeek',
-    api_url: 'https://deepseek.modelverse.cn/v1/chat/completions',
-    api_key: '',
-    model: 'deepseek-ai/DeepSeek-V3-0324'
+const getCurrentModel = (modelOptions: any[], type: string, model: string) => {
+  return modelOptions.find((item: any) => item.type === type && item.model === model);
 }
 
 function App() {
@@ -25,18 +23,43 @@ function App() {
   const { i18nLocale } = context.storeContext;
   const t = useI18n(i18nLocale);
 
+  const [modelOptions, setModelOptions] = useState<any[]>([]);
+  const [typeOptions, setTypeOptions] = useState<any[]>([]);
+
   const reload = () => tableRef.current && tableRef.current.reload && tableRef.current.reload();
 
   // 删除
   const [deleteOpen, setDeleteOpen] = useState<number | undefined>();
+  const [deleteLoadingId, setDeleteLoadingId] = useState<number | null>(null);
   const handleDelete = (id: number) => setDeleteOpen(id);
   const deleteConfirm = (id: number) => {
-    message.success(t('app.global.doing'));
-    // removeData(id).then(() => {
-    //   message.success(t('app.global.tip.delete.success'));
-    //   reload();
-    //   setDeleteOpen(void 0);
-    // });
+    setDeleteLoadingId(id);
+    removeData(id)
+      .then(() => {
+        message.success(t('app.global.tip.delete.success'));
+        reload();
+        setDeleteOpen(void 0);
+      })
+      .finally(() => {
+        setDeleteLoadingId(null);
+      });
+  };
+
+  const getAIModelOptions = async () => {
+    const res = await getModelOptions();
+    const { ret_code, data, message: errorMessage } = res;
+    if (ret_code === 0) {
+      // Extract unique types and create type options
+      const uniqueTypes = [...new Set(data.map((item: any) => item.type))];
+      const typeOpts = uniqueTypes.map(type => ({
+        label: type,
+        value: type
+      }));
+      setTypeOptions(typeOpts);
+      setModelOptions(data);
+    } else {
+      message.error(errorMessage);
+    }
   };
 
   const deleteCancel: PopconfirmProps['onCancel'] = () => {
@@ -47,6 +70,7 @@ function App() {
   const [createSubmitLoading, setCreateSubmitLoading] = useState<boolean>(false);
   const [createFormVisible, setCreateFormVisible] = useState<boolean>(false);
   const [updateData, setUpdateData] = useState<Partial<TableQueryParam>>({});
+  const [loadingId, setLoadingId] = useState<number | null>(null);
 
   const handleCreate = () => {
     setUpdateData({});
@@ -55,7 +79,13 @@ function App() {
   const createSubmit = (values: any, form: FormInstance) => {
     setCreateSubmitLoading(true);
     const request = updateData.id ? updateDataService : createData;
-    request({ ...values, id: updateData.id as number })
+    const currentModel = getCurrentModel(modelOptions, values.type, values.model);
+    const data = {
+      ...values,
+      api_url: currentModel?.api_url,
+      id: updateData?.id,
+    }
+    request(data)
       .then(() => {
         form.resetFields();
         setCreateFormVisible(false);
@@ -69,12 +99,28 @@ function App() {
       });
   };
 
+  const handleRuleCheckStatusChange = async (record: TableListItem, checked: boolean) => {
+    setLoadingId(record.id);
+    updateDataService({ id: record.id, is_active: checked ? 1 : 2 })
+      .then(() => {
+        message.success(t('app.global.tip.update.success'));
+        reload();
+      })
+      .finally(() => {
+        setLoadingId(null);
+      });
+  };
+
   const handleUpdate = (record: TableListItem) => {
     setUpdateData({
       ...record,
     });
     setCreateFormVisible(true);
   };
+
+  useEffect(() => {
+    getAIModelOptions();
+  }, []);
 
   const columns: ColumnsType<TableListItem> = [
     {
@@ -86,14 +132,6 @@ function App() {
       title: t('page.aicodecheck.aimodel.type'),
       dataIndex: 'type',
       key: 'type',
-      render: (text: string) => {
-        return MODEL_TYPE_OPTIONS.find(item => item.value === text)?.label;
-      }
-    },
-    {
-      title: t('page.aicodecheck.aimodel.name'),
-      dataIndex: 'name',
-      key: 'name',
     },
     {
       title: t('page.aicodecheck.aimodel.api_url'),
@@ -101,14 +139,23 @@ function App() {
       key: 'api_url',
     },
     {
-      title: t('page.aicodecheck.aimodel.api_key'),
-      dataIndex: 'api_key',
-      key: 'api_key',
-    },
-    {
       title: t('page.aicodecheck.aimodel.model'),
       dataIndex: 'model',
       key: 'model'
+    },
+    {
+      title: t('page.aicodecheck.aimodel.using'),
+      dataIndex: 'is_active',
+      key: 'is_active',
+      render: (text: number, record: TableListItem) => (
+        <Switch
+          checked={text === 1}
+          checkedChildren="开启"
+          unCheckedChildren="关闭"
+          onChange={(checked) => handleRuleCheckStatusChange(record, checked)}
+          loading={loadingId === record.id}
+        />
+      )
     },
     {
       title: t('app.table.action'),
@@ -129,8 +176,16 @@ function App() {
             onCancel={deleteCancel}
             okText='Yes'
             cancelText='No'
+            okButtonProps={{ loading: deleteLoadingId === record.id }}
           >
-            <Button danger className='btn-group-cell' onClick={() => handleDelete(record.id)} size='small' type='link'>
+            <Button
+              danger
+              className='btn-group-cell'
+              onClick={() => handleDelete(record.id)}
+              size='small'
+              type='link'
+              loading={deleteLoadingId === record.id}
+            >
               {t('app.global.delete')}
             </Button>
           </Popconfirm>
@@ -154,7 +209,9 @@ function App() {
       />
 
       <CreateForm
-        initialValues={initialValues}
+        initialValues={updateData}
+        modelOptions={modelOptions}
+        typeOptions={typeOptions}
         visible={createFormVisible}
         setVisible={setCreateFormVisible}
         onSubmit={createSubmit}

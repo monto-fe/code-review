@@ -1,5 +1,5 @@
 import request from '@/utils/request';
-import { TableQueryParam, TableListItem, AIModelCreateItem } from './data';
+import { TableQueryParam, AIModelUpdateItem, AIModelCreateItem } from './data';
 
 const config = {
   baseURL: import.meta.env.VITE_APP_APIHOST || '',
@@ -33,15 +33,12 @@ export async function createData(params: AIModelCreateItem): Promise<any> {
   });
 }
 
-export async function updateData(params: TableListItem): Promise<any> {
+export async function updateData(data: AIModelUpdateItem): Promise<any> {
   return request({
     ...config,
     url: `/ai/config`,
     method: 'put',
-    data: {
-      ...params,
-      is_active: 1,
-    },
+    data
   });
 }
 
@@ -51,8 +48,15 @@ export async function removeData(id: number): Promise<any> {
     url: `/ai/config`,
     method: 'delete',
     data: {
-      id,
-      namespace,
+      id
     },
+  });
+}
+
+export async function getModelOptions(): Promise<any> {
+  return request({
+    ...config,
+    url: `/ai/manager`,
+    method: 'get'
   });
 }

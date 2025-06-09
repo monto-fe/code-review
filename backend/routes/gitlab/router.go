@@ -9,5 +9,6 @@ func RegisterRoutes(r *gin.RouterGroup) {
 		gitlab.POST("", CreateGitlabToken)
 		gitlab.PUT("", UpdateGitlabToken)
 		gitlab.DELETE("", DeleteGitlabToken)
+		gitlab.GET("/token/:id", GetGitlabTokenDetail)
 	}
 }

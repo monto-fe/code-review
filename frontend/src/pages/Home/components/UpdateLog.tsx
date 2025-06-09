@@ -5,19 +5,24 @@ const { Panel } = Collapse;
 
 const data = [
   {
-    summary: 'v1.0.0 初始版本发布',
-    features: ['功能A', '功能B', '功能C'],
-    extra: <div>2023-10-01</div>
+    summary: 'v0.0.4 支持RAG能力',
+    features: ['读取Git项目，通过RAG能力进行代码审核'],
+    extra: '2025-04-05'
   },
   {
-    summary: 'v1.1.0 新增功能A',
-    features: ['功能D', '功能E'],
-    extra: '2023-10-15'
+    summary: 'v0.0.3 优化Git项目读取逻辑',
+    features: ['优化服务拉取Git项目缓存'],
+    extra: '2025-04-05'
   },
   {
-    summary: 'v1.2.0 修复Bug',
-    features: ['修复X问题', '优化Y性能'],
-    extra: '2023-11-01'
+    summary: 'v0.0.2 实现快速部署',
+    features: ['实现AI代码检测服务快速部署', '支持WebHook推送检测结果'],
+    extra: '2025-03-15'
+  },
+  {
+    summary: 'v0.0.1 初始版本发布',
+    features: ['支持针对Git Merge代码进行审核'],
+    extra: '2025-03-01'
   },
 ];
 

@@ -405,3 +405,13 @@ func fetchProjectIDs(token, gitlabAPI string) ([]string, error) {
 
 	return projectIDs, nil
 }
+
+// 通过id获取Gitlab Token 详情，不返回token
+func (s *GitlabService) GetGitlabTokenDetail(id uint) (*model.GitlabInfo, error) {
+	var gitlabInfo model.GitlabInfo
+	if err := s.db.First(&gitlabInfo, id).Error; err != nil {
+		return nil, err
+	}
+	gitlabInfo.Token = ""
+	return &gitlabInfo, nil
+}

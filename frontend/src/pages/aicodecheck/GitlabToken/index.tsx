@@ -1,8 +1,9 @@
 import { memo, useContext, useRef, useState } from 'react';
-import { Button, FormInstance, message, Popconfirm, PopconfirmProps, Space, Switch } from 'antd';
+import { Button, message, Popconfirm, PopconfirmProps, Space, Switch } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import { observer } from 'mobx-react-lite';
 import dayjs from 'dayjs';
+import { useNavigate } from 'react-router-dom';
 
 import CommonTable from '@/pages/component/Table';
 import { ITable } from '@/pages/component/Table/data';
@@ -10,9 +11,9 @@ import { BasicContext } from '@/store/context';
 import { useI18n } from '@/store/i18n';
 import { renderDateFromTimestamp, timeFormatType } from '@/utils/timeformat';
 
-import { createData, queryList, removeData, updateData as updateDataService } from './service';
+import { queryList, removeData, updateData as updateDataService } from './service';
 import { TableQueryParam, TableListItem } from './data';
-import CreateForm from './components/CreateForm';
+// import CreateForm from './CreateToken';
 import StatusTag from './components/StatusTag';
 
 function App() {
@@ -20,17 +21,23 @@ function App() {
   const context = useContext(BasicContext) as any;
   const { i18nLocale } = context.storeContext;
   const t = useI18n(i18nLocale);
-
+  const navigate = useNavigate();
   const reload = () => tableRef.current && tableRef.current.reload && tableRef.current.reload();
 
   // 删除
   const [deleteOpen, setDeleteOpen] = useState<number | undefined>();
+  const [deleteLoading, setDeleteLoading] = useState<number | undefined>();
+
   const handleDelete = (id: number) => setDeleteOpen(id);
+
   const deleteConfirm = (id: number) => {
+    setDeleteLoading(id);
     removeData(id).then(() => {
       message.success(t('app.global.tip.delete.success'));
       reload();
       setDeleteOpen(void 0);
+    }).finally(() => {
+      setDeleteLoading(void 0);
     });
   };
 
@@ -38,43 +45,29 @@ function App() {
     setDeleteOpen(void 0);
   };
 
+  const handleDetail = (record: TableListItem) => {
+    navigate(`/aicodecheck/GitlabTokenDetail?id=${record.id}`);
+  };
+
   // 新增&编辑
-  const [createSubmitLoading, setCreateSubmitLoading] = useState<boolean>(false);
   const [createFormVisible, setCreateFormVisible] = useState<boolean>(false);
   const [updateData, setUpdateData] = useState<Partial<TableQueryParam>>({});
 
   const handleCreate = () => {
-    setUpdateData({});
-    setCreateFormVisible(true);
+    navigate('/aicodecheck/GitlabConfig');
+    // setUpdateData({});
+    // setCreateFormVisible(true);
   };
-  const createSubmit = (values: TableListItem, form: FormInstance) => {
-    setCreateSubmitLoading(true);
-    const request = updateData.id ? updateDataService : createData;
-    request({ ...values, id: updateData.id as number })
-      .then(() => {
-        form.resetFields();
-        setCreateFormVisible(false);
-        message.success(values.id ? t('app.global.tip.update.success') : t('app.global.tip.create.success'));
-        reload();
-
-        setCreateSubmitLoading(false);
-      })
-      .catch(() => {
-        setCreateSubmitLoading(false);
-      });
-  };
+  
 
   const handleUpdate = (record: TableListItem) => {
-    const { id, expired, source_branch, target_branch, webhook_name } = record;
-    const editInfo = {
-      id, expired: expired?dayjs(expired*1000):dayjs(), source_branch, target_branch, webhook_name
-    }
-    setUpdateData(editInfo);
-    setCreateFormVisible(true);
+    // 跳转到GitlabToken新建页面，带上id
+    navigate(`/aicodecheck/GitlabConfig?id=${record.id}`);
   };
 
   const [loadingId, setLoadingId] = useState<number | null>(null);
   const [webhookLoadingId, setWebhookLoadingId] = useState<number | null>(null);
+  const [statusLoadingId, setStatusLoadingId] = useState<number | null>(null);
 
   const handleRuleCheckStatusChange = async (id: number, checked: boolean) => {
     setLoadingId(id);
@@ -113,6 +106,23 @@ function App() {
       message.error('状态更新失败');
     } finally {
       setWebhookLoadingId(null);
+    }
+  };
+
+  const handleStatusChange = async (record: TableListItem, checked: boolean) => {
+    setStatusLoadingId(record.id);
+    try {
+      const { ret_code } = await updateDataService({id: record.id, status: checked ? 1 : -1});
+      if (ret_code !== 0) {
+        message.error('状态更新失败');
+        return;
+      }
+      message.success('状态更新成功');
+      reload();
+    } catch (e) {
+      message.error('状态更新失败');
+    } finally {
+      setStatusLoadingId(null);
     }
   };
 
@@ -162,6 +172,20 @@ function App() {
       }
     },
     {
+      title: t('page.aicodecheck.gitlab.status'),
+      dataIndex: 'status',
+      key: 'status',
+      render: (text: number, record: TableListItem) => {
+        return <Switch
+        checked={text === 1}
+        checkedChildren="开启"
+        unCheckedChildren="关闭"
+        onChange={(checked) => handleStatusChange(record, checked)}
+        loading={statusLoadingId === record.id}
+      />
+      }
+    },
+    {
       title: t('page.aicodecheck.gitlab.webhook_status'),
       dataIndex: 'webhook_status',
       key: 'webhook_status',
@@ -197,9 +221,9 @@ function App() {
       width: 220,
       render: (text, record: TableListItem) => (
         <Space size='small'>
-          {/* <Button className='btn-group-cell' size='small' type='link' onClick={() => handleUpdate(record)}>
+          <Button className='btn-group-cell' size='small' type='link' onClick={() => handleDetail(record)}>
             {t('app.global.view')}
-          </Button> */}
+          </Button>
           <Button className='btn-group-cell' size='small' type='link' onClick={() => handleUpdate(record)}>
             {t('app.global.edit')}
           </Button>
@@ -212,7 +236,14 @@ function App() {
             okText='Yes'
             cancelText='No'
           >
-            <Button danger className='btn-group-cell' onClick={() => handleDelete(record.id)} size='small' type='link'>
+            <Button 
+              danger 
+              className='btn-group-cell' 
+              onClick={() => handleDelete(record.id)} 
+              size='small' 
+              type='link'
+              loading={deleteLoading === record.id}
+            >
               {t('app.global.delete')}
             </Button>
           </Popconfirm>
@@ -236,13 +267,13 @@ function App() {
         useTools
       />
 
-      <CreateForm
+      {/* <CreateForm
         initialValues={updateData}
         visible={createFormVisible}
         setVisible={setCreateFormVisible}
         onSubmit={createSubmit}
         onSubmitLoading={createSubmitLoading}
-      />
+      /> */}
     </div>
   );
 }
