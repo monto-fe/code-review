@@ -75,8 +75,9 @@ const GuideStepsForm = ({ AIConfig, GitlabConfig, callback }: { AIConfig: any[],
           <Form form={gitlabForm} layout="vertical" onFinish={async (values) => {
             try {
               setModalLoading(true);
-              const { api, token, expired } = values;
+              const { api, token, expired, name } = values;
               await saveGitlabConfig({
+                name,
                 api,
                 token,
                 expired: expired.unix(),
@@ -91,6 +92,9 @@ const GuideStepsForm = ({ AIConfig, GitlabConfig, callback }: { AIConfig: any[],
               setModalLoading(false);
             }
           }}>
+            <Form.Item name="name" label="Gitlab Name" rules={[{ required: true, message: '请输入Gitlab Token标识名' }]}>
+                <Input placeholder='Gitlab Token标识名'/>
+            </Form.Item>
             <Form.Item name="api" label="Gitlab API" rules={[{ required: true, message: '请输入Gitlab地址' }]}>
                 <Input placeholder='https://gitlab.com/api/v4'/>
             </Form.Item>
