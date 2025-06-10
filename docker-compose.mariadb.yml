@@ -1,8 +1,8 @@
 services:
   frontend:
     build:
-      context: .  # 指向前端项目代码所在目录
-      dockerfile: frontend/Dockerfile    # Dockerfile 的名称
+      context: ./frontend  # 指向前端项目代码所在目录
+      dockerfile: Dockerfile    # Dockerfile 的名称
       args:
         VITE_APP_APIHOST: http://${IP}:${API_PORT}/v1
     ports:
@@ -15,8 +15,8 @@ services:
 
   backend:
     build:
-      context: .  # 指向后端项目代码所在目录
-      dockerfile: backend/Dockerfile   # Dockerfile 的名称
+      context: ./backend  # 指向后端项目代码所在目录
+      dockerfile: Dockerfile   # Dockerfile 的名称
     environment:
       - PORT=${API_PORT}
       - NODE_ENV=${NODE_ENV}

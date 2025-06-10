@@ -21,7 +21,7 @@ RUN ls -al
 
 FROM nginx:1.19.1 as production-build-stage
 
-COPY ./frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 
 COPY --from=common-build-stage /app/dist /usr/share/nginx/html
 
