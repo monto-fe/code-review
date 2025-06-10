@@ -9,6 +9,7 @@ type GitlabToken struct {
 // GitlabInfoResponse Gitlab 信息响应模型
 type GitlabInfoResponse struct {
 	ID               uint   `json:"id"`
+	Name             string `json:"name"`
 	API              string `json:"api"`
 	WebhookURL       string `json:"webhook_url"`
 	WebhookName      string `json:"webhook_name"`

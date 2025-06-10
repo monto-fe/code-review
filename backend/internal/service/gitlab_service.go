@@ -47,6 +47,7 @@ func (s *GitlabService) GetGitlabInfo() ([]dto.GitlabInfoResponse, error) {
 	for i, info := range gitlabList {
 		responseList[i] = dto.GitlabInfoResponse{
 			ID:               info.ID,
+			Name:             info.Name,
 			API:              utils.MaskString(info.API),
 			WebhookURL:       utils.MaskString(info.WebhookURL),
 			WebhookName:      info.WebhookName,
