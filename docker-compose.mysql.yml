@@ -15,8 +15,8 @@ services:
 
   backend:
     build:
-      context: ./backend  # 指向后端项目代码所在目录
-      dockerfile: Dockerfile   # Dockerfile 的名称
+      context: .  # 指向后端项目代码所在目录
+      dockerfile: backend/Dockerfile   # Dockerfile 的名称
     environment:
       - PORT=${API_PORT}
       - NODE_ENV=${NODE_ENV}
