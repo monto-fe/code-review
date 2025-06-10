@@ -6,6 +6,7 @@ import (
 	"code-review-go/internal/model"
 	"code-review-go/internal/pkg/response"
 	"code-review-go/internal/service"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -150,13 +151,19 @@ func RefreshGitlabToken(c *gin.Context) {
 // @Success 200 {object} response.Response
 // @Router /v1/gitlab/token/{id} [get]
 func GetGitlabTokenDetail(c *gin.Context) {
+	idStr := c.Query("id")
+	idInt, err := strconv.Atoi(idStr)
+	if err != nil {
+		response.Error(c, err, "id参数错误", 400)
+		return
+	}
 	gitlabService := service.NewGitlabService(database.DB)
-	gitlabList, err := gitlabService.GetGitlabInfo()
+	gitlabInfo, err := gitlabService.GetGitlabTokenDetail(uint(idInt))
 	if err != nil {
 		response.Error(c, err, "获取Gitlab Token 详情失败", 500)
 		return
 	}
 	response.Success(c, gin.H{
-		"data": gitlabList,
+		"data": gitlabInfo,
 	}, "获取Gitlab Token 详情成功", 0)
 }
