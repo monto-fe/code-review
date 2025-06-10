@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS `t_user` (
   `create_time` int unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
   `update_time` int unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
   `delete_time` int DEFAULT NULL,
-  PRIMARY KEY (`id`),
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 -- 创建 t_user_role 表
@@ -190,7 +190,7 @@ CREATE TABLE IF NOT EXISTS `t_ai_message` (
   `update_time` int unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
   `operator` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作人',
   PRIMARY KEY (`id`),
-  KEY `project_id` (`project_id`),
+  KEY `project_id` (`project_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='AI 检测消息表';
 
 -- t_ai_config
