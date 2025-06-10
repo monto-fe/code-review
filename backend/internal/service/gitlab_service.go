@@ -76,6 +76,7 @@ func (s *GitlabService) CreateGitlabToken(data model.GitlabInfoCreate) (*model.G
 	now := time.Now().Unix()
 	gitlabInfo := &model.GitlabInfo{
 		API:              data.API,
+		Name:             data.Name,
 		Token:            data.Token,
 		WebhookName:      data.WebhookName,
 		WebhookURL:       data.WebhookURL,
@@ -148,6 +149,9 @@ func (s *GitlabService) UpdateGitlabInfo(data model.GitlabInfoUpdate) (*model.Gi
 
 	if data.API != "" {
 		updates["api"] = data.API
+	}
+	if data.Name != "" {
+		updates["name"] = data.Name
 	}
 	if data.Token != "" {
 		updates["token"] = data.Token

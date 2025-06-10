@@ -3,11 +3,11 @@ import { Form, Input, DatePicker, Button, Collapse, Layout, Card, message } from
 import type { FormInstance } from 'antd';
 import { BasicContext } from '@/store/context';
 import { useI18n } from '@/store/i18n';
-import { queryList, removeData, updateData as updateDataService, createData } from './service';
+import { queryList, removeData, updateData as updateDataService, createData, getDetail } from './service';
 import { TableQueryParam, TableListItem } from './data';
 import PromptDrawer from './promptDrawer';
 import dayjs from 'dayjs';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const { TextArea } = Input;
 const { Sider, Content } = Layout;
@@ -39,6 +39,7 @@ const AIConfigPage: React.FC<AIConfigPageProps> = ({
   const { i18nLocale } = context.storeContext;
   const t = useI18n(i18nLocale);
   const navigate = useNavigate();
+  const location = useLocation();
   const [form] = Form.useForm();
   const [prompt, setPrompt] = useState('');
   const [promptDrawerVisible, setPromptDrawerVisible] = useState(false);
@@ -53,15 +54,21 @@ const AIConfigPage: React.FC<AIConfigPageProps> = ({
     content: '请输入自定义提示词，支持Markdown，最多1000字',
   }]);
 
-  // useEffect(() => {
-  //   if (initialValues) {
-  //     setUpdateData(initialValues);
-  //     form.setFieldsValue({
-  //       ...initialValues,
-  //       expired: initialValues.expired ? dayjs(initialValues.expired * 1000) : undefined
-  //     });
-  //   }
-  // }, [initialValues, form]);
+  const searchParams = new URLSearchParams(location.search);
+  const id = searchParams.get('id');
+
+  useEffect(() => {
+    if (id) {
+      getDetail(Number(id)).then(res => {
+        const detail = res.data || res;
+        form.setFieldsValue({
+          ...detail,
+          expired: detail.expired ? dayjs(detail.expired * 1000) : undefined,
+        });
+        setUpdateData(detail);
+      });
+    }
+  }, [id]);
 
   const handleFinish = (values: any) => {
     console.log("values", values)

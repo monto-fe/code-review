@@ -11,6 +11,8 @@ type GitlabCacheItem struct {
 	Token      string
 	Config     model.GitlabInfo
 	ProjectIDs []string
+	Prompt     string
+	WebhookURL string
 }
 
 var (
@@ -36,6 +38,8 @@ func InitGitlabCache() error {
 			Token:      info.Token,
 			Config:     info,
 			ProjectIDs: projectIDs,
+			Prompt:     info.Prompt,
+			WebhookURL: info.WebhookURL,
 		}
 	}
 

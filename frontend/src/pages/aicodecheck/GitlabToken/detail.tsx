@@ -1,21 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Descriptions, Spin, message } from 'antd';
-import { useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { getDetail } from './service';
 import { TableListItem } from './data';
 import dayjs from 'dayjs';
 
 const GitlabTokenDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const id = searchParams.get('id');
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<TableListItem | null>(null);
 
+  console.log("id", id);
   useEffect(() => {
     if (!id) return;
     setLoading(true);
     getDetail(Number(id))
       .then((res) => {
-        setData(res);
+        const { data } = res;
+        setData(data);
       })
       .catch(() => {
         message.error('获取详情失败');
@@ -31,7 +35,7 @@ const GitlabTokenDetail: React.FC = () => {
             <Descriptions.Item label="ID">{data.id}</Descriptions.Item>
             <Descriptions.Item label="API">{data.api}</Descriptions.Item>
             <Descriptions.Item label="Token">{data.token}</Descriptions.Item>
-            <Descriptions.Item label="有效期">{data.expired ? dayjs(data.expired * 1000).format('YYYY-MM-DD') : '-'}</Descriptions.Item>
+            <Descriptions.Item label="有效期">--</Descriptions.Item>
             <Descriptions.Item label="Webhook名称">{data.webhook_name}</Descriptions.Item>
             <Descriptions.Item label="Webhook地址">{data.webhook_url}</Descriptions.Item>
             <Descriptions.Item label="源分支">{data.source_branch}</Descriptions.Item>

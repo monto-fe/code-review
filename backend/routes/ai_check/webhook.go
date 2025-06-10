@@ -121,6 +121,8 @@ func AICheck(c *gin.Context) {
 			fmt.Println("评论提交失败:", err)
 		}
 	}
+	// TODO: 需要将写入ai_message表的逻辑提取出来，将更多的参数写进去
+	// TODO: 需要将gitlab和ai的缓存数据放在这里，通过参数传递给Service
 
 	// 9. 推送webhook
 	if webhookURL != "" && webhookStatus == 1 {
@@ -128,5 +130,4 @@ func AICheck(c *gin.Context) {
 		_ = service.SendMarkdownToWechatBot(webhookURL, webhookContent)
 		fmt.Println("推送webhook成功", mergeRequest)
 	}
-
 }

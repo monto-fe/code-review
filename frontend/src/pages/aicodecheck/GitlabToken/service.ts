@@ -57,8 +57,11 @@ export async function removeData(id: number): Promise<any> {
 export async function getDetail(id: number): Promise<any> {
   const res = await request({
     ...config,
-    url: `/gitlab/token/${id}`,
+    url: `/gitlab/token`,
     method: 'get',
+    params: {
+      id,
+    }
   });
   return res.data as unknown as any;
 }

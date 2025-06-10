@@ -3,6 +3,7 @@ package model
 // GitlabInfo Gitlab 信息模型
 type GitlabInfo struct {
 	ID               uint   `json:"id"`
+	Name             string `json:"name"`
 	API              string `json:"api"`
 	Token            string `json:"token"`
 	WebhookURL       string `json:"webhook_url,omitempty"`
@@ -30,6 +31,7 @@ func (GitlabInfo) TableName() string {
 // GitlabInfoCreate Gitlab 信息创建请求
 type GitlabInfoCreate struct {
 	API             string `json:"api" binding:"required"`
+	Name            string `json:"name" binding:"required"`
 	Token           string `json:"token" binding:"required"`
 	WebhookURL      string `json:"webhook_url,omitempty"`
 	WebhookName     string `json:"webhook_name,omitempty"`
@@ -46,6 +48,7 @@ type GitlabInfoCreate struct {
 
 type GitlabInfoUpdate struct {
 	ID              uint   `json:"id" binding:"required"`
+	Name            string `json:"name,omitempty"`
 	API             string `json:"api,omitempty"`
 	Token           string `json:"token,omitempty"`
 	WebhookURL      string `json:"webhook_url,omitempty"`
