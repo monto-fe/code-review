@@ -57,6 +57,8 @@ const AIConfigPage: React.FC<AIConfigPageProps> = ({
   const searchParams = new URLSearchParams(location.search);
   const id = searchParams.get('id');
 
+  const isEdit = !!id;
+
   useEffect(() => {
     if (id) {
       getDetail(Number(id)).then(res => {
@@ -125,21 +127,21 @@ const AIConfigPage: React.FC<AIConfigPageProps> = ({
             <Form.Item
               label="名称"
               name="name"
-              rules={[{ required: true, message: '名称为必填项' }]}
+              rules={isEdit ? [] : [{ required: true, message: '名称为必填项' }]}
             >
               <Input placeholder="请输入Token说明" />
             </Form.Item>
             <Form.Item
               label="API"
               name="api"
-              rules={[{ required: true, message: 'API为必填项' }]}
+              rules={isEdit ? [] : [{ required: true, message: 'API为必填项' }]}
             >
               <Input placeholder="请输入API地址" />
             </Form.Item>
             <Form.Item
               label="Token"
               name="token"
-              rules={[{ required: true, message: 'Token为必填项' }]}
+              rules={isEdit ? [] : [{ required: true, message: 'Token为必填项' }]}
             >
               <Input placeholder="请输入Token" />
             </Form.Item>
@@ -147,7 +149,7 @@ const AIConfigPage: React.FC<AIConfigPageProps> = ({
               label="有效期"
               name="expired"
               rules={[
-                { required: true, message: '有效期为必填项' },
+                ...(isEdit ? [] : [{ required: true, message: '有效期为必填项' }]),
                 {
                   validator: async (_, value) => {
                     if (value && value < dayjs().add(3, 'day').startOf('day')) {
