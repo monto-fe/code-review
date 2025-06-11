@@ -1,6 +1,9 @@
 # Build stage
 FROM golang:1.19-alpine AS builder
 
+# 设置 Go 代理（国内推荐 goproxy.cn）
+ENV GOPROXY=https://goproxy.cn,direct
+
 # 设置工作目录
 WORKDIR /app
 
