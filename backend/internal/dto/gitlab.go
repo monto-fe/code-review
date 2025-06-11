@@ -1,5 +1,7 @@
 package dto
 
+import "code-review-go/internal/model"
+
 type GitlabToken struct {
 	ID        uint   `json:"id"`
 	Namespace string `json:"namespace"`
@@ -30,4 +32,14 @@ type GitlabInfoResponse struct {
 // GitlabDeleteRequest Gitlab 删除请求
 type GitlabDeleteRequest struct {
 	ID uint `json:"id" binding:"required"`
+}
+
+type GitlabCacheItem struct {
+	Token           string
+	Config          model.GitlabInfo
+	ProjectIDs      []string
+	Prompt          string
+	WebhookURL      string
+	WebhookStatus   int8
+	RuleCheckStatus int8
 }

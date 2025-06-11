@@ -5,7 +5,7 @@ const gitlabConfigDoc = (IP: string) => `
 
 配置位置：Settings ➜ Webhooks
 
-添加如下地址：http://${IP}:/webhook/merge
+添加如下地址：http://${IP}/webhook/merge
 
 勾选事件类型：**Merge request events**
 

@@ -131,32 +131,38 @@ function App() {
       title: 'id',
       dataIndex: 'id',
       key: 'id',
+      width: 80,
+    },
+    {
+      title: t('page.aicodecheck.gitlab.name'),
+      dataIndex: 'name',
+      key: 'name',
     },
     {
       title: t('page.aicodecheck.gitlab.api'),
       dataIndex: 'api',
       key: 'api',
     },
-    {
-      title: t('page.aicodecheck.gitlab.webhook_name'),
-      dataIndex: 'webhook_name',
-      key: 'webhook_name',
-    },
-    {
-      title: t('page.aicodecheck.gitlab.webhook_url'),
-      dataIndex: 'webhook_url',
-      key: 'webhook_url'
-    },
-    {
-      title: t('page.aicodecheck.gitlab.source_branch'),
-      dataIndex: 'source_branch',
-      key: 'source_branch',
-    },
-    {
-      title: t('page.aicodecheck.gitlab.target_branch'),
-      dataIndex: 'target_branch',
-      key: 'target_branch',
-    },
+    // {
+    //   title: t('page.aicodecheck.gitlab.webhook_name'),
+    //   dataIndex: 'webhook_name',
+    //   key: 'webhook_name',
+    // },
+    // {
+    //   title: t('page.aicodecheck.gitlab.webhook_url'),
+    //   dataIndex: 'webhook_url',
+    //   key: 'webhook_url'
+    // },
+    // {
+    //   title: t('page.aicodecheck.gitlab.source_branch'),
+    //   dataIndex: 'source_branch',
+    //   key: 'source_branch',
+    // },
+    // {
+    //   title: t('page.aicodecheck.gitlab.target_branch'),
+    //   dataIndex: 'target_branch',
+    //   key: 'target_branch',
+    // },
     {
       title: t('page.aicodecheck.gitlab.expired'),
       dataIndex: 'expired',

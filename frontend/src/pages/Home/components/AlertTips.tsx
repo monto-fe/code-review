@@ -5,7 +5,7 @@ import DocDrawer from './DocDrawer';
 const { Paragraph } = Typography;
 const IP = import.meta.env.VITE_APP_APIHOST
 
-const DOC_URL = 'https://example.com/ai-gitlab-config-doc';
+const DOC_URL = 'https://github.com/monto-fe/code-review/wiki';
 const WEBHOOK_URL = `${IP}/webhook/merge`;
 
 export default function AlertTips({ AIConfig, GitlabConfig }: { AIConfig: boolean, GitlabConfig: boolean }) {

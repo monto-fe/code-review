@@ -5,9 +5,9 @@ const { Panel } = Collapse;
 
 const data = [
   {
-    summary: 'v0.0.4 支持RAG能力',
-    features: ['读取Git项目，通过RAG能力进行代码审核'],
-    extra: '2025-04-05'
+    summary: 'v0.0.4 支持自定义提示词',
+    features: ['可以自定义提示词'],
+    extra: '2025-06-11'
   },
   {
     summary: 'v0.0.3 优化Git项目读取逻辑',

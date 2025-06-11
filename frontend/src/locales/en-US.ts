@@ -161,6 +161,7 @@ export default {
   'page.aicodecheck.gitlab.webhook_status': 'Webhook Status',
   'page.aicodecheck.gitlab.rule_check_status': 'Rule Check Status',
   'page.aicodecheck.gitlab.status': 'Status',
+  'page.aicodecheck.gitlab.name': 'Name',
   
   'page.aicodecheck.aimodel.type': 'model type',
 

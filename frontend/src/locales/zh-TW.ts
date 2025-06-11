@@ -164,6 +164,7 @@ export default {
   'page.aicodecheck.gitlab.webhook_status': 'webhook推送',
   'page.aicodecheck.gitlab.rule_check_status': '規則檢查',
   'page.aicodecheck.gitlab.status': '狀態',
+  'page.aicodecheck.gitlab.name': '名稱',
 
   'setting.pagestyle': '頁面風格',
   'setting.navigationmode': '導航風格',

@@ -160,6 +160,7 @@ export default {
   'page.aicodecheck.gitlab.webhook_status': 'webhook推送',
   'page.aicodecheck.gitlab.rule_check_status': '规则检查',
   'page.aicodecheck.gitlab.status': '状态',
+  'page.aicodecheck.gitlab.name': '名称',
 
   'page.aicodecheck.aimodel.type': '模型类型',
 

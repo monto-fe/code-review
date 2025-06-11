@@ -67,6 +67,7 @@ const AIConfigPage: React.FC<AIConfigPageProps> = ({
           ...detail,
           expired: detail.expired ? dayjs(detail.expired * 1000) : undefined,
         });
+        setPrompt(detail.prompt || '');
         setUpdateData(detail);
       });
     }
