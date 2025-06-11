@@ -226,3 +226,47 @@ func GetQueryInt(c *gin.Context, key string, defaultValue int) int {
 	}
 	return val
 }
+
+// FetchProjectIDs 获取项目ID列表
+func FetchProjectIDs(token, gitlabAPI string) ([]string, error) {
+	var projectIDs []string
+	page := 1
+	perPage := 100
+
+	for {
+		url := fmt.Sprintf("%s/v4/projects?per_page=%d&page=%d", gitlabAPI, perPage, page)
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("PRIVATE-TOKEN", token)
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		defer resp.Body.Close()
+
+		var projects []map[string]interface{}
+		if err := json.NewDecoder(resp.Body).Decode(&projects); err != nil {
+			return nil, err
+		}
+
+		if len(projects) == 0 {
+			break
+		}
+
+		for _, proj := range projects {
+			if id, ok := proj["id"].(float64); ok {
+				projectIDs = append(projectIDs, fmt.Sprintf("%.0f", id))
+			}
+		}
+
+		if len(projects) < perPage {
+			break
+		}
+		page++
+	}
+
+	return projectIDs, nil
+}

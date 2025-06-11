@@ -173,8 +173,8 @@ function App() {
       title: t('page.aicodecheck.gitlab.project_ids_synced'),
       dataIndex: 'project_ids_synced',
       key: 'project_ids_synced',
-      render: (text: number) => {
-        return <StatusTag status={1} />
+      render: (text=1) => {
+        return <StatusTag status={text} />
       }
     },
     {

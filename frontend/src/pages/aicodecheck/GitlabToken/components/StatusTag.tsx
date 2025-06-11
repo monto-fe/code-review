@@ -8,7 +8,7 @@ type StatusTagProps = {
 
 const StatusTag: React.FC<StatusTagProps> = ({ status }) => {
   switch (status) {
-    case 1:
+    case 3:
       return (
         <Tag icon={<CheckCircleOutlined />} color="success">
           success
@@ -20,7 +20,7 @@ const StatusTag: React.FC<StatusTagProps> = ({ status }) => {
           processing
         </Tag>
       );
-    case 3:
+    case 1:
       return (
         <Tag icon={<CloseCircleOutlined />} color="error">
           error
