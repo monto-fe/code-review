@@ -4,6 +4,7 @@ import (
 	"code-review-go/internal/database"
 	"code-review-go/internal/dto"
 	"code-review-go/internal/model"
+	"code-review-go/internal/pkg/utils"
 	"strings"
 	"sync"
 )
@@ -23,7 +24,20 @@ func InitGitlabCache() error {
 	cache := make(map[uint]dto.GitlabCacheItem)
 	for _, info := range infos {
 		var projectIDs []string
-		if info.ProjectIds != "" {
+		if info.ProjectIds == "" {
+			// 主动获取项目ID
+			ids, err := utils.FetchProjectIDs(info.Token, info.API)
+			if err != nil || len(ids) == 0 {
+				// 获取不到就跳过
+				continue
+			}
+			projectIDs = ids
+			// 更新数据库
+			projectIDsStr := strings.Join(ids, ",")
+			_ = database.DB.Model(&model.GitlabInfo{}).Where("id = ?", info.ID).
+				Update("project_ids", projectIDsStr).Error
+			info.ProjectIds = projectIDsStr
+		} else {
 			projectIDs = strings.Split(info.ProjectIds, ",")
 		}
 

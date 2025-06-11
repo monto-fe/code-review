@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
@@ -110,7 +109,7 @@ func (s *GitlabService) CreateGitlabToken(data model.GitlabInfoCreate) (*model.G
 		if data.Token == "" {
 			updateStatus = ProjectIdsSyncedFailed
 		} else {
-			projectIDs, err := fetchProjectIDs(data.Token, data.API)
+			projectIDs, err := utils.FetchProjectIDs(data.Token, data.API)
 			if err != nil || len(projectIDs) == 0 {
 				updateStatus = ProjectIdsSyncedFailed
 			} else {
@@ -199,7 +198,7 @@ func (s *GitlabService) UpdateGitlabInfo(data model.GitlabInfoUpdate) (*model.Gi
 	// 如果更新了 token，异步获取新的项目列表
 	if data.Token != "" {
 		go func() {
-			projectIDs, err := fetchProjectIDs(data.Token, data.API)
+			projectIDs, err := utils.FetchProjectIDs(data.Token, data.API)
 			projectIDsStr := ""
 			if err == nil {
 				projectIDsStr = strings.Join(projectIDs, ",")
@@ -365,50 +364,6 @@ func PostCommentToGitLab(gitlabAPI string, projectID, mergeRequestID int, gitlab
 	}
 
 	return &result, nil
-}
-
-// fetchProjectIDs 获取项目ID列表
-func fetchProjectIDs(token, gitlabAPI string) ([]string, error) {
-	var projectIDs []string
-	page := 1
-	perPage := 100
-
-	for {
-		url := fmt.Sprintf("%s/v4/projects?per_page=%d&page=%d", gitlabAPI, perPage, page)
-		req, err := http.NewRequest("GET", url, nil)
-		if err != nil {
-			return nil, err
-		}
-		req.Header.Set("PRIVATE-TOKEN", token)
-
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			return nil, err
-		}
-		defer resp.Body.Close()
-
-		var projects []map[string]interface{}
-		if err := json.NewDecoder(resp.Body).Decode(&projects); err != nil {
-			return nil, err
-		}
-
-		if len(projects) == 0 {
-			break
-		}
-
-		for _, proj := range projects {
-			if id, ok := proj["id"].(float64); ok {
-				projectIDs = append(projectIDs, fmt.Sprintf("%.0f", id))
-			}
-		}
-
-		if len(projects) < perPage {
-			break
-		}
-		page++
-	}
-
-	return projectIDs, nil
 }
 
 // 通过id获取Gitlab Token 详情，不返回token
