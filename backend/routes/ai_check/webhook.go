@@ -21,6 +21,7 @@ type ObjectAttributes struct {
 	IID          int    `json:"iid"`
 	URL          string `json:"url"`
 	Action       string `json:"action"`
+	State        string `json:"state"`
 	SourceBranch string `json:"source_branch"`
 	TargetBranch string `json:"target_branch"`
 }
@@ -51,7 +52,8 @@ func AICheck(c *gin.Context) {
 	projectId := body.Project.ID
 	iid := body.ObjectAttributes.IID
 	mergeURL := body.ObjectAttributes.URL
-	action := body.ObjectAttributes.Action
+	// action := body.ObjectAttributes.Action
+	state := body.ObjectAttributes.State
 	sourceBranch := body.ObjectAttributes.SourceBranch
 	targetBranch := body.ObjectAttributes.TargetBranch
 	pathWithNamespace := body.Project.PathWithNamespace
@@ -65,7 +67,8 @@ func AICheck(c *gin.Context) {
 	}, "Webhook处理成功，等待AI检测", 0)
 
 	// 3. 只处理 open/update
-	if action != "open" && action != "update" {
+	// TODO: 封装下判断逻辑，支持特定场景下的触发
+	if state != "opened" {
 		return
 	}
 
