@@ -19,3 +19,10 @@ INSERT INTO `ucode_review`.`t_role_permission` (`id`, `namespace`, `role_id`, `r
 INSERT INTO `ucode_review`.`t_user` (`id`, `namespace`, `o_id`, `user`, `name`, `password`, `job`, `phone_number`, `email`, `create_time`, `update_time`) VALUES (1, 'acl', NULL, 'admin', '超级管理员', '25d55ad283aa400af464c76d713c07ad', 'admin', '', 'admin@admin.com', UNIX_TIMESTAMP(), UNIX_TIMESTAMP());
 -- t_user_role
 INSERT INTO `ucode_review`.`t_user_role` (`id`, `namespace`, `user`, `role_id`, `status`, `operator`, `create_time`, `update_time`) VALUES (1, 'acl', 'admin', 1, 1, 'admin', UNIX_TIMESTAMP(), UNIX_TIMESTAMP());
+-- t_ai_manager
+INSERT INTO `ucode_review`.`t_ai_manager` (`type`, `model`, `api_url`, `status`, `create_time`, `update_time`)
+VALUES 
+  ('UCloud', 'deepseek-ai/DeepSeek-V3-0324', 'https://deepseek.modelverse.cn/v1/chat/completions', 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
+  ('DeepSeek', 'deepseek-chat', 'https://api.deepseek.com/chat/completions', 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP());
+
+

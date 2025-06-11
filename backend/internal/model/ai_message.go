@@ -41,19 +41,22 @@ const (
 
 // AImessage AI 消息模型
 type AImessage struct {
-	ID          uint        `gorm:"primarykey" json:"id"`
-	ProjectID   uint        `gorm:"not null" json:"project_id"`
-	MergeURL    string      `gorm:"type:varchar(200);not null" json:"merge_url"`
-	MergeID     string      `gorm:"type:varchar(50);not null" json:"merge_id"`
-	AIModel     string      `gorm:"type:varchar(50);not null" json:"ai_model"`
-	Rule        RuleType    `gorm:"type:tinyint;not null" json:"rule"` // 1: common 2: custom
-	RuleID      uint        `gorm:"not null" json:"rule_id"`
-	Result      string      `gorm:"type:text;not null" json:"result"`
-	HumanRating HumanRating `gorm:"type:tinyint;not null" json:"human_rating"`
-	Remark      string      `gorm:"type:varchar(200)" json:"remark"`
-	Passed      bool        `gorm:"type:tinyint" json:"passed,omitempty"` // 默认为 false
-	CheckedBy   string      `gorm:"type:varchar(50)" json:"checked_by,omitempty"`
-	CreateTime  int64       `gorm:"not null" json:"create_time"`
+	ID               uint        `gorm:"primarykey" json:"id"`
+	ProjectID        uint        `gorm:"not null" json:"project_id"`
+	ProjectName      string      `gorm:"type:varchar(200);not null" json:"project_name"`
+	ProjectNamespace string      `gorm:"type:varchar(200);not null" json:"project_namespace"`
+	MergeDescription string      `gorm:"type:text;not null" json:"merge_description"`
+	MergeURL         string      `gorm:"type:varchar(200);not null" json:"merge_url"`
+	MergeID          string      `gorm:"type:varchar(50);not null" json:"merge_id"`
+	AIModel          string      `gorm:"type:varchar(50);not null" json:"ai_model"`
+	Rule             RuleType    `gorm:"type:tinyint;not null" json:"rule"` // 1: common 2: custom
+	RuleID           uint        `gorm:"not null" json:"rule_id"`
+	Result           string      `gorm:"type:text;not null" json:"result"`
+	HumanRating      HumanRating `gorm:"type:tinyint;not null" json:"human_rating"`
+	Remark           string      `gorm:"type:varchar(200)" json:"remark"`
+	Passed           int         `gorm:"type:tinyint" json:"passed,omitempty"` // 默认 -1 未通过 1 通过
+	CheckedBy        string      `gorm:"type:varchar(50)" json:"checked_by,omitempty"`
+	CreateTime       int64       `gorm:"not null" json:"create_time"`
 }
 
 // TableName 指定表名

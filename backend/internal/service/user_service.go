@@ -7,6 +7,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 
+	"code-review-go/internal/dto"
 	"code-review-go/internal/middleware"
 	"code-review-go/internal/model"
 )
@@ -148,9 +149,10 @@ func (s *UserService) UpdateUser(req model.UpdateUserReq) error {
 }
 
 // GetUserList 获取用户列表
-func (s *UserService) GetUserList(query model.UserListQuery) (map[string]interface{}, error) {
+func (s *UserService) GetUserList(query model.UserListQuery) ([]dto.UserListItem, int64, error) {
 	var users []model.User
 	var count int64
+	fmt.Println("query", query)
 
 	db := s.db.Model(&model.User{}).Where("namespace = ?", query.Namespace)
 	if query.User != "" {
@@ -168,7 +170,7 @@ func (s *UserService) GetUserList(query model.UserListQuery) (map[string]interfa
 
 	err := db.Count(&count).Error
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	err = db.Offset((query.Current - 1) * query.PageSize).
@@ -176,13 +178,24 @@ func (s *UserService) GetUserList(query model.UserListQuery) (map[string]interfa
 		Order("id DESC").
 		Find(&users).Error
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return map[string]interface{}{
-		"data":  users,
-		"count": count,
-	}, nil
+	// 转换为不含密码的DTO
+	var userList []dto.UserListItem
+	for _, u := range users {
+		userList = append(userList, dto.UserListItem{
+			ID:          u.ID,
+			User:        u.User,
+			Name:        u.Name,
+			Job:         u.Job,
+			Email:       u.Email,
+			PhoneNumber: u.PhoneNumber,
+			Namespace:   u.Namespace,
+		})
+	}
+
+	return userList, count, nil
 }
 
 // CreateInnerUser 创建内部用户

@@ -2,6 +2,8 @@ import { FormType } from "./enum";
 
 interface IFormItem {
   option?: any;
+  onChange?: (value: any) => any;
+  value?: any;
   label: React.ReactNode | string;
   disabled?: boolean;
   key?: string;
@@ -41,6 +43,7 @@ interface IFormModal {
   };
   onFinish?: Function;
   onCancel?: Function;
+  onValuesChange?: Function;
 }
 
 interface FieldData {
@@ -58,4 +61,6 @@ interface ICreateFormProps {
   onSubmitLoading: boolean;
   onSubmit: (values: TableListItem, form: FormInstance) => void;
   onCancel?: () => void;
+  modelOptions?: any[];
+  typeOptions?: any[];
 }

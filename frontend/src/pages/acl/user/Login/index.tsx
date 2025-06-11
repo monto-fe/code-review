@@ -29,11 +29,23 @@ export default memo(
       setSubmitLoading(true);
       try {
         const response: ResponseData<LoginResponseData> = await accountLogin(values);
-        const { data } = response;
-        setToken(data?.jwt_token || '');
-        setLoginStatus('ok');
-        message.success(t('page.user.login.form.login-success'));
-        navigate('/', { replace: true });
+        const { ret_code, data } = response;
+        if (ret_code !== 0) {
+          message.error(t('page.user.login.form.login-error'));
+          return;
+        }else {
+          setToken(data?.jwt_token || '');
+          setLoginStatus('ok');
+          message.success(t('page.user.login.form.login-success'));
+          console.log('data', data);
+          const params = new URLSearchParams(window.location.search);
+          const redirect = params.get('redirect');
+          if (redirect) {
+            navigate(redirect, { replace: true });
+          } else {
+            navigate('/', { replace: true });
+          }
+        }
       } catch (error: any) {
         if (error.message && error.message === 'CustomError') {
           setLoginStatus('error');
@@ -76,7 +88,7 @@ export default memo(
           </Form.Item>
 
           <Form.Item>
-            <Button type='primary' className={style.submit} htmlType='submit' size='large' loading={false}>
+            <Button type='primary' className={style.submit} htmlType='submit' size='large' loading={submitLoading}>
               {t('page.user.login.form.btn-submit')}
             </Button>
             {/* <div className={style['text-align-right']}>

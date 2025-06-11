@@ -24,17 +24,17 @@ export default memo(
     const getUser = useCallback(async () => {
       try {
         const response: ResponseData<CurrentUser> = await queryCurrent();
-        const { data } = response;
-
+        const { data: { userInfo, roleList } } = response;
         storeContext.updateUserInfo({
-          ...data,
-          roles: data.roles || [],
+          ...userInfo,
+          roleList: roleList || []
         });
       } catch (error: any) {
         if (error.message && error.message === 'CustomError') {
           const { response } = error;
           if (response) {
-            navigate('/user/login', { replace: true });
+            const redirect = window.location.pathname + window.location.search;
+            navigate(`/user/login?redirect=${encodeURIComponent(redirect)}`, { replace: true });
           }
         }
       }

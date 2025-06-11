@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS `t_user` (
   `create_time` int unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
   `update_time` int unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
   `delete_time` int DEFAULT NULL,
-  PRIMARY KEY (`id`),
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 -- 创建 t_user_role 表
@@ -110,40 +110,22 @@ CREATE TABLE IF NOT EXISTS `t_user_role` (
   KEY `role_id` (`role_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
--- ai table --
-
--- 表1: t_ai_manager
-CREATE TABLE IF NOT EXISTS `t_ai_manager` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
-  `model` varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'AI 模型名称',
-  `api` varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'API 名称',
-  `api_key` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'API 密钥',
-  `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态(-1: 禁用；1: 可用)',
-  `expired` int unsigned NOT NULL DEFAULT '0' COMMENT '过期时间',
-  `operator` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作人',
-  `create_time` int unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
-  `update_time` int unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
-  PRIMARY KEY (`id`),
-  KEY `model` (`model`),
-  KEY `api` (`api`),
-  KEY `status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='AI 管理表';
-
-
+-- gitlab table --
 CREATE TABLE IF NOT EXISTS `t_gitlab_info` (
   `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
-  `api` varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'GitLab API 名称',
+  `api` varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'GitLab API 地址',
+  `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'GitLab 名称',
   `token` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'GitLab 访问令牌',
-  `webhook_url` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'webhook url',
-  `webhook_name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'webhook name',
+  `webhook_url` varchar(255) COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'webhook url',
+  `webhook_name` varchar(255) COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'webhook name',
   `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态(-1: 禁用；1: 可用)',
-  `source_branch` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '源分支',
-  `target_branch` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '目标分支',
-  `gitlab_version` varchar(20) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'GitLab 版本',
+  `source_branch` varchar(255) COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '源分支',
+  `target_branch` varchar(255) COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '目标分支',
+  `gitlab_version` varchar(20) COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'GitLab 版本',
   `expired` int unsigned NOT NULL DEFAULT '0' COMMENT '过期时间',
-  `gitlab_url` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'GitLab 服务器地址',
+  `gitlab_url` varchar(255) COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT 'GitLab 服务器地址',
   `prompt` text COLLATE utf8mb4_general_ci COMMENT 'AI prompt信息',
-  `webhook_status` tinyint NOT NULL DEFAULT '0' COMMENT 'webhook状态(0: 未设置, 1: 已设置)',
+  `webhook_status` tinyint NOT NULL DEFAULT '-1' COMMENT 'webhook状态(1: 开启, 2: 未开启)',
   `project_ids` text COLLATE utf8mb4_general_ci COMMENT '项目ID列表，逗号分隔',
   `project_ids_synced` tinyint(1) NOT NULL DEFAULT '0' COMMENT '项目ID是否已同步(0: 未同步, 1: 已同步)',
   `rule_check_status` tinyint NOT NULL DEFAULT '0' COMMENT '规则检查状态(0: 未检查, 1: 检查中, 2: 已检查)',
@@ -191,6 +173,9 @@ CREATE TABLE IF NOT EXISTS `t_custom_rule` (
 CREATE TABLE IF NOT EXISTS `t_ai_message` (
   `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
   `project_id` varchar(255) NOT NULL COMMENT '项目 ID',
+  `project_name` varchar(255) NOT NULL COMMENT '项目名称',
+  `project_namespace` varchar(255) NOT NULL COMMENT '项目组',
+  `merge_description` text COLLATE utf8mb4_general_ci NOT NULL COMMENT '合并请求的描述',
   `merge_id` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '合并请求的 ID',
   `merge_url` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '合并请求的 URL',
   `ai_model` varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'AI 模型名称',
@@ -205,24 +190,37 @@ CREATE TABLE IF NOT EXISTS `t_ai_message` (
   `update_time` int unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
   `operator` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作人',
   PRIMARY KEY (`id`),
-  KEY `project_id` (`project_id`),
-  KEY `rule_id` (`rule_id`)
+  KEY `project_id` (`project_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='AI 检测消息表';
 
 -- t_ai_config
 CREATE TABLE IF NOT EXISTS `t_ai_config` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
-  `name` VARCHAR(64) NOT NULL COMMENT '配置名称',
+  `name` VARCHAR(64) DEFAULT NULL COMMENT '配置名称',
+  `type` VARCHAR(64) NOT NULL COMMENT '配置类型',
   `api_url` VARCHAR(255) NOT NULL COMMENT 'API 请求地址',
   `api_key` VARCHAR(255) NOT NULL COMMENT 'API 密钥',
   `model` VARCHAR(100) NOT NULL COMMENT 'AI 模型名称',
-  `is_active` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否启用该配置（0: 否，1: 是）',
+  `is_active` TINYINT(1) NOT NULL DEFAULT 2 COMMENT '是否启用该配置（1: 启用，2: 禁用）',
   `create_time` int unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
   `update_time` int unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
   PRIMARY KEY (`id`),
   KEY `idx_model` (`model`),
   KEY `idx_is_active` (`is_active`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='AI 配置表';
+
+-- t_ai_manager
+CREATE TABLE IF NOT EXISTS `t_ai_manager` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
+  `type` VARCHAR(64) NOT NULL COMMENT 'AI 模型类型',
+  `model` VARCHAR(100) NOT NULL COMMENT 'AI 模型名称',
+  `api_url` VARCHAR(255) NOT NULL COMMENT 'API 请求地址',
+  `status` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '状态（1: 启用，2: 禁用）',
+  `create_time` int unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
+  `update_time` int unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='AI Model管理表';
+
 
 -- 为优化查询性能添加索引
 CREATE INDEX idx_project_id ON t_ai_message(project_id);

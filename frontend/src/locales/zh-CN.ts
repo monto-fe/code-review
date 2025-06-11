@@ -5,6 +5,7 @@ export default {
   'app.global.tip.delete.success': '删除成功',
   'app.global.tip.update.success': '更新成功',
   'app.global.tip.create.success': '创建成功',
+  'app.global.confirm': '确定',
   'app.global.close': '关闭',
   'app.global.delete': '删除',
   'app.global.edit': '编辑',
@@ -98,6 +99,8 @@ export default {
   'universal-layout.menu.aicodecheck.commentlist': '评论列表',
   'universal-layout.menu.aicodecheck.AIModel': 'AI模型管理',
   'universal-layout.menu.aicodecheck.GitlabToken': 'Gitlab Token',
+  'universal-layout.menu.aicodecheck.GitlabConfig': 'Gitlab 配置',
+  'universal-layout.menu.aicodecheck.GitlabTokenDetail': 'Gitlab Token 详情',
 
   'page.resource.name': '资源名称',
   'page.resource.key': '资源标识',
@@ -141,6 +144,9 @@ export default {
   'page.aicodecheck.aimodel.api_url': 'API地址',
   'page.aicodecheck.aimodel.api_key': 'API密钥',
   'page.aicodecheck.aimodel.add': '添加模型',
+  'page.aicodecheck.aimodel.resource': '模型来源',
+  'page.aicodecheck.aimodel.using': '启用',
+  'page.aicodecheck.comment.improve_suggestion': '改进建议',
 
   'page.aicodecheck.gitlab.add': '添加TOKEN',
   'page.aicodecheck.gitlab.api': 'API',
@@ -150,6 +156,13 @@ export default {
   'page.aicodecheck.gitlab.webhook_url': 'webhook地址',
   'page.aicodecheck.gitlab.source_branch': '源分支',
   'page.aicodecheck.gitlab.target_branch': '目标分支',
+  'page.aicodecheck.gitlab.project_ids_synced': '项目ID同步',
+  'page.aicodecheck.gitlab.webhook_status': 'webhook推送',
+  'page.aicodecheck.gitlab.rule_check_status': '规则检查',
+  'page.aicodecheck.gitlab.status': '状态',
+  'page.aicodecheck.gitlab.name': '名称',
+
+  'page.aicodecheck.aimodel.type': '模型类型',
 
   'page.aicodecheck.comment.human_rating': '评分',
   'page.aicodecheck.comment.remark': '备注',

@@ -57,12 +57,16 @@ class FormItemComponent {
 
     return (
       <Select
-        allowClear={true}
+        value={field.value}
         {...field.option}
         style={{ width: '100%' }}
+        allowClear={true}
         placeholder={field.label}
-        showSearch={true}
-        disabled={field.disabled || false}
+        onChange={(value) => {
+          if (field.onChange) {
+            field.onChange(value);
+          }
+        }}
         filterOption={(input, option: any) => {
           try {
             return option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0;
@@ -87,11 +91,17 @@ class FormItemComponent {
 
     return (
       <Select
+        value={field.value}
         {...field.option}
         style={{ width: '100%' }}
         mode='multiple'
         allowClear={true}
         placeholder={field.label}
+        onChange={(value) => {
+          if (field.onChange) {
+            field.onChange(value);
+          }
+        }}
         filterOption={(input, option: any) => {
           try {
             return option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0;
@@ -131,7 +141,7 @@ class FormItemComponent {
     const { field } = props;
 
     return (
-      <DatePicker {...field.option} />
+      <DatePicker style={{ width: '100%' }} {...field.option} />
     )
   }
 
@@ -139,7 +149,7 @@ class FormItemComponent {
     const { field } = props;
 
     return (
-      <RangePicker {...field.option} />
+      <RangePicker style={{ width: '100%' }} {...field.option} />
     )
   }
 

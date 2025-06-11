@@ -14,6 +14,7 @@ const (
 	TableCommonRule     = "t_common_rule"
 	TableNamespace      = "t_namespace"
 	TableCustomRule     = "t_custom_rule"
+	TableAIManager      = "t_ai_manager"
 )
 
 // PageModel 分页模型

@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -17,11 +18,15 @@ import (
 
 // AIMessageService AI消息服务
 type AIMessageService struct {
-	db *gorm.DB
+	db         *gorm.DB
+	ragService RAGService
 }
 
-func NewAIMessageService(db *gorm.DB) *AIMessageService {
-	return &AIMessageService{db: db}
+func NewAIMessageService(db *gorm.DB, ragService RAGService) *AIMessageService {
+	return &AIMessageService{
+		db:         db,
+		ragService: ragService,
+	}
 }
 
 // GetAIMessage 获取AI消息列表
@@ -37,6 +42,18 @@ func (s *AIMessageService) GetAIMessage(params map[string]interface{}) ([]dto.AI
 	}
 	if id, ok := params["id"].(uint); ok && id > 0 {
 		query = query.Where("id = ?", id)
+	}
+	if projectNamespace, ok := params["projectNamespace"].(string); ok && projectNamespace != "" {
+		query = query.Where("project_namespace = ?", projectNamespace)
+	}
+	if projectName, ok := params["projectName"].(string); ok && projectName != "" {
+		query = query.Where("project_name = ?", projectName)
+	}
+	if createTime, ok := params["createTime"].(int64); ok && createTime > 0 {
+		query = query.Where("create_time >= ?", createTime)
+	}
+	if passed, ok := params["passed"].(int); ok {
+		query = query.Where("passed = ?", passed)
 	}
 
 	// 获取总数
@@ -63,21 +80,24 @@ func (s *AIMessageService) GetAIMessage(params map[string]interface{}) ([]dto.AI
 	responseList := make([]dto.AIMessageItem, len(messages))
 	for i, msg := range messages {
 		responseList[i] = dto.AIMessageItem{
-			ID:          msg.ID,
-			ProjectID:   msg.ProjectID,
-			MergeURL:    msg.MergeURL,
-			MergeID:     uint(parseUint(msg.MergeID)),
-			AIModel:     msg.AIModel,
-			Rule:        int8(msg.Rule),
-			RuleID:      msg.RuleID,
-			Result:      msg.Result,
-			HumanRating: int8(msg.HumanRating),
-			Remark:      msg.Remark,
-			Passed:      msg.Passed,
-			CheckedBy:   msg.CheckedBy,
-			Status:      int8(msg.HumanRating),
-			CreateTime:  msg.CreateTime,
-			UpdateTime:  msg.CreateTime,
+			ID:               msg.ID,
+			ProjectID:        msg.ProjectID,
+			ProjectName:      msg.ProjectName,
+			ProjectNamespace: msg.ProjectNamespace,
+			MergeDescription: msg.MergeDescription,
+			MergeURL:         msg.MergeURL,
+			MergeID:          uint(parseUint(msg.MergeID)),
+			AIModel:          msg.AIModel,
+			Rule:             int8(msg.Rule),
+			RuleID:           msg.RuleID,
+			Result:           msg.Result,
+			HumanRating:      int8(msg.HumanRating),
+			Remark:           msg.Remark,
+			Passed:           msg.Passed,
+			CheckedBy:        msg.CheckedBy,
+			Status:           int8(msg.HumanRating),
+			CreateTime:       msg.CreateTime,
+			UpdateTime:       msg.CreateTime,
 		}
 	}
 
@@ -142,4 +162,124 @@ func SendMarkdownToWechatBot(webhookURL, markdownContent string) error {
 	}
 
 	return nil
+}
+
+// AnalyzeCodeWithRAG 使用RAG服务分析代码
+func (s *AIMessageService) AnalyzeCodeWithRAG(projectID uint, mergeURL string, diffFiles []string) (string, error) {
+	// 从mergeURL中提取gitURL和branch
+	gitURL, branch, err := extractGitInfo(mergeURL)
+	if err != nil {
+		return "", fmt.Errorf("解析Git信息失败: %v", err)
+	}
+
+	// 获取代码变更内容
+	codeChanges, err := s.getCodeChanges(gitURL, branch, diffFiles)
+	if err != nil {
+		return "", fmt.Errorf("获取代码变更失败: %v", err)
+	}
+
+	// 调用RAG服务分析代码
+	review, err := s.ragService.LegacyAnalyzeCode(gitURL, branch, diffFiles, codeChanges)
+	if err != nil {
+		return "", fmt.Errorf("RAG分析失败: %v", err)
+	}
+
+	return review, nil
+}
+
+// getCodeChanges 获取代码变更内容
+func (s *AIMessageService) getCodeChanges(gitURL string, branch string, diffFiles []string) (string, error) {
+	// TODO: 实现从GitLab API获取代码变更的逻辑
+	// 这里需要调用GitLab API获取代码变更内容
+	// 返回格式化的代码变更字符串
+	return "", nil
+}
+
+// extractGitInfo 从mergeURL中提取gitURL和branch
+func extractGitInfo(mergeURL string) (string, string, error) {
+	// 示例: https://gitlab.com/group/project/-/merge_requests/123
+	parts := strings.Split(mergeURL, "/-/merge_requests/")
+	if len(parts) != 2 {
+		return "", "", fmt.Errorf("invalid merge URL format")
+	}
+
+	baseURL := parts[0]
+	gitURL := fmt.Sprintf("%s.git", baseURL)
+
+	// 获取当前分支信息
+	// 这里需要根据实际情况实现，可能需要调用Gitlab API
+	branch := "main" // 默认分支
+
+	return gitURL, branch, nil
+}
+
+func (s *AIMessageService) GetCheckCount(req dto.CheckCountRequest) (int64, error) {
+	query := s.db.Model(&model.AImessage{})
+
+	// 只有传入时才加条件
+	if req.Passed != 0 {
+		query = query.Where("passed = ?", req.Passed)
+	}
+
+	if req.ProjectID > 0 {
+		query = query.Where("project_id = ?", req.ProjectID)
+	}
+	if req.ProjectNamespace != "" {
+		query = query.Where("project_namespace = ?", req.ProjectNamespace)
+	}
+	if req.ProjectName != "" {
+		query = query.Where("project_name = ?", req.ProjectName)
+	}
+
+	query = query.Where("create_time >= ?", req.StartTime)
+	query = query.Where("create_time <= ?", req.EndTime)
+
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return 0, err
+	}
+
+	return total, nil
+}
+
+func (s *AIMessageService) GetProblemChart(req dto.AIProblemCountRequest) ([]dto.HumanRatingStat, error) {
+	query := s.db.Model(&model.AImessage{})
+
+	query = query.Where("create_time >= ?", req.StartTime)
+	query = query.Where("create_time <= ?", req.EndTime)
+
+	// 统计各等级数量
+	type result struct {
+		Level int   `json:"level"`
+		Count int64 `json:"count"`
+	}
+	var results []result
+
+	err := query.Select("human_rating as level, COUNT(*) as count").
+		Where("human_rating BETWEEN ? AND ?", 1, 5).
+		Group("human_rating").
+		Scan(&results).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// 保证每个level都有（即使为0）
+	stats := make(map[int]int64)
+	for i := 1; i <= 5; i++ {
+		stats[i] = 0
+	}
+	for _, r := range results {
+		stats[r.Level] = r.Count
+	}
+
+	// 返回数组
+	resp := make([]dto.HumanRatingStat, 0, 5)
+	for i := 1; i <= 5; i++ {
+		resp = append(resp, dto.HumanRatingStat{
+			Level: i,
+			Count: stats[i],
+		})
+	}
+
+	return resp, nil
 }

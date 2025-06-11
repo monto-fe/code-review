@@ -15,8 +15,8 @@ services:
 
   backend:
     build:
-      context: ./backend  # 指向后端项目代码所在目录
-      dockerfile: Dockerfile  # Dockerfile 的名称
+      context: .  # 修改为项目根目录
+      dockerfile: backend/Dockerfile  # 更新 Dockerfile 路径
     environment:
       - PORT=${API_PORT}
       - NODE_ENV=${NODE_ENV}

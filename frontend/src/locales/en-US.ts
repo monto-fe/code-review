@@ -5,6 +5,7 @@ export default {
   'app.global.tip.delete.success': 'delete successfully',
   'app.global.tip.update.success': 'update successfully',
   'app.global.tip.create.success': 'create successfully',
+  'app.global.confirm': 'confirm',
   'app.global.close': 'close',
   'app.global.delete': 'delete',
   'app.global.edit': 'edit',
@@ -98,7 +99,8 @@ export default {
   'universal-layout.menu.aicodecheck.commentlist': 'comment list',
   'universal-layout.menu.aicodecheck.AIModel': 'AI Model',
   'universal-layout.menu.aicodecheck.GitlabToken': 'Gitlab Token',
-
+  'universal-layout.menu.aicodecheck.GitlabConfig': 'Gitlab Config',
+  'universal-layout.menu.aicodecheck.GitlabTokenDetail': 'Gitlab Token Detail',
 
   'page.resource.name': 'resource name',
   'page.resource.key': 'resource',
@@ -143,6 +145,9 @@ export default {
   'page.aicodecheck.aimodel.api_url': 'api url',
   'page.aicodecheck.aimodel.api_key': 'api key',
   'page.aicodecheck.aimodel.add': 'add model',
+  'page.aicodecheck.aimodel.resource': 'source',
+  'page.aicodecheck.aimodel.using': 'active',
+  'page.aicodecheck.comment.improve_suggestion': 'improve suggestion',
 
   'page.aicodecheck.gitlab.add': 'Add TOKEN',
   'page.aicodecheck.gitlab.api': 'API',
@@ -152,6 +157,13 @@ export default {
   'page.aicodecheck.gitlab.webhook_url': 'Webhook URL',
   'page.aicodecheck.gitlab.source_branch': 'Source Branch',
   'page.aicodecheck.gitlab.target_branch': 'Target Branch',
+  'page.aicodecheck.gitlab.project_ids_synced': 'Project IDs Synced',
+  'page.aicodecheck.gitlab.webhook_status': 'Webhook Status',
+  'page.aicodecheck.gitlab.rule_check_status': 'Rule Check Status',
+  'page.aicodecheck.gitlab.status': 'Status',
+  'page.aicodecheck.gitlab.name': 'Name',
+  
+  'page.aicodecheck.aimodel.type': 'model type',
 
   'page.aicodecheck.comment.human_rating': 'rating',
   'page.aicodecheck.comment.remark': 'remark',

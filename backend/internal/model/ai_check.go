@@ -13,10 +13,22 @@ type MergeRequestInfo struct {
 	UpdatedAt    string `json:"updated_at"`
 	SourceBranch string `json:"source_branch"`
 	TargetBranch string `json:"target_branch"`
-	Author       struct {
+	User         struct {
 		ID   int    `json:"id"`
 		Name string `json:"name"`
-	} `json:"author"`
+	} `json:"user"`
+	Project struct {
+		ID                int    `json:"id"`
+		Name              string `json:"name"`
+		Description       string `json:"description"`
+		PathWithNamespace string `json:"path_with_namespace"`
+	} `json:"project"`
+	ObjectAttributes struct {
+		Action       string `json:"action"`
+		State        string `json:"state"`
+		SourceBranch string `json:"source_branch"`
+		TargetBranch string `json:"target_branch"`
+	} `json:"object_attributes"`
 }
 
 // Change 文件变更信息

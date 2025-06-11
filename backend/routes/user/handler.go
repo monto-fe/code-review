@@ -56,21 +56,36 @@ func Login(c *gin.Context) {
 	}, "Login successful", 0)
 }
 
+// GetUserList 获取用户列表
+// @Summary 获取用户列表
+// @Description 获取指定命名空间的用户列表
+// @Tags 用户管理
+// @Accept json
+// @Produce json
+// @Param jwt_token header string true "JWT认证Token"
+// @Security ApiKeyAuth
 func GetUserList(c *gin.Context) {
+	namespace := c.Query("namespace")
+	if namespace == "" {
+		response.Error(c, nil, "Namespace is required", 10001)
+		return
+	}
+
 	userService := service.NewUserService(database.DB)
 	query := model.UserListQuery{
 		Current:   1,
 		PageSize:  10,
-		Namespace: "default",
+		Namespace: namespace,
 	}
-	userList, err := userService.GetUserList(query)
+	userList, total, err := userService.GetUserList(query)
 	if err != nil {
 		response.Error(c, err, "Failed to get user list", 10004)
 		return
 	}
 
 	response.Success(c, gin.H{
-		"data": userList,
+		"data":  userList,
+		"count": total,
 	}, "Success", 0)
 }
 
@@ -244,31 +259,20 @@ func UpdateInnerUser(c *gin.Context) {
 // @Produce json
 // @Param jwt_token header string true "JWT认证Token"
 // @Security ApiKeyAuth
-// @Param id query uint true "用户ID"
-// @Param namespace query string true "命名空间"
-// @Param user query string true "用户名"
+// @Param body body dto.DeleteUserRequest true "删除用户参数"
 // @Success 200 {object} response.Response "删除成功"
 // @Failure 400 {object} response.Response "请求参数错误"
 // @Failure 500 {object} response.Response "服务器内部错误"
 // @Router /v1/user [delete]
 func DeleteUser(c *gin.Context) {
-	idStr := c.Query("id")
-	namespace := c.Query("namespace")
-	user := c.Query("user")
-
-	if idStr == "" || namespace == "" || user == "" {
-		response.Error(c, nil, "Missing required parameters", 10001)
-		return
-	}
-
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		response.Error(c, err, "Invalid user ID", 10007)
+	var req dto.DeleteUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, err, "参数错误", 400)
 		return
 	}
 
 	userService := service.NewUserService(database.DB)
-	if err := userService.DeleteUser(uint(id), namespace, user); err != nil {
+	if err := userService.DeleteUser(req.ID, req.Namespace, req.User); err != nil {
 		response.Error(c, err, "Failed to delete user", 10013)
 		return
 	}

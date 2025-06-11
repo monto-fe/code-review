@@ -8,8 +8,7 @@ type AIConfig struct {
 	APIKey     string `gorm:"column:api_key;type:varchar(200);not null" json:"api_key"`
 	Model      string `gorm:"type:varchar(50);not null" json:"model"`
 	Type       string `gorm:"type:varchar(50);not null" json:"type"`
-	IsActive   bool   `gorm:"column:is_active;not null;default:false" json:"is_active"`
-	Status     int8   `gorm:"column:status;not null" json:"status"`
+	IsActive   int8   `gorm:"column:is_active;not null;default:2" json:"is_active"` // 1: 启用, 2: 禁用
 	CreateTime int64  `gorm:"not null" json:"create_time"`
 	UpdateTime int64  `gorm:"not null" json:"update_time"`
 }
@@ -21,23 +20,23 @@ func (AIConfig) TableName() string {
 
 // AIConfigCreate 创建AI配置请求
 type AIConfigCreate struct {
-	Name     string `json:"name" binding:"required"`
+	Name     string `json:"name"` // 预留字段，暂时不使用
 	APIURL   string `json:"api_url" binding:"required"`
 	APIKey   string `json:"api_key" binding:"required"`
 	Type     string `json:"type" binding:"required"`
 	Model    string `json:"model" binding:"required"`
-	IsActive bool   `json:"is_active" binding:"required"`
+	IsActive int8   `json:"is_active"` // 1: 启用, 2: 禁用
 }
 
 // AIConfigUpdate 更新AI配置请求
 type AIConfigUpdate struct {
 	ID       uint   `json:"id" binding:"required"`
-	Name     string `json:"name" binding:"required"`
-	APIURL   string `json:"api_url" binding:"required"`
-	APIKey   string `json:"api_key" binding:"required"`
-	Model    string `json:"model" binding:"required"`
-	Type     string `json:"type" binding:"required"`
-	IsActive bool   `json:"is_active" binding:"required"`
+	Name     string `json:"name"`
+	APIURL   string `json:"api_url"`
+	APIKey   string `json:"api_key"`
+	Model    string `json:"model"`
+	Type     string `json:"type"`      // UCloud, DeepSeek, OpenAI
+	IsActive int8   `json:"is_active"` // 1: 启用, 2: 禁用
 }
 
 // AIConfigInfo AI配置信息
@@ -61,7 +60,7 @@ type AIConfigResponse struct {
 	APIURL     string `json:"api_url"`
 	Model      string `json:"model"`
 	Type       string `json:"type"`
-	IsActive   bool   `json:"is_active"`
+	IsActive   int8   `json:"is_active"`
 	CreateTime int64  `json:"create_time"`
 	UpdateTime int64  `json:"update_time"`
 }

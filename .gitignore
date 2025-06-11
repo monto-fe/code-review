@@ -1,1 +1,33 @@
 /mysql/data
+final_review_gate.py
+/rag_service/venv
+/rag_service/venv/*
+/rag_service/venv/bin/*
+/rag_service/venv/bin/activate
+/rag_service/venv/bin/activate.csh
+/rag_service/venv/bin/activate.fish
+/rag_service/venv/bin/activate.ps1
+/rag_service/venv/bin/activate.sh
+/rag_service/venv/bin/activate.zsh
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 虚拟环境
+venv/
+.env
+
+# 数据和缓存
+data/
+git_dir/
+
+# 环境变量文件
+.env
+
+# VSCode等编辑器配置
+.vscode/
+.idea/
+*.swp

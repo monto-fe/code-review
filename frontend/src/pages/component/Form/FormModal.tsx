@@ -39,6 +39,7 @@ function FormModal(props: IFormModal) {
     formLayout,
     onFinish,
     onCancel,
+    onValuesChange,
     ...resProps
   } = props;
 
@@ -94,7 +95,7 @@ function FormModal(props: IFormModal) {
 
             return (
               <Form.Item
-                key={index}
+                key={item.key || item.name || index}
                 {...item}
                 rules={
                   item.validators
@@ -105,7 +106,7 @@ function FormModal(props: IFormModal) {
                     : [{ required: item.required, message: `${item.label} ${t('app.form.required')} ！` }]
                 }
               >
-                {itemGenerator({ field: item })}
+                {itemGenerator({ field: { ...item, onChange: item.onChange, value: item.value } })}
               </Form.Item>
             )
           })}

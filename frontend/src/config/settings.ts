@@ -5,7 +5,7 @@
 import { SettingsType } from '@/@types/settings.d';
 
 const settings: SettingsType = {
-  siteTitle: 'Monto-Acl',
+  siteTitle: 'AI Code Review',
   siteAbbreviationTitle: 'MA',
 
   siteTokenKey: 'monto_acl_react_token',

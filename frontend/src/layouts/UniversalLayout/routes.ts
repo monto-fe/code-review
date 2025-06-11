@@ -10,10 +10,6 @@ import {
   DashboardOutlined,
   InsuranceOutlined,
   UserOutlined,
-  TeamOutlined,
-  KeyOutlined,
-  ToolOutlined,
-  QuestionCircleTwoTone,
   CodeOutlined,
   OrderedListOutlined
 } from '@ant-design/icons';
@@ -99,22 +95,22 @@ const universalLayoutRotes: IRouter[] = [
         },
         component: lazy(() => import('@/pages/aicodecheck/CommentList')),
       },
-      {
-        path: 'commonRule',
-        meta: {
-          icon: OrderedListOutlined,
-          title: 'universal-layout.menu.aicodecheck.commonrule',
-        },
-        component: lazy(() => import('@/pages/aicodecheck/CommonRuleList')),
-      },
-      {
-        path: 'customRule',
-        meta: {
-          icon: OrderedListOutlined,
-          title: 'universal-layout.menu.aicodecheck.customrule',
-        },
-        component: lazy(() => import('@/pages/aicodecheck/CustomRuleList')),
-      },
+      // {
+      //   path: 'commonRule',
+      //   meta: {
+      //     icon: OrderedListOutlined,
+      //     title: 'universal-layout.menu.aicodecheck.commonrule',
+      //   },
+      //   component: lazy(() => import('@/pages/aicodecheck/CommonRuleList')),
+      // },
+      // {
+      //   path: 'customRule',
+      //   meta: {
+      //     icon: OrderedListOutlined,
+      //     title: 'universal-layout.menu.aicodecheck.customrule',
+      //   },
+      //   component: lazy(() => import('@/pages/aicodecheck/CustomRuleList')),
+      // },
       {
         path: 'AIModel',
         meta: {
@@ -130,6 +126,24 @@ const universalLayoutRotes: IRouter[] = [
           title: 'universal-layout.menu.aicodecheck.GitlabToken',
         },
         component: lazy(() => import('@/pages/aicodecheck/GitlabToken')),
+      },
+      {
+        path: 'GitlabConfig',
+        meta: {
+          icon: OrderedListOutlined,
+          hidden: true,
+          title: 'universal-layout.menu.aicodecheck.GitlabConfig',
+        },
+        component: lazy(() => import('@/pages/aicodecheck/GitlabToken/CreateToken')),
+      },
+      {
+        path: 'GitlabTokenDetail',
+        meta: {
+          icon: OrderedListOutlined,
+          hidden: true,
+          title: 'universal-layout.menu.aicodecheck.GitlabTokenDetail',
+        },
+        component: lazy(() => import('@/pages/aicodecheck/GitlabToken/detail')),
       },
     ],
   },
@@ -150,22 +164,22 @@ const universalLayoutRotes: IRouter[] = [
         },
         component: lazy(() => import('@/pages/acl/user/List')),
       },
-      {
-        path: 'role',
-        meta: {
-          icon: TeamOutlined,
-          title: 'universal-layout.menu.roles.role',
-        },
-        component: lazy(() => import('@/pages/acl/role/List')),
-      },
-      {
-        path: 'resource',
-        meta: {
-          icon: KeyOutlined,
-          title: 'universal-layout.menu.roles.resource',
-        },
-        component: lazy(() => import('@/pages/acl/resource/List')),
-      },
+      // {
+      //   path: 'role',
+      //   meta: {
+      //     icon: TeamOutlined,
+      //     title: 'universal-layout.menu.roles.role',
+      //   },
+      //   component: lazy(() => import('@/pages/acl/role/List')),
+      // },
+      // {
+      //   path: 'resource',
+      //   meta: {
+      //     icon: KeyOutlined,
+      //     title: 'universal-layout.menu.roles.resource',
+      //   },
+      //   component: lazy(() => import('@/pages/acl/resource/List')),
+      // },
     ],
   },
 ];

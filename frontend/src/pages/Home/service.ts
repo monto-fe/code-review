@@ -1,4 +1,12 @@
 // import { TableListQueryParams } from './data.d';
+import request from '@/utils/request';
+
+export async function queryInnerAIModel(): Promise<any> {
+  return request({
+    url: `/ai/manager`,
+    method: 'get',
+  });
+}
 
 export async function hotSearchQueryList(): Promise<any> {
   return {
@@ -63,3 +71,4 @@ export async function worksHitQueryList(): Promise<any> {
     },
   };
 }
+

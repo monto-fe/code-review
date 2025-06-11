@@ -16,7 +16,7 @@ export async function queryList(params?: TableQueryParam): Promise<any> {
   });
 }
 
-export async function updateRating(id: number, human_rating: number): Promise<any> {
+export async function updateRating(id: number, human_rating: number, remark?: string): Promise<any> {
   return request({
     ...config,
     url: `/ai/message`,
@@ -24,7 +24,7 @@ export async function updateRating(id: number, human_rating: number): Promise<an
     data: {
       id,
       human_rating,
-      namespace,
+      remark
     },
   });
 }
