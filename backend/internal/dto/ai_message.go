@@ -83,7 +83,7 @@ type AIMessageItem struct {
 // AIMessageUpdateRequest 更新AI消息请求
 type AIMessageUpdateRequest struct {
 	ID          uint   `json:"id" binding:"required"`
-	HumanRating int    `json:"human_rating" binding:"required"`
+	HumanRating int    `json:"human_rating"`
 	Remark      string `json:"remark"`
 }
 

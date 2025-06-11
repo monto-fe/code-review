@@ -10,6 +10,8 @@ type ProjectInfo struct {
 type ObjectAttributes struct {
 	IID               int    `json:"iid"`
 	URL               string `json:"url"`
+	Title             string `json:"title"`
+	Description       string `json:"description"`
 	Action            string `json:"action"`
 	ProjectID         int    `json:"project_id"`
 	MergeURL          string `json:"merge_url"`

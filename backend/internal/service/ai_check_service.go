@@ -69,7 +69,7 @@ func CheckMergeRequestWithAI(body dto.WebhookBody) (string, error) {
 		gitlabPrompt = `输出要求：
     	仅输出以下两部分内容，如无内容可省略：
         1. 不符合检查原则的地方（使用 Markdown 表格格式）：
-          - 不符合的代码行号 | 违反的原则 | 修改建议
+          - 不符合的代码文件和行号 | 违反的原则 | 修改建议
         2. 疑似 Bug 的地方（基于描述信息和逻辑判断分析，如无可省略）。`
 	}
 	// 生成提示词
@@ -103,12 +103,12 @@ func CheckMergeRequestWithAI(body dto.WebhookBody) (string, error) {
 
 	// 保存AI消息
 	aiMessage := &model.AImessage{
-		ProjectID:        mergeRequest.ProjectID,
-		MergeURL:         mergeRequest.WebURL,
-		ProjectName:      mergeRequest.Project.Name,
-		ProjectNamespace: mergeRequest.Project.PathWithNamespace,
-		MergeDescription: mergeRequest.Project.Description,
-		MergeID:          fmt.Sprintf("%d", mergeRequest.IID),
+		ProjectID:        uint(body.Project.ID),
+		MergeURL:         body.ObjectAttributes.URL,
+		ProjectName:      body.Project.Name,
+		ProjectNamespace: body.Project.PathWithNamespace,
+		MergeDescription: body.ObjectAttributes.Description,
+		MergeID:          fmt.Sprintf("%d", body.ObjectAttributes.IID),
 		AIModel:          aiConfig.Model,
 		Rule:             model.RuleType(1), // 默认规则类型
 		RuleID:           1,                 // 默认规则ID
