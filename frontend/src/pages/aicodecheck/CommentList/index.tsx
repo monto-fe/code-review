@@ -39,6 +39,12 @@ function App() {
       width: 60,
     },
     {
+      title: '项目',
+      dataIndex: 'project_namespace',
+      key: 'project_namespace',
+      width: 100,
+    },
+    {
       title: 'MergeUrl',
       dataIndex: 'merge_url',
       key: 'merge_url',
