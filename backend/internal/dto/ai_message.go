@@ -16,16 +16,6 @@ type AIMessage struct {
 	UpdateTime int64  `gorm:"not null" json:"update_time"`
 }
 
-// AIMessageResponse AI消息响应模型
-type AIMessageResponse struct {
-	ID         uint   `json:"id"`
-	ProjectID  uint   `json:"project_id"`
-	Content    string `json:"content"`
-	Status     int8   `json:"status"`
-	CreateTime int64  `json:"create_time"`
-	UpdateTime int64  `json:"update_time"`
-}
-
 // AIMessageCreateRequest AI消息创建请求
 type AIMessageCreateRequest struct {
 	ProjectID uint   `json:"project_id" binding:"required"` // 项目ID
@@ -63,21 +53,24 @@ type AIMessageListResponse struct {
 
 // AIMessageItem AI消息项
 type AIMessageItem struct {
-	ID          uint   `json:"id"`           // 消息ID
-	ProjectID   uint   `json:"project_id"`   // 项目ID
-	MergeURL    string `json:"merge_url"`    // 合并请求URL
-	MergeID     uint   `json:"merge_id"`     // 合并请求ID
-	AIModel     string `json:"ai_model"`     // AI模型
-	Rule        int8   `json:"rule"`         // 规则类型
-	RuleID      uint   `json:"rule_id"`      // 规则ID
-	Result      string `json:"result"`       // AI评论结果
-	HumanRating int8   `json:"human_rating"` // 人工评分
-	Remark      string `json:"remark"`       // 备注
-	Passed      int    `json:"passed"`       // 是否通过
-	CheckedBy   string `json:"checked_by"`   // 检查人
-	Status      int8   `json:"status"`       // 状态
-	CreateTime  int64  `json:"create_time"`  // 创建时间
-	UpdateTime  int64  `json:"update_time"`  // 更新时间
+	ID               uint   `json:"id"`                // 消息ID
+	ProjectID        uint   `json:"project_id"`        // 项目ID
+	ProjectName      string `json:"project_name"`      // 项目名称
+	ProjectNamespace string `json:"project_namespace"` // 项目组
+	MergeDescription string `json:"merge_description"` // 合并请求描述
+	MergeURL         string `json:"merge_url"`         // 合并请求URL
+	MergeID          uint   `json:"merge_id"`          // 合并请求ID
+	AIModel          string `json:"ai_model"`          // AI模型
+	Rule             int8   `json:"rule"`              // 规则类型
+	RuleID           uint   `json:"rule_id"`           // 规则ID
+	Result           string `json:"result"`            // AI评论结果
+	HumanRating      int8   `json:"human_rating"`      // 人工评分
+	Remark           string `json:"remark"`            // 备注
+	Passed           int    `json:"passed"`            // 是否通过
+	CheckedBy        string `json:"checked_by"`        // 检查人
+	Status           int8   `json:"status"`            // 状态
+	CreateTime       int64  `json:"create_time"`       // 创建时间
+	UpdateTime       int64  `json:"update_time"`       // 更新时间
 }
 
 // AIMessageUpdateRequest 更新AI消息请求

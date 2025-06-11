@@ -748,6 +748,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/gitlab/token/{id}": {
+            "get": {
+                "description": "获取指定的 Gitlab Token 详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gitlab"
+                ],
+                "summary": "获取 Gitlab Token 详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Gitlab Token ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/login": {
             "post": {
                 "description": "用户登录接口",
@@ -922,25 +961,13 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "integer",
-                        "description": "用户ID",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "命名空间",
-                        "name": "namespace",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "用户名",
-                        "name": "user",
-                        "in": "query",
-                        "required": true
+                        "description": "删除用户参数",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.DeleteUserRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -1229,7 +1256,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ai_check.WebhookBody"
+                            "$ref": "#/definitions/dto.WebhookBody"
                         }
                     }
                 ],
@@ -1245,48 +1272,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "ai_check.ObjectAttributes": {
-            "type": "object",
-            "properties": {
-                "action": {
-                    "type": "string"
-                },
-                "iid": {
-                    "type": "integer"
-                },
-                "source_branch": {
-                    "type": "string"
-                },
-                "target_branch": {
-                    "type": "string"
-                },
-                "url": {
-                    "type": "string"
-                }
-            }
-        },
-        "ai_check.ProjectInfo": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "path_with_namespace": {
-                    "type": "string"
-                }
-            }
-        },
-        "ai_check.WebhookBody": {
-            "type": "object",
-            "properties": {
-                "object_attributes": {
-                    "$ref": "#/definitions/ai_check.ObjectAttributes"
-                },
-                "project": {
-                    "$ref": "#/definitions/ai_check.ProjectInfo"
-                }
-            }
-        },
         "dto.AIMessageCreateRequest": {
             "type": "object",
             "required": [
@@ -1365,6 +1350,10 @@ const docTemplate = `{
                     "description": "消息ID",
                     "type": "integer"
                 },
+                "merge_description": {
+                    "description": "合并请求描述",
+                    "type": "string"
+                },
                 "merge_id": {
                     "description": "合并请求ID",
                     "type": "integer"
@@ -1380,6 +1369,14 @@ const docTemplate = `{
                 "project_id": {
                     "description": "项目ID",
                     "type": "integer"
+                },
+                "project_name": {
+                    "description": "项目名称",
+                    "type": "string"
+                },
+                "project_namespace": {
+                    "description": "项目组",
+                    "type": "string"
                 },
                 "remark": {
                     "description": "备注",
@@ -1426,9 +1423,7 @@ const docTemplate = `{
         "dto.AIMessageUpdateRequest": {
             "type": "object",
             "required": [
-                "human_rating",
-                "id",
-                "remark"
+                "id"
             ],
             "properties": {
                 "human_rating": {
@@ -1505,6 +1500,28 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.DeleteUserRequest": {
+            "type": "object",
+            "required": [
+                "id",
+                "namespace",
+                "user"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "namespace": {
+                    "type": "string",
+                    "example": "default"
+                },
+                "user": {
+                    "type": "string",
+                    "example": "test"
+                }
+            }
+        },
         "dto.GitlabDeleteRequest": {
             "type": "object",
             "required": [
@@ -1524,6 +1541,61 @@ const docTemplate = `{
                 },
                 "level": {
                     "type": "integer"
+                }
+            }
+        },
+        "dto.ObjectAttributes": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "iid": {
+                    "type": "integer"
+                },
+                "merge_url": {
+                    "type": "string"
+                },
+                "path_with_namespace": {
+                    "type": "string"
+                },
+                "project_id": {
+                    "type": "integer"
+                },
+                "source_branch": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "target_branch": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ProjectInfo": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "path_with_namespace": {
+                    "type": "string"
                 }
             }
         },
@@ -1629,6 +1701,17 @@ const docTemplate = `{
                 "user": {
                     "type": "string",
                     "example": "admin"
+                }
+            }
+        },
+        "dto.WebhookBody": {
+            "type": "object",
+            "properties": {
+                "object_attributes": {
+                    "$ref": "#/definitions/dto.ObjectAttributes"
+                },
+                "project": {
+                    "$ref": "#/definitions/dto.ProjectInfo"
                 }
             }
         },
@@ -1785,6 +1868,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "name": {
+                    "type": "string"
+                },
                 "project_ids": {
                     "type": "string"
                 },
@@ -1830,6 +1916,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "api",
+                "name",
                 "status",
                 "token"
             ],
@@ -1844,6 +1931,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "gitlab_version": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 },
                 "prompt": {

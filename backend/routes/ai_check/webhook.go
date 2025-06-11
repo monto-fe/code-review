@@ -16,7 +16,7 @@ import (
 // @Tags Webhook
 // @Accept json
 // @Produce json
-// @Param data body ai_check.WebhookBody true "Webhook 触发参数"
+// @Param data body dto.WebhookBody true "Webhook 触发参数"
 // @Success 200 {object} response.Response
 // @Router /v1/webhook/merge [post]
 func AICheck(c *gin.Context) {
