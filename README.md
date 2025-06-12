@@ -120,14 +120,18 @@ http://192.168.1.1:9000/v1/webhook/merge
 * ✅ 支持多个 GitLab Token
 * ✅ 支持 webhook 推送 AI 检查结果
 * ✅ 提供快速部署方案
-* ✅ 集成 UCloud 模型，支持切换私有/公有大模型
+* ✅ 集成 DeepSeek、UCloud 模型，支持切换私有/公有大模型
+* ✅ 提供一键启动的 Docker 镜像（支持挂载配置）
+* ✅ 优化 GitLab Token 添加/更新流程，自动刷新模型缓存
+* ✅ 支持自定义提示词检测代码
 
 ---
 
 ## 🔭 规划中功能
 
+* [ ] 支持RAG检索代码仓库
+* [ ] 完成控制台权限管理能力
+* [ ] 支持Qwen大模型
+* [ ] 根据description描述信息，搜索对应的需求注意事项，进行检测
 * [ ] 支持通过 `projectId + mergeId` 直接发起 AI 审查
 * [ ] 支持监听 GitLab Push 事件
-* [ ] 提供一键启动的 Docker 镜像（支持挂载配置）
-* [ ] 提供 `.gitlab-ci.yml` 示例实现 CI/CD 集成
-* [ ] 优化 GitLab Token 添加/更新流程，自动刷新模型缓存
