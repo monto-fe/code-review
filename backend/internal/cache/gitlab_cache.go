@@ -25,18 +25,26 @@ func InitGitlabCache() error {
 	for _, info := range infos {
 		var projectIDs []string
 		if info.ProjectIds == "" {
-			// 主动获取项目ID
-			ids, err := utils.FetchProjectIDs(info.Token, info.API)
-			if err != nil || len(ids) == 0 {
-				// 获取不到就跳过
-				continue
-			}
-			projectIDs = ids
-			// 更新数据库
-			projectIDsStr := strings.Join(ids, ",")
-			_ = database.DB.Model(&model.GitlabInfo{}).Where("id = ?", info.ID).
-				Update("project_ids", projectIDsStr).Error
-			info.ProjectIds = projectIDsStr
+			// 先写入空的，异步去加载
+			go func(info model.GitlabInfo) {
+				ids, err := utils.FetchProjectIDs(info.Token, info.API)
+				if err != nil || len(ids) == 0 {
+					// 获取不到就跳过
+					return
+				}
+				projectIDsStr := strings.Join(ids, ",")
+				// 更新数据库
+				_ = database.DB.Model(&model.GitlabInfo{}).Where("id = ?", info.ID).
+					Update("project_ids", projectIDsStr).Error
+				// 更新缓存（加锁）
+				gitlabCacheLock.Lock()
+				item := gitlabCache[info.ID]
+				item.ProjectIDs = ids
+				item.Config.ProjectIds = projectIDsStr
+				gitlabCache[info.ID] = item
+				gitlabCacheLock.Unlock()
+			}(info)
+			projectIDs = []string{}
 		} else {
 			projectIDs = strings.Split(info.ProjectIds, ",")
 		}

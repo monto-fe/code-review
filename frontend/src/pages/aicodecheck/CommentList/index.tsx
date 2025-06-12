@@ -1,5 +1,5 @@
 import { memo, useContext, useRef } from 'react';
-import { Typography, message } from 'antd';
+import { Typography, message, Tag } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import { observer } from 'mobx-react-lite';
 import ReactMarkdown from 'react-markdown';
@@ -45,6 +45,13 @@ function App() {
       width: 100,
     },
     {
+      title: t('page.aicodecheck.comment.result'),
+      dataIndex: 'passed',
+      key: 'passed',
+      width: 80,
+      render: (text: number) => text == 1 ? <Tag color='success' >成功</Tag> : <Tag color='error'>失败</Tag>,
+    },
+    {
       title: 'MergeUrl',
       dataIndex: 'merge_url',
       key: 'merge_url',
@@ -53,7 +60,7 @@ function App() {
       )
     },
     {
-      title: t('page.aicodecheck.comment.result'),
+      title: '评论信息',
       dataIndex: 'result',
       key: 'result',
       render: (text: string) => (
