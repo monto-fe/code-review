@@ -128,7 +128,7 @@ function App() {
 
   const columns: ColumnsType<TableListItem> = [
     {
-      title: 'id',
+      title: 'ID',
       dataIndex: 'id',
       key: 'id',
       width: 80,
@@ -232,6 +232,9 @@ function App() {
           </Button>
           <Button className='btn-group-cell' size='small' type='link' onClick={() => handleUpdate(record)}>
             {t('app.global.edit')}
+          </Button>
+          <Button className='btn-group-cell' size='small' type='link' onClick={() => handleUpdate(record)}>
+            提示词
           </Button>
           <Popconfirm
             open={deleteOpen === record.id}

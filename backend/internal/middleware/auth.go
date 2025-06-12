@@ -8,6 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 
 	"code-review-go/internal/pkg/response"
+	"code-review-go/internal/pkg/utils"
 )
 
 var (
@@ -19,7 +20,8 @@ var (
 	}
 
 	// TokenSecretKey JWT密钥
-	TokenSecretKey = []byte("your-secret-key") // TODO: 从配置文件读取
+	// 生成一个复杂的 TokenSecretKey，实际项目中应从安全配置文件读取
+	TokenSecretKey = []byte(utils.TokenSecretKey)
 )
 
 // AuthenticateJWT JWT认证中间件

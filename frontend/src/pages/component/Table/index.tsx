@@ -61,12 +61,13 @@ function CommonTable<T extends AnyObject>(props: ITable<T>, ref: Ref<unknown> | 
     queryList(params)
       .then((response: ResponseData<T[]>) => {
         if (response) {
+          console.log("response.data", response.data)
           setList(Array.isArray(response.data.data) ? response.data.data : []);
           setPagination({
             ...pagination,
             current,
             pageSize,
-            total: response.data.total || 0,
+            total: response.data.count || 0,
           });
           setFilter(filter);
         }
@@ -148,6 +149,8 @@ function CommonTable<T extends AnyObject>(props: ITable<T>, ref: Ref<unknown> | 
     reload,
   }));
 
+  console.log('pagination', pagination);
+
   return (
     <>
       {filterFormItems ? (
@@ -180,7 +183,7 @@ function CommonTable<T extends AnyObject>(props: ITable<T>, ref: Ref<unknown> | 
           scroll={scroll}
           size={size}
           pagination={{
-            ...pagination,
+            ...pagination
           }}
           onChange={handleTableChange}
         />
