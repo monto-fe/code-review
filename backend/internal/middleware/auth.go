@@ -43,7 +43,7 @@ func AuthenticateJWT() gin.HandlerFunc {
 		}
 
 		// 验证token
-		claims, err := validateToken(token)
+		claims, err := ValidateToken(token)
 		if err != nil {
 			response.Error(c, err, "Invalid token", 10014)
 			c.Abort()
@@ -78,26 +78,31 @@ func AuthenticateJWT() gin.HandlerFunc {
 	}
 }
 
-// validateToken 验证JWT token
-func validateToken(tokenString string) (jwt.MapClaims, error) {
+// ValidateToken 验证JWT token
+func ValidateToken(tokenString string) (jwt.MapClaims, error) {
+	fmt.Println("tokenString", tokenString)
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// 验证签名方法
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			fmt.Println("token.Method", token.Method)
 			return nil, jwt.ErrSignatureInvalid
 		}
 		return TokenSecretKey, nil
 	})
 
 	if err != nil {
+		fmt.Println("err1", err)
 		return nil, err
 	}
 
 	if !token.Valid {
+		fmt.Println("token.Valid", token.Valid)
 		return nil, jwt.ErrSignatureInvalid
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
+		fmt.Println("claims", claims)
 		return nil, jwt.ErrSignatureInvalid
 	}
 
