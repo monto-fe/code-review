@@ -82,7 +82,6 @@ func AuthenticateJWT() gin.HandlerFunc {
 
 // ValidateToken 验证JWT token
 func ValidateToken(tokenString string) (jwt.MapClaims, error) {
-	fmt.Println("tokenString", tokenString)
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// 验证签名方法
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -93,7 +92,7 @@ func ValidateToken(tokenString string) (jwt.MapClaims, error) {
 	})
 
 	if err != nil {
-		fmt.Println("err1", err)
+		fmt.Println("error", err)
 		return nil, err
 	}
 
