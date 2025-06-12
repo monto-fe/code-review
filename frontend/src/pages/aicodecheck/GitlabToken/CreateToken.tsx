@@ -47,11 +47,33 @@ const AIConfigPage: React.FC<AIConfigPageProps> = ({
   const [updateData, setUpdateData] = useState<Partial<TableListItem>>(initialValues);
 
   const [prompts, setPrompts] = useState([{
-    title: '推荐提示词',
-    content: '请输入自定义提示词，支持Markdown，最多1000字',
+    title: 'Golang 魔法数字检查规则',
+    content: `Golang 魔法数字检查规则：
+1. 禁止直接使用数值（仅允许 0/1），例如：for i := 0; i < 10; i++ 应改为 const MaxItems = 10，循环条件用 i < MaxItems。
+2. 允许的例外场景：数组索引（如 arr[0]）、位运算（如 value & 0xFF）、格式化字符串（如 fmt.Sprintf("%.2f")）。
+3. 常量定义建议：const ( RetryCount = 3; CacheTTL = 3600 )。
+4. 测试代码也应避免魔法数字，不推荐 assert.Equal(t, 42, result)，推荐 const ExpectedValue = 42。
+5. 工具输出建议：第15行的 "42" 是魔法数字，请定义为常量后再使用。`,
   },{
-    title: 'AI提示词',
-    content: '请输入自定义提示词，支持Markdown，最多1000字',
+    title: '查找 Diff 中的 Bug',
+    content: `作为资深代码审查专家，请仅关注以下 Diff 中可能引入的 Bug，包括但不限于：
+- 逻辑错误（条件判断、分支遗漏等）
+- 空指针 / 未初始化使用
+- 异常处理缺失
+- 错误的 API 使用或参数顺序问题
+- 数据边界处理不当
+- 多线程/异步相关隐患
+- 状态或数据未正确更新
+
+### 输入：
+只分析下面的代码 diff（Git 风格 +/- 变更），不要考虑上下文以外的文件。
+
+### 输出格式：
+- **Bug 描述**：简要说明问题
+- **可能影响**：说明可能导致的后果（如崩溃、错误输出等）
+- **建议修复方式**：提出修复建议，必要时附简要代码示例
+
+请用简洁、清晰、准确的语言逐条列出你发现的问题。`,
   }]);
 
   const searchParams = new URLSearchParams(location.search);

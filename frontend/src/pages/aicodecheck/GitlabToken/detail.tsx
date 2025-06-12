@@ -12,7 +12,6 @@ const GitlabTokenDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<TableListItem | null>(null);
 
-  console.log("id", id);
   useEffect(() => {
     if (!id) return;
     setLoading(true);

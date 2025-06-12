@@ -2,7 +2,6 @@ import { memo, useContext, useRef, useState } from 'react';
 import { Button, message, Popconfirm, PopconfirmProps, Space, Switch } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import { observer } from 'mobx-react-lite';
-import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 
 import CommonTable from '@/pages/component/Table';
@@ -206,7 +205,7 @@ function App() {
       }
     },
     {
-      title: t('page.aicodecheck.gitlab.rule_check_status'),
+      title: '自定义提示词',
       dataIndex: 'rule_check_status',
       key: 'rule_check_status',
       render: (text: number, record: TableListItem) => (
