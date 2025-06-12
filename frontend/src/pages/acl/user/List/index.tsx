@@ -173,20 +173,14 @@ function App() {
       key: 'email',
       width: 200,
     },
-    {
-      title: t('page.user.phone'),
-      dataIndex: 'phone_number',
-      key: 'phone_number',
-      width: 150,
-    },
-    {
-      title: t('app.table.updatetime'),
-      dataIndex: 'update_time',
-      key: 'update_time',
-      width: 200,
-      sorter: true,
-      render: (text: number) => renderDateFromTimestamp(text, timeFormatType.time),
-    },
+    // {
+    //   title: t('app.table.updatetime'),
+    //   dataIndex: 'update_time',
+    //   key: 'update_time',
+    //   width: 200,
+    //   sorter: true,
+    //   render: (text: number) => renderDateFromTimestamp(text, timeFormatType.time),
+    // },
     {
       title: t('app.table.action'),
       dataIndex: 'action',

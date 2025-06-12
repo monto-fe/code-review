@@ -8,6 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 
 	"code-review-go/internal/pkg/response"
+	"code-review-go/internal/pkg/utils"
 )
 
 var (
@@ -19,7 +20,8 @@ var (
 	}
 
 	// TokenSecretKey JWT密钥
-	TokenSecretKey = []byte("your-secret-key") // TODO: 从配置文件读取
+	// 生成一个复杂的 TokenSecretKey，实际项目中应从安全配置文件读取
+	TokenSecretKey = []byte(utils.TokenSecretKey)
 )
 
 // AuthenticateJWT JWT认证中间件
@@ -43,7 +45,7 @@ func AuthenticateJWT() gin.HandlerFunc {
 		}
 
 		// 验证token
-		claims, err := validateToken(token)
+		claims, err := ValidateToken(token)
 		if err != nil {
 			response.Error(c, err, "Invalid token", 10014)
 			c.Abort()
@@ -78,26 +80,30 @@ func AuthenticateJWT() gin.HandlerFunc {
 	}
 }
 
-// validateToken 验证JWT token
-func validateToken(tokenString string) (jwt.MapClaims, error) {
+// ValidateToken 验证JWT token
+func ValidateToken(tokenString string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// 验证签名方法
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			fmt.Println("token.Method", token.Method)
 			return nil, jwt.ErrSignatureInvalid
 		}
 		return TokenSecretKey, nil
 	})
 
 	if err != nil {
+		fmt.Println("error", err)
 		return nil, err
 	}
 
 	if !token.Valid {
+		fmt.Println("token.Valid", token.Valid)
 		return nil, jwt.ErrSignatureInvalid
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
+		fmt.Println("claims", claims)
 		return nil, jwt.ErrSignatureInvalid
 	}
 

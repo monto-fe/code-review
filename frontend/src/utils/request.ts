@@ -42,6 +42,8 @@ const serverCodeMessage: { [key: number]: string } = {
   504: 'Gateway Timeout',
 };
 
+const needLoginCodes = [10012, 401, 10009];
+
 const errorHandler = (error: any) => {
   const { response, message, code } = error;
   if (message === 'CustomError') {
@@ -52,10 +54,13 @@ const errorHandler = (error: any) => {
     const reqUrl = url.split('?')[0].replace(baseURL, '');
     const noVerifyBool = settings.ajaxResponseNoVerifyUrl.includes(reqUrl);
     if (!noVerifyBool) {
-      notification.error({
-        message: `提示 (Tips)`,
-        description: customCodeMessage[ret_code] || message || 'Error',
-      });
+
+      if (!needLoginCodes.includes(ret_code)) {
+        notification.error({
+          message: `提示 (Tips)`,
+          description: customCodeMessage[ret_code] || message || 'Error',
+        });
+      }
 
       console.log(`当前code: ${ret_code}`);
       if (ret_code === 10005 && ret_code === 10009) {

@@ -8,7 +8,9 @@ ENV GOPROXY=https://goproxy.cn,direct
 WORKDIR /app
 
 # 安装必要的构建工具
-RUN apk add --no-cache git
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
+ && apk update \
+ && apk add --no-cache git
 
 # 复制 go mod 文件
 COPY backend/go.mod backend/go.sum ./
