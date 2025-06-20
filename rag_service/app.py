@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from rag_engine import analyze_gitlab_code
 import os
@@ -11,12 +11,6 @@ import time
 # 加载上级目录的.env文件
 env_path = Path(__file__).parent / '.env'
 load_dotenv(dotenv_path=env_path)
-
-# 打印env_path
-print("--------------------------------")
-print(env_path)
-# print(os.getenv("OPENAI_API_KEY"))
-print("--------------------------------")
 
 app = FastAPI(
     title="Code Review RAG Service",
@@ -45,6 +39,30 @@ class CodeReviewRequest(BaseModel):
     diff_content: str = Field(..., description="格式化的diff字符串", example="diff --git a/file.py b/file.py\n@@ -1,3 +1,3 @@\n-def old_function():\n+def new_function():\n     return True")
     query: Optional[str] = Field(None, description="可选的查询参数，用于相似度搜索", example="查找数据库相关代码")
     gitlab_token: Optional[str] = Field(None, description="GitLab访问令牌", example="glpat-xxxxxxxx")
+
+    @field_validator('diff_content')
+    @classmethod
+    def validate_diff_content(cls, v):
+        """验证diff_content格式"""
+        if not v or len(v.strip()) == 0:
+            raise ValueError("diff_content不能为空")
+        return v
+
+    @field_validator('git_url')
+    @classmethod
+    def validate_git_url(cls, v):
+        """验证git_url格式"""
+        if not v or len(v.strip()) == 0:
+            raise ValueError("git_url不能为空")
+        return v
+
+    @field_validator('branch')
+    @classmethod
+    def validate_branch(cls, v):
+        """验证branch格式"""
+        if not v or len(v.strip()) == 0:
+            raise ValueError("branch不能为空")
+        return v
 
 class CodeAnalysisResponse(BaseModel):
     review: str = Field(..., description="代码审查结果", example="代码审查建议：\n1. 代码质量：函数命名清晰，逻辑简单\n2. 潜在问题：无\n3. 改进建议：可以考虑添加类型注解")
@@ -87,6 +105,27 @@ def run_sync_with_timeout(func, *args, **kwargs):
     
     return result_container['result']
 
+@app.post("/debug/request", tags=["调试"])
+async def debug_request(request: Request):
+    """
+    调试端点，用于查看原始请求数据
+    """
+    try:
+        body = await request.body()
+        print(f"原始请求体: {body}")
+        
+        # 尝试解析JSON
+        try:
+            json_data = await request.json()
+            print(f"JSON数据: {json_data}")
+        except Exception as e:
+            print(f"JSON解析失败: {e}")
+        
+        return {"message": "请求数据已记录到日志"}
+    except Exception as e:
+        print(f"调试请求失败: {e}")
+        return {"error": str(e)}
+
 @app.post("/api/code-analysis", response_model=CodeAnalysisResponse, tags=["代码审查"])
 async def code_analysis(request: CodeReviewRequest):
     """
@@ -106,10 +145,11 @@ async def code_analysis(request: CodeReviewRequest):
     - 改进建议
     - 示例代码（如适用）
     """
-    print(f"Received request: {request}")
+    print("=== 收到代码审查请求 ===")
     print(f"git_url: {request.git_url}")
     print(f"branch: {request.branch}")
     print(f"diff_content length: {len(request.diff_content)}")
+    print(f"diff_content preview: {request.diff_content[:200]}...")
     print(f"query: {request.query}")
     print(f"gitlab_token: {request.gitlab_token[:8] if request.gitlab_token else 'None'}...")
     
@@ -148,6 +188,8 @@ async def code_analysis(request: CodeReviewRequest):
         raise
     except Exception as e:
         print(f"Unexpected error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/health", tags=["健康检查"])

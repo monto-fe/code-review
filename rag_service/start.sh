@@ -1,15 +1,26 @@
 #!/bin/bash
 
-# 创建并激活虚拟环境
-python3.9 -m venv venv
-source venv/bin/activate
+echo "=== 启动RAG服务 ==="
 
-# 安装依赖
-pip install -r requirements.txt
-
-# 创建必要的目录
-mkdir -p data/vector_store
-mkdir -p /tmp/git_repos
+# 检查Docker是否运行
+if ! docker info > /dev/null 2>&1; then
+    echo "❌ Docker未运行，请先启动Docker"
+    exit 1
+fi
 
 # 启动服务
-uvicorn app:app --host 0.0.0.0 --port 8000 
+echo "启动RAG服务..."
+docker-compose up -d rag-service
+
+# 等待服务启动
+echo "等待服务启动..."
+sleep 5
+
+# 检查服务状态
+echo "检查服务状态..."
+docker-compose ps rag-service
+
+echo "=== 服务启动完成 ==="
+echo "服务地址: http://localhost:8000"
+echo "API文档: http://localhost:8000/docs"
+echo "健康检查: http://localhost:8000/health" 

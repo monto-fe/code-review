@@ -39,6 +39,12 @@ def check_dependencies():
     """
     检查必要的依赖是否已安装
     """
+    # 检查是否跳过依赖检查
+    skip_deps_check = os.getenv("SKIP_DEPS_CHECK", "false").lower() == "true"
+    if skip_deps_check:
+        print("跳过依赖检查（SKIP_DEPS_CHECK=true）")
+        return
+    
     dependencies = [
         ("numpy", "numpy<2.0.0"),  # 指定安装 NumPy 1.x 版本
         ("torch", "torch==2.1.2"),  # 指定 torch 版本
@@ -46,6 +52,8 @@ def check_dependencies():
         "faiss-cpu",
         "sentence-transformers"
     ]
+    
+    missing_deps = []
     
     for dep in dependencies:
         try:
@@ -70,7 +78,13 @@ def check_dependencies():
                 import torchvision
                 print("torchvision 已安装")
         except ImportError:
-            print(f"正在安装 {package_name}...")
+            print(f"检测到缺失依赖: {package_name}")
+            missing_deps.append((package_name, install_name))
+    
+    # 只在有缺失依赖时才安装
+    if missing_deps:
+        print(f"正在安装缺失的依赖: {[dep[0] for dep in missing_deps]}")
+        for package_name, install_name in missing_deps:
             try:
                 # 使用 subprocess 安装依赖
                 subprocess.check_call([
@@ -78,8 +92,6 @@ def check_dependencies():
                     "-m", 
                     "pip", 
                     "install", 
-                    "--no-cache-dir",  # 禁用缓存
-                    "--force-reinstall",  # 强制重新安装
                     install_name
                 ])
                 print(f"{package_name} 安装完成")
@@ -104,14 +116,14 @@ def check_dependencies():
                     subprocess.check_call([
                         "pip", 
                         "install", 
-                        "--no-cache-dir",
-                        "--force-reinstall",
                         install_name
                     ])
                     print(f"使用备用方法安装 {package_name} 成功")
                 except Exception as e2:
                     print(f"备用安装方法也失败: {str(e2)}")
                     raise Exception(f"无法安装 {package_name}，请手动运行: pip install {install_name}")
+    else:
+        print("所有依赖已安装，跳过依赖检查")
 
 def get_vector_store_path(git_url: str, branch: str) -> str:
     """
