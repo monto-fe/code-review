@@ -1,29 +1,46 @@
+FROM python:3.9-slim as builder
+
+WORKDIR /app
+
+# 设置pip镜像源
+ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple/
+ENV PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn
+
+# 安装构建依赖
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# 复制依赖文件
+COPY requirements.txt .
+
+# 安装Python依赖
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir --user -r requirements.txt
+
+# 生产阶段
 FROM python:3.9-slim
 
 WORKDIR /app
 
-# 安装系统依赖
+# 安装运行时依赖
 RUN apt-get update && apt-get install -y \
     git \
     curl \
-    build-essential \
     && rm -rf /var/lib/apt/lists/*
+
+# 从构建阶段复制Python包
+COPY --from=builder /root/.local /root/.local
 
 # 创建必要的目录
 RUN mkdir -p /app/data/vector_store /tmp/git_repos
-
-# 复制依赖文件并安装
-COPY requirements.txt .
-
-# 升级pip并安装依赖
-RUN pip install --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir -r requirements.txt
 
 # 复制应用代码
 COPY . .
 
 # 设置环境变量
 ENV PYTHONPATH=/app
+ENV PATH=/root/.local/bin:$PATH
 ENV OPENAI_API_KEY=""
 ENV RAG_SERVICE_HOST="0.0.0.0"
 ENV RAG_SERVICE_PORT="8000"
@@ -34,7 +51,7 @@ ENV GITLAB_TOKEN=""
 
 # 创建非root用户
 RUN useradd -m -u 1000 raguser && \
-    chown -R raguser:raguser /app /tmp/git_repos
+    chown -R raguser:raguser /app /tmp/git_repos /root/.local
 
 # 切换到非root用户
 USER raguser
