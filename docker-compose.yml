@@ -43,13 +43,13 @@ services:
       context: ./rag_service  # 指向RAG服务代码所在目录
       dockerfile: Dockerfile
     environment:
-      - RAG_SERVICE_HOST=${IP}
+      - RAG_SERVICE_HOST=${RAG_SERVICE_HOST}
       - RAG_SERVICE_PORT=${RAG_SERVICE_PORT}
       - VECTOR_STORE_TYPE=${VECTOR_STORE_TYPE}
       - VECTOR_STORE_PATH=${VECTOR_STORE_PATH}
       - GIT_TEMP_DIR=${GIT_TEMP_DIR}
     ports:
-      - "${IP}:${RAG_SERVICE_PORT}:8000"  # RAG服务端口
+      - "${RAG_SERVICE_PORT}:8000"  # RAG服务端口
     restart: always
     volumes:
       - rag_data:/app/data  # 持久化向量存储数据
@@ -57,7 +57,7 @@ services:
     networks:
       - backend-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://${IP}:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
