@@ -23,14 +23,14 @@ RUN pip install --upgrade pip && \
 COPY . .
 
 # 设置环境变量
-ENV PYTHONPATH=/app
-ENV OPENAI_API_KEY=""
-ENV RAG_SERVICE_HOST="0.0.0.0"
-ENV RAG_SERVICE_PORT="8000"
-ENV VECTOR_STORE_TYPE="faiss"
-ENV VECTOR_STORE_PATH="/app/data/vector_store"
-ENV GIT_TEMP_DIR="/tmp/git_repos"
-ENV GITLAB_TOKEN=""
+# ENV PYTHONPATH=/app
+# ENV OPENAI_API_KEY=""
+# ENV RAG_SERVICE_HOST="0.0.0.0"
+# ENV RAG_SERVICE_PORT="8000"
+# ENV VECTOR_STORE_TYPE="faiss"
+# ENV VECTOR_STORE_PATH="/app/data/vector_store"
+# ENV GIT_TEMP_DIR="/tmp/git_repos"
+# ENV GITLAB_TOKEN=""
 
 # 创建非root用户
 RUN useradd -m -u 1000 raguser && \

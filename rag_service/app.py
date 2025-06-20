@@ -35,6 +35,12 @@ VECTOR_STORE_TYPE = os.getenv("VECTOR_STORE_TYPE", "faiss")
 VECTOR_STORE_PATH = os.getenv("VECTOR_STORE_PATH", "/app/data/vector_store")
 GIT_TEMP_DIR = os.getenv("GIT_TEMP_DIR", "/tmp/git_repos")
 
+print(f"RAG_SERVICE_HOST: {RAG_SERVICE_HOST}")
+print(f"RAG_SERVICE_PORT: {RAG_SERVICE_PORT}")
+print(f"VECTOR_STORE_TYPE: {VECTOR_STORE_TYPE}")
+print(f"VECTOR_STORE_PATH: {VECTOR_STORE_PATH}")
+print(f"GIT_TEMP_DIR: {GIT_TEMP_DIR}")
+
 class CodeReviewRequest(BaseModel):
     git_url: str = Field(..., description="Git仓库URL", example="https://gitlab.com/user/repo.git")
     branch: str = Field(..., description="分支名", example="main")
