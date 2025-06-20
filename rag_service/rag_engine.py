@@ -1,19 +1,20 @@
 import os
-from typing import List, Optional, Dict, Tuple
+from typing import List, Optional, Dict
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.chains import LLMChain
-from langchain.prompts import PromptTemplate
-from langchain.llms import OpenAI
+# from langchain.chains import LLMChain
+# from langchain.prompts import PromptTemplate
+# from langchain.llms import OpenAI
 from git import Repo
-import tempfile
+# import tempfile
 import shutil
 import hashlib
-from pathlib import Path
+# from pathlib import Path
 from urllib.parse import urlparse
 import sys
 import subprocess
+import re
 
 # 代码审查模板
 CODE_REVIEW_TEMPLATE = """
@@ -111,11 +112,6 @@ def check_dependencies():
                 except Exception as e2:
                     print(f"备用安装方法也失败: {str(e2)}")
                     raise Exception(f"无法安装 {package_name}，请手动运行: pip install {install_name}")
-
-# 在模块导入时检查依赖
-print("检查依赖...")
-check_dependencies()
-print("依赖检查完成")
 
 def get_vector_store_path(git_url: str, branch: str) -> str:
     """
@@ -227,7 +223,143 @@ def extract_files_from_diff(diff_content: str) -> List[str]:
                 files.append(file_path)
     return files
 
-def analyze_gitlab_code(git_url: str, branch: str, diff_content: str, query: Optional[str] = None, gitlab_token: Optional[str] = None) -> str:
+def extract_query_from_diff(diff_content: str) -> str:
+    """
+    从diff内容中提取关键信息构建查询
+    
+    Args:
+        diff_content: diff字符串
+    
+    Returns:
+        str: 构建的查询字符串
+    """
+    query_parts = []
+    
+    # 1. 提取文件类型和扩展名
+    file_extensions = set()
+    file_pattern = r'diff --git a/.*?\.(\w+)'
+    extensions = re.findall(file_pattern, diff_content)
+    for ext in extensions:
+        if ext.lower() in ['py', 'js', 'ts', 'java', 'go', 'cpp', 'c', 'php', 'rb', 'rs']:
+            file_extensions.add(ext.lower())
+    
+    if file_extensions:
+        query_parts.append(f"编程语言: {', '.join(file_extensions)}")
+    
+    # 2. 提取函数名
+    function_pattern = r'\+def\s+(\w+)'
+    functions = re.findall(function_pattern, diff_content)
+    if functions:
+        query_parts.append(f"函数: {', '.join(functions)}")
+    
+    # 3. 提取类名
+    class_pattern = r'\+class\s+(\w+)'
+    classes = re.findall(class_pattern, diff_content)
+    if classes:
+        query_parts.append(f"类: {', '.join(classes)}")
+    
+    # 4. 提取方法名
+    method_pattern = r'\+(\s+def\s+\w+)'
+    methods = re.findall(method_pattern, diff_content)
+    if methods:
+        method_names = [m.strip().split()[1] for m in methods if len(m.strip().split()) > 1]
+        if method_names:
+            query_parts.append(f"方法: {', '.join(method_names)}")
+    
+    # 5. 提取语义关键词
+    semantic_keywords = []
+    
+    # API相关
+    if any(keyword in diff_content.lower() for keyword in ['api', 'http', 'request', 'response', 'endpoint']):
+        semantic_keywords.append('API接口')
+    
+    # 数据库相关
+    if any(keyword in diff_content.lower() for keyword in ['database', 'db', 'sql', 'query', 'select', 'insert', 'update', 'delete']):
+        semantic_keywords.append('数据库操作')
+    
+    # 认证相关
+    if any(keyword in diff_content.lower() for keyword in ['auth', 'login', 'password', 'token', 'jwt', 'oauth']):
+        semantic_keywords.append('认证授权')
+    
+    # 错误处理
+    if any(keyword in diff_content.lower() for keyword in ['error', 'exception', 'try', 'catch', 'finally']):
+        semantic_keywords.append('错误处理')
+    
+    # 配置相关
+    if any(keyword in diff_content.lower() for keyword in ['config', 'setting', 'env', 'environment']):
+        semantic_keywords.append('配置管理')
+    
+    if semantic_keywords:
+        query_parts.append(f"功能类型: {', '.join(semantic_keywords)}")
+    
+    return " ".join(query_parts)
+
+def build_optimal_query(diff_content: str, original_query: str = None, merge_request_info: dict = None) -> str:
+    """
+    构建最优的查询字符串
+    
+    Args:
+        diff_content: diff内容
+        original_query: 原始查询（来自Go后端）
+        merge_request_info: 合并请求信息
+    
+    Returns:
+        str: 最优查询字符串
+    """
+    query_parts = []
+    
+    # 1. 从diff中提取关键信息
+    diff_query = extract_query_from_diff(diff_content)
+    if diff_query:
+        query_parts.append(diff_query)
+    
+    # 2. 添加原始查询（如果提供）
+    if original_query:
+        query_parts.append(original_query)
+    
+    # 3. 添加MR信息（如果提供）
+    if merge_request_info:
+        title = merge_request_info.get('title', '')
+        description = merge_request_info.get('description', '')
+        
+        if title:
+            query_parts.append(f"功能: {title}")
+        if description:
+            # 提取描述中的关键词
+            desc_keywords = extract_keywords_from_description(description)
+            if desc_keywords:
+                query_parts.append(f"描述关键词: {', '.join(desc_keywords)}")
+    
+    return " ".join(query_parts)
+
+def extract_keywords_from_description(description: str) -> List[str]:
+    """
+    从MR描述中提取关键词
+    
+    Args:
+        description: MR描述
+    
+    Returns:
+        List[str]: 关键词列表
+    """
+    keywords = []
+    
+    # 常见的关键词模式
+    keyword_patterns = [
+        r'修复\s*(\w+)',  # 修复xxx
+        r'添加\s*(\w+)',  # 添加xxx
+        r'优化\s*(\w+)',  # 优化xxx
+        r'重构\s*(\w+)',  # 重构xxx
+        r'更新\s*(\w+)',  # 更新xxx
+    ]
+    
+    for pattern in keyword_patterns:
+        matches = re.findall(pattern, description)
+        keywords.extend(matches)
+    
+    return list(set(keywords))  # 去重
+
+def analyze_gitlab_code(git_url: str, branch: str, diff_content: str, query: Optional[str] = None, gitlab_token: Optional[str] = None) -> Dict[str, str]:
     """
     分析GitLab代码变更
     
@@ -239,8 +371,13 @@ def analyze_gitlab_code(git_url: str, branch: str, diff_content: str, query: Opt
         gitlab_token: GitLab访问令牌
     
     Returns:
-        str: 代码审查结果
+        Dict[str, str]: 代码变更和上下文作为字典返回
     """
+    # 检查依赖
+    print("检查依赖")
+    check_dependencies()
+    print("依赖检查完成")
+    
     # 检查GitLab token
     if not gitlab_token:
         gitlab_token = os.getenv("GITLAB_TOKEN")
@@ -340,18 +477,22 @@ def analyze_gitlab_code(git_url: str, branch: str, diff_content: str, query: Opt
         
         # 使用LLM生成代码审查建议
         try:
-            llm = OpenAI(temperature=0)
-            prompt = PromptTemplate(
-                input_variables=["code_changes", "context"],
-                template=CODE_REVIEW_TEMPLATE
-            )
-            chain = LLMChain(llm=llm, prompt=prompt)
+            # llm = OpenAI(temperature=0)
+            #prompt = PromptTemplate(
+            #    input_variables=["code_changes", "context"],
+            #    template=CODE_REVIEW_TEMPLATE
+            #)
+            # chain = LLMChain(llm=llm, prompt=prompt)
+            
+            # 构建最优查询
+            optimal_query = build_optimal_query(diff_content, query)
+            print(f"构建的最优查询: {optimal_query}")
             
             # 获取相关上下文
             context_parts = []
-            if query:
-                # 使用查询获取相关上下文
-                docs = vectorstore.similarity_search(query)
+            if optimal_query:
+                # 使用最优查询获取相关上下文
+                docs = vectorstore.similarity_search(optimal_query)
                 context_parts.append("\n".join([doc.page_content for doc in docs]))
             
             # 添加变更文件的完整内容作为上下文
@@ -362,12 +503,19 @@ def analyze_gitlab_code(git_url: str, branch: str, diff_content: str, query: Opt
             context = "\n\n".join(context_parts)
             
             # 生成审查结果
-            result = chain.run(
-                code_changes=diff_content,
-                context=context
-            )
+            # result = chain.run(
+            #     code_changes=diff_content,
+            #     context=context
+            # )
             
-            return result
+            # 将代码变更和上下文作为字典返回
+            result_dict = {
+                "code_changes": diff_content,
+                "context": context,
+                "optimal_query": optimal_query  # 添加最优查询到返回结果中
+            }
+            
+            return result_dict
         except Exception as e:
             print(f"生成审查结果失败: {str(e)}")
             raise Exception(f"生成审查结果失败: {str(e)}")

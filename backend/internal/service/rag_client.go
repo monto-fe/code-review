@@ -2,11 +2,13 @@ package service
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 // RAGClient RAG服务客户端
@@ -25,7 +27,9 @@ func NewRAGClient(baseURL string) *RAGClient {
 	}
 	return &RAGClient{
 		baseURL: baseURL,
-		client:  &http.Client{},
+		client: &http.Client{
+			Timeout: 60 * time.Second, // 设置60秒超时
+		},
 	}
 }
 
@@ -82,17 +86,29 @@ func (c *RAGClient) AnalyzeCode(gitURL string, branch string, diffFiles []string
 
 // AnalyzeCodeWithRequest 使用请求对象进行分析
 func (c *RAGClient) AnalyzeCodeWithRequest(req *CodeReviewRequest) (*CodeAnalysisResponse, error) {
+	// 创建60秒超时的上下文
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
 	jsonData, err := json.Marshal(req)
 	if err != nil {
 		return nil, fmt.Errorf("序列化请求失败: %v", err)
 	}
 
-	resp, err := c.client.Post(
+	// 创建带超时的请求
+	httpReq, err := http.NewRequestWithContext(ctx, "POST",
 		fmt.Sprintf("%s/api/code-analysis", c.baseURL),
-		"application/json",
-		bytes.NewBuffer(jsonData),
-	)
+		bytes.NewBuffer(jsonData))
 	if err != nil {
+		return nil, fmt.Errorf("创建HTTP请求失败: %v", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.client.Do(httpReq)
+	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			return nil, fmt.Errorf("RAG服务请求超时(60秒): %v", err)
+		}
 		return nil, fmt.Errorf("请求RAG服务失败: %v", err)
 	}
 	defer resp.Body.Close()

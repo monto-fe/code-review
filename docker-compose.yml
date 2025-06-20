@@ -29,12 +29,47 @@ services:
       - DB_DATABASE=${DB_DATABASE}
       - CONSOLE_PORT=${CONSOLE_PORT}
       - IP=${IP}
+      - RAG_SERVICE_URL=http://rag-service:8000  # 添加RAG服务URL
     ports:
       - "${API_PORT}:9000"
     restart: always
+    depends_on:
+      - rag-service
     networks:
       - backend-network
+
+  rag-service:
+    build:
+      context: ./rag_service  # 指向RAG服务代码所在目录
+      dockerfile: Dockerfile
+    environment:
+      - RAG_SERVICE_HOST=0.0.0.0
+      - RAG_SERVICE_PORT=8000
+      - VECTOR_STORE_TYPE=faiss
+      - VECTOR_STORE_PATH=/app/data/vector_store
+      - GIT_TEMP_DIR=/tmp/git_repos
+      - GITLAB_TOKEN=${GITLAB_TOKEN}  # 从环境变量获取GitLab token
+    ports:
+      - "8000:8000"  # RAG服务端口
+    restart: always
+    volumes:
+      - rag_data:/app/data  # 持久化向量存储数据
+      - git_cache:/tmp/git_repos  # 持久化Git缓存
+    networks:
+      - backend-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 networks:
   backend-network:
     driver: bridge
+
+volumes:
+  rag_data:  # 向量存储数据卷
+    driver: local
+  git_cache:  # Git缓存数据卷
+    driver: local
