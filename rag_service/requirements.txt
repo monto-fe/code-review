@@ -7,9 +7,10 @@ pydantic==2.5.2
 # Git操作
 gitpython==3.1.40
 
-# AI/ML相关 - 只保留实际使用的依赖
+# AI/ML相关 - 修复版本兼容性
 sentence-transformers==2.2.2
 faiss-cpu==1.7.4
+huggingface-hub==0.19.4
 
-# LangChain - 使用兼容的版本
+# LangChain
 langchain==0.1.0 
