@@ -11,12 +11,12 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# 复制依赖文件
+# 先复制requirements.txt以利用Docker缓存
 COPY requirements.txt .
 
 # 安装Python依赖
 RUN pip install --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir --user -r requirements.txt
+    pip install -r requirements.txt
 
 # 生产阶段
 FROM python:3.9-slim
@@ -29,8 +29,9 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# 从构建阶段复制Python包
-COPY --from=builder /root/.local /root/.local
+# 从构建阶段复制Python包到系统Python目录
+COPY --from=builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
 # 创建必要的目录
 RUN mkdir -p /app/data/vector_store /tmp/git_repos
@@ -40,7 +41,6 @@ COPY . .
 
 # 设置环境变量
 ENV PYTHONPATH=/app
-ENV PATH=/root/.local/bin:$PATH
 ENV OPENAI_API_KEY=""
 ENV RAG_SERVICE_HOST="0.0.0.0"
 ENV RAG_SERVICE_PORT="8000"
@@ -48,10 +48,11 @@ ENV VECTOR_STORE_TYPE="faiss"
 ENV VECTOR_STORE_PATH="/app/data/vector_store"
 ENV GIT_TEMP_DIR="/tmp/git_repos"
 ENV GITLAB_TOKEN=""
+ENV SKIP_DEPS_CHECK="true"
 
 # 创建非root用户
 RUN useradd -m -u 1000 raguser && \
-    chown -R raguser:raguser /app /tmp/git_repos /root/.local
+    chown -R raguser:raguser /app /tmp/git_repos
 
 # 切换到非root用户
 USER raguser
