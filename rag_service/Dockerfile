@@ -16,21 +16,21 @@ RUN mkdir -p /app/data/vector_store /tmp/git_repos
 COPY requirements.txt .
 
 # 升级pip并安装依赖
-RUN pip install --upgrade pip && \
+RUN pip install --upgrade pip setuptools wheel && \
     pip install --no-cache-dir -r requirements.txt
 
 # 复制应用代码
 COPY . .
 
 # 设置环境变量
-# ENV PYTHONPATH=/app
-# ENV OPENAI_API_KEY=""
-# ENV RAG_SERVICE_HOST="0.0.0.0"
-# ENV RAG_SERVICE_PORT="8000"
-# ENV VECTOR_STORE_TYPE="faiss"
-# ENV VECTOR_STORE_PATH="/app/data/vector_store"
-# ENV GIT_TEMP_DIR="/tmp/git_repos"
-# ENV GITLAB_TOKEN=""
+ENV PYTHONPATH=/app
+ENV OPENAI_API_KEY=""
+ENV RAG_SERVICE_HOST="0.0.0.0"
+ENV RAG_SERVICE_PORT="8000"
+ENV VECTOR_STORE_TYPE="faiss"
+ENV VECTOR_STORE_PATH="/app/data/vector_store"
+ENV GIT_TEMP_DIR="/tmp/git_repos"
+ENV GITLAB_TOKEN=""
 
 # 创建非root用户
 RUN useradd -m -u 1000 raguser && \

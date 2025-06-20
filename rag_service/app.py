@@ -1,13 +1,11 @@
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict
+from typing import Optional
 from rag_engine import analyze_gitlab_code
 import os
 from dotenv import load_dotenv
 from pathlib import Path
-import json
 import asyncio
-import signal
 import time
 
 # 加载上级目录的.env文件
