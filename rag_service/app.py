@@ -105,27 +105,6 @@ def run_sync_with_timeout(func, *args, **kwargs):
     
     return result_container['result']
 
-@app.post("/debug/request", tags=["调试"])
-async def debug_request(request: Request):
-    """
-    调试端点，用于查看原始请求数据
-    """
-    try:
-        body = await request.body()
-        print(f"原始请求体: {body}")
-        
-        # 尝试解析JSON
-        try:
-            json_data = await request.json()
-            print(f"JSON数据: {json_data}")
-        except Exception as e:
-            print(f"JSON解析失败: {e}")
-        
-        return {"message": "请求数据已记录到日志"}
-    except Exception as e:
-        print(f"调试请求失败: {e}")
-        return {"error": str(e)}
-
 @app.post("/api/code-analysis", response_model=CodeAnalysisResponse, tags=["代码审查"])
 async def code_analysis(request: CodeReviewRequest):
     """

@@ -42,49 +42,27 @@ def check_dependencies():
     # 检查是否跳过依赖检查
     skip_deps_check = os.getenv("SKIP_DEPS_CHECK", "false").lower() == "true"
     if skip_deps_check:
-        print("跳过依赖检查（SKIP_DEPS_CHECK=true）")
         return
     
     dependencies = [
-        ("numpy", "numpy<2.0.0"),  # 指定安装 NumPy 1.x 版本
-        ("torch", "torch==2.1.2"),  # 指定 torch 版本
-        ("torchvision", "torchvision==0.16.2"),  # 指定 torchvision 版本
         "faiss-cpu",
         "sentence-transformers"
     ]
     
     missing_deps = []
     
-    for dep in dependencies:
+    for package_name in dependencies:
         try:
-            if isinstance(dep, tuple):
-                package_name, install_name = dep
-            else:
-                package_name = install_name = dep
-                
             if package_name == "sentence-transformers":
                 import sentence_transformers
-                print("sentence-transformers 已安装")
-            elif package_name == "numpy":
-                import numpy
-                print("numpy 已安装")
             elif package_name == "faiss-cpu":
                 import faiss
-                print("faiss-cpu 已安装")
-            elif package_name == "torch":
-                import torch
-                print("torch 已安装")
-            elif package_name == "torchvision":
-                import torchvision
-                print("torchvision 已安装")
         except ImportError:
-            print(f"检测到缺失依赖: {package_name}")
-            missing_deps.append((package_name, install_name))
+            missing_deps.append(package_name)
     
     # 只在有缺失依赖时才安装
     if missing_deps:
-        print(f"正在安装缺失的依赖: {[dep[0] for dep in missing_deps]}")
-        for package_name, install_name in missing_deps:
+        for package_name in missing_deps:
             try:
                 # 使用 subprocess 安装依赖
                 subprocess.check_call([
@@ -92,38 +70,24 @@ def check_dependencies():
                     "-m", 
                     "pip", 
                     "install", 
-                    install_name
+                    package_name
                 ])
-                print(f"{package_name} 安装完成")
                 
                 # 验证安装
                 if package_name == "sentence-transformers":
                     import sentence_transformers
-                elif package_name == "numpy":
-                    import numpy
                 elif package_name == "faiss-cpu":
                     import faiss
-                elif package_name == "torch":
-                    import torch
-                elif package_name == "torchvision":
-                    import torchvision
-                print(f"{package_name} 验证成功")
             except Exception as e:
-                print(f"安装 {package_name} 失败: {str(e)}")
-                print(f"尝试使用备用方法安装 {package_name}...")
                 try:
                     # 尝试使用 pip 直接安装
                     subprocess.check_call([
                         "pip", 
                         "install", 
-                        install_name
+                        package_name
                     ])
-                    print(f"使用备用方法安装 {package_name} 成功")
                 except Exception as e2:
-                    print(f"备用安装方法也失败: {str(e2)}")
-                    raise Exception(f"无法安装 {package_name}，请手动运行: pip install {install_name}")
-    else:
-        print("所有依赖已安装，跳过依赖检查")
+                    raise Exception(f"无法安装 {package_name}，请手动运行: pip install {package_name}")
 
 def get_vector_store_path(git_url: str, branch: str) -> str:
     """
