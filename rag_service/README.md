@@ -9,6 +9,7 @@
 - 🔗 GitLab 集成：支持 GitLab 仓库和合并请求
 - ⚡ 高性能：使用 FAISS 向量数据库和轻量级嵌入模型
 - 🐳 Docker 部署：容器化部署，开箱即用
+- ⏱️ 超时控制：3分钟超时保护，避免长时间等待
 
 ## 快速开始
 
@@ -42,7 +43,7 @@ docker-compose up -d rag-service
   "branch": "main",
   "diff_content": "diff --git a/file.py b/file.py\n@@ -1,3 +1,3 @@\n-def old_function():\n+def new_function():\n     return True",
   "query": "查找数据库相关代码",
-  "gitlab_token": "glpat-xxxxxxxx"
+  "gitlab_token": "glpat-xxxxxxxxxx"
 }
 ```
 
@@ -68,6 +69,19 @@ docker-compose up -d rag-service
 | `VECTOR_STORE_PATH` | `/app/data/vector_store` | 向量存储路径 |
 | `GIT_TEMP_DIR` | `/tmp/git_repos` | Git 临时目录 |
 | `SKIP_DEPS_CHECK` | `true` | 跳过依赖检查 |
+
+## 性能配置
+
+### 超时设置
+- **Python端超时**：3分钟（180秒）
+- **Go端超时**：3分钟（180秒）
+- **HTTP客户端超时**：3分钟（180秒）
+
+### 测试超时
+```bash
+# 测试超时设置
+python test_timeout.py
+```
 
 ## 技术栈
 

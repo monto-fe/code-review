@@ -9,10 +9,11 @@ import (
 
 // Config 应用配置
 type Config struct {
-	Port     string
-	Env      string
-	IP       string
-	Database DatabaseConfig
+	Port          string
+	Env           string
+	IP            string
+	Database      DatabaseConfig
+	RAGServiceURL string
 }
 
 // DatabaseConfig 数据库配置
@@ -34,6 +35,7 @@ func LoadConfig() *Config {
 	// 然后加载当前目录的 .env 文件（会覆盖外层 .env 中的同名变量）
 	if err := godotenv.Load(); err != nil {
 		log.Printf("Warning: Could not load local .env file: %v", err)
+
 	}
 
 	return &Config{
@@ -47,6 +49,7 @@ func LoadConfig() *Config {
 			Password: getEnv("DB_PASSWORD", ""),
 			DBName:   getEnv("DB_DATABASE", "code_review"),
 		},
+		RAGServiceURL: getEnv("RAG_SERVICE_URL", "http://localhost:8000/api/code-analysis"),
 	}
 }
 

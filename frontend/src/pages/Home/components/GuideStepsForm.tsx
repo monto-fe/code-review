@@ -105,7 +105,7 @@ const GuideStepsForm = ({ AIConfig, GitlabConfig, callback }: { AIConfig: any[],
                 { required: true, message: '请输入Gitlab Token' },
               ]}
             >
-              <Input placeholder='glpat-1234567890'/>
+              <Input placeholder='glpat-xxxxxxxxxxxx'/>
             </Form.Item>
             <Form.Item
               name="expired"

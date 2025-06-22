@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -18,19 +17,19 @@ type RAGClient struct {
 }
 
 // NewRAGClient 创建RAG服务客户端
-func NewRAGClient(baseURL string) *RAGClient {
+func NewRAGClient(baseURL string) (*RAGClient, error) {
 	if baseURL == "" {
 		baseURL = os.Getenv("RAG_SERVICE_URL")
 		if baseURL == "" {
-			baseURL = "http://localhost:8000" // 默认值
+			return nil, fmt.Errorf("RAG服务URL未配置，请设置RAG_SERVICE_URL环境变量")
 		}
 	}
 	return &RAGClient{
 		baseURL: baseURL,
 		client: &http.Client{
-			Timeout: 60 * time.Second, // 设置60秒超时
+			Timeout: 180 * time.Second, // 设置3分钟超时
 		},
-	}
+	}, nil
 }
 
 // CodeReviewRequest 代码审查请求
@@ -44,10 +43,7 @@ type CodeReviewRequest struct {
 
 // CodeAnalysisResponse 代码分析响应
 type CodeAnalysisResponse struct {
-	CodeChanges  string   `json:"code_changes"`
-	Context      string   `json:"context"`
-	ChangedFiles []string `json:"changed_files"`
-	Query        string   `json:"query,omitempty"`
+	Review string `json:"review"`
 }
 
 // CodeReviewPrompt 代码审查提示词模板
@@ -81,13 +77,13 @@ func (c *RAGClient) AnalyzeCode(gitURL string, branch string, diffFiles []string
 		return "", err
 	}
 
-	return analysis.Context, nil
+	return analysis.Review, nil
 }
 
 // AnalyzeCodeWithRequest 使用请求对象进行分析
 func (c *RAGClient) AnalyzeCodeWithRequest(req *CodeReviewRequest) (*CodeAnalysisResponse, error) {
-	// 创建60秒超时的上下文
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	// 创建3分钟超时的上下文
+	ctx, cancel := context.WithTimeout(context.Background(), 180*time.Second)
 	defer cancel()
 
 	jsonData, err := json.Marshal(req)
@@ -97,7 +93,7 @@ func (c *RAGClient) AnalyzeCodeWithRequest(req *CodeReviewRequest) (*CodeAnalysi
 
 	// 创建带超时的请求
 	httpReq, err := http.NewRequestWithContext(ctx, "POST",
-		fmt.Sprintf("%s/api/code-analysis", c.baseURL),
+		c.baseURL,
 		bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, fmt.Errorf("创建HTTP请求失败: %v", err)
@@ -107,7 +103,7 @@ func (c *RAGClient) AnalyzeCodeWithRequest(req *CodeReviewRequest) (*CodeAnalysi
 	resp, err := c.client.Do(httpReq)
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
-			return nil, fmt.Errorf("RAG服务请求超时(60秒): %v", err)
+			return nil, fmt.Errorf("RAG服务请求超时(3分钟): %v", err)
 		}
 		return nil, fmt.Errorf("请求RAG服务失败: %v", err)
 	}
@@ -132,21 +128,8 @@ func (c *RAGClient) GenerateReview(req *CodeReviewRequest) (string, error) {
 		return "", err
 	}
 
-	prompt := fmt.Sprintf(`请根据以下代码变更和上下文信息进行代码审查：
-
-代码变更：
-%s
-
-上下文信息：
-%s
-
-变更的文件：
-%s
-
-请以结构化的方式输出审查结果。`, analysis.CodeChanges, analysis.Context, strings.Join(analysis.ChangedFiles, ", "))
-
-	// TODO: 调用大模型API生成最终结果
-	return prompt, nil
+	// 直接返回RAG服务的审查结果
+	return analysis.Review, nil
 }
 
 // LegacyAnalyzeCode 实现RAGService接口的方法
@@ -163,5 +146,5 @@ func (c *RAGClient) LegacyAnalyzeCode(gitURL string, branch string, diffFiles []
 		return "", err
 	}
 
-	return analysis.Context, nil
+	return analysis.Review, nil
 }

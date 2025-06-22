@@ -43,10 +43,21 @@ func handleAICheck(body dto.WebhookBody) {
 	if !service.ShouldProcessState(body.ObjectAttributes.State) {
 		return
 	}
-	comments, err := service.CheckMergeRequestWithAI(body)
+
+	// 优先使用RAG服务进行检查
+	ragComments, err := service.CheckMergeRequestWithRAG(body)
 	if err != nil {
-		fmt.Println("AI检查失败:", err)
+		fmt.Println("RAG检查失败:", err)
+		// RAG检查失败时，回退到AI检查
+		comments, aiErr := service.CheckMergeRequestWithAI(body)
+		if aiErr != nil {
+			fmt.Println("AI检查也失败:", aiErr)
+			return
+		}
+		fmt.Println("AI检查结果:", comments)
 		return
 	}
-	fmt.Println("AI检查结果:", comments)
+
+	// RAG检查成功
+	fmt.Println("RAG检查结果:", ragComments)
 }

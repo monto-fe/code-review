@@ -29,7 +29,7 @@ services:
       - DB_DATABASE=${DB_DATABASE}
       - CONSOLE_PORT=${CONSOLE_PORT}
       - IP=${IP}
-      - RAG_SERVICE_URL=http://rag-service:8000  # 添加RAG服务URL
+      - RAG_SERVICE_URL=http://rag-service:8000/api/code-analysis  # 添加RAG服务URL
     ports:
       - "${API_PORT}:9000"
     restart: always

@@ -13,9 +13,7 @@ import (
 )
 
 func getAIMessageService() *service.AIMessageService {
-	// 或 database.DB，确保不是 nil
-	ragClient := service.NewRAGClient("")
-	return service.NewAIMessageService(database.DB, ragClient)
+	return service.NewAIMessageService(database.DB)
 }
 
 // GetAIMessage 获取AI Code Review列表

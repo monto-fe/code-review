@@ -38,7 +38,7 @@ class CodeReviewRequest(BaseModel):
     branch: str = Field(..., description="分支名", example="main")
     diff_content: str = Field(..., description="格式化的diff字符串", example="diff --git a/file.py b/file.py\n@@ -1,3 +1,3 @@\n-def old_function():\n+def new_function():\n     return True")
     query: Optional[str] = Field(None, description="可选的查询参数，用于相似度搜索", example="查找数据库相关代码")
-    gitlab_token: Optional[str] = Field(None, description="GitLab访问令牌", example="glpat-xxxxxxxx")
+    gitlab_token: Optional[str] = Field(None, description="GitLab访问令牌", example="glpat-xxxxxxxxxxxx")
 
     @field_validator('diff_content')
     @classmethod
@@ -68,7 +68,7 @@ class CodeAnalysisResponse(BaseModel):
     review: str = Field(..., description="代码审查结果", example="代码审查建议：\n1. 代码质量：函数命名清晰，逻辑简单\n2. 潜在问题：无\n3. 改进建议：可以考虑添加类型注解")
 
 # 超时控制函数
-async def run_with_timeout(coro, timeout_seconds=60):
+async def run_with_timeout(coro, timeout_seconds=180):
     """
     在指定时间内运行协程，超时则抛出异常
     """
@@ -95,10 +95,10 @@ def run_sync_with_timeout(func, *args, **kwargs):
     thread = threading.Thread(target=target)
     thread.daemon = True
     thread.start()
-    thread.join(timeout=60)  # 60秒超时
+    thread.join(timeout=180)  # 3分钟超时
     
     if thread.is_alive():
-        raise HTTPException(status_code=408, detail="RAG分析超时(60秒)")
+        raise HTTPException(status_code=408, detail="RAG分析超时(3分钟)")
     
     if 'error' in result_container:
         raise result_container['error']

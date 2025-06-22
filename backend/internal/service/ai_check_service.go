@@ -1,6 +1,7 @@
 package service
 
 import (
+	"code-review-go/config"
 	"code-review-go/internal/cache"
 	"code-review-go/internal/database"
 	dto "code-review-go/internal/dto"
@@ -134,8 +135,83 @@ func ShouldProcessState(state string) bool {
 	return state == "opened"
 }
 
-// CheckMergeRequestWithAI 使用aiConfig中status=1的ai模型检查合并请求
-func CheckMergeRequestWithRAG(mergeRequest *model.MergeRequestInfo, diff []model.Change, gitlabAPI, gitlabToken string) (string, error) {
+// callAIServiceWithRAGContext 使用RAG服务上下文调用AI服务
+func callAIServiceWithRAGContext(ragAnalysis string, finalRule string, mergeRequest *model.MergeRequestInfo, diff []model.Change, aiConfig *model.AIConfig) (string, error) {
+	// 根据aiConfig.Type选择AIProvider
+	var provider providers.AIProvider
+	switch aiConfig.Type {
+	case "UCloud":
+		provider = providers.NewUCAIProvider(aiConfig)
+	case "DeepSeek":
+		provider = providers.NewDeepSeekProvider(aiConfig)
+	default:
+		return "", fmt.Errorf("不支持的AI模型类型: %s", aiConfig.Type)
+	}
+
+	// 组装AI提示词，包含RAG分析结果
+	prompt := generatePromptWithRAGContext(finalRule, mergeRequest, diff, ragAnalysis)
+
+	// 调用AI服务
+	comments, err := provider.CallAI(prompt)
+	if err != nil {
+		return "", fmt.Errorf("调用AI服务失败: %v", err)
+	}
+
+	return comments, nil
+}
+
+// generatePromptWithRAGContext 生成包含RAG上下文的AI提示词
+func generatePromptWithRAGContext(rule string, mergeRequest *model.MergeRequestInfo, diff []model.Change, ragAnalysis string) string {
+	var diffContent string
+	for _, change := range diff {
+		diffContent += fmt.Sprintf("File: %s\n%s\n\n", change.NewPath, change.Diff)
+	}
+
+	return fmt.Sprintf(`基于RAG服务的初步分析结果，请进行进一步的代码审查：
+
+RAG服务分析结果：
+%s
+
+审查规则：%s
+
+代码信息：
+标题：%s
+描述：%s
+
+代码差异：
+%s
+
+请基于RAG分析结果和上述规则进行深入审查，使用中文回答。如果没有发现问题，请输出：未发现Bug`,
+		ragAnalysis, rule, mergeRequest.Title, mergeRequest.Description, diffContent)
+}
+
+// CheckMergeRequestWithRAG 使用RAG服务检查合并请求
+func CheckMergeRequestWithRAG(body dto.WebhookBody) (string, error) {
+	// 获取 Gitlab 配置缓存
+	gitlabCache := cache.GetGitlabCache()
+	// 匹配对应的gitlabToken
+	gitlabToken, gitlabInfoResult, ok := cache.FindTokenByProjectID(fmt.Sprintf("%d", body.Project.ID), gitlabCache)
+	if !ok {
+		return "", fmt.Errorf("请配置gitlab Token")
+	}
+
+	// 检查分支匹配
+	if !branchMatch(gitlabInfoResult.Config.SourceBranch, body.ObjectAttributes.SourceBranch) {
+		return "", fmt.Errorf("源分支不匹配")
+	}
+	if !branchMatch(gitlabInfoResult.Config.TargetBranch, body.ObjectAttributes.TargetBranch) {
+		return "", fmt.Errorf("目标分支不匹配")
+	}
+
+	// 获取对应的mergeRequest
+	mergeRequest, err := GetMergeRequestInfo(gitlabInfoResult.Config.API, strconv.Itoa(body.Project.ID), gitlabToken)
+	if err != nil {
+		return "", err
+	}
+
+	// 获取对应的diff
+	diff := getMergeDiff(gitlabInfoResult.Config.API, body.Project.ID, body.ObjectAttributes.IID, gitlabToken)
+
 	// 获取AI配置
 	aiConfig, ok := cache.GetAIConfigCache()
 	if !ok {
@@ -161,7 +237,7 @@ func CheckMergeRequestWithRAG(mergeRequest *model.MergeRequestInfo, diff []model
 		currentRule = customRule.Rule
 	} else {
 		// 获取项目主要语言
-		language, err := GetDominantLanguage(gitlabAPI, fmt.Sprintf("%d", mergeRequest.ProjectID), gitlabToken)
+		language, err := GetDominantLanguage(gitlabInfoResult.Config.API, fmt.Sprintf("%d", mergeRequest.ProjectID), gitlabToken)
 		if err != nil {
 			return "", fmt.Errorf("获取项目语言失败: %v", err)
 		}
@@ -177,9 +253,7 @@ func CheckMergeRequestWithRAG(mergeRequest *model.MergeRequestInfo, diff []model
 	}
 
 	// 获取 Gitlab 配置中的 Prompt
-	gitlabCache := cache.GetGitlabCache()
-	_, gitlabInfo, _ := cache.FindTokenByProjectID(fmt.Sprintf("%d", mergeRequest.ProjectID), gitlabCache)
-	gitlabPrompt := gitlabInfo.Config.Prompt
+	gitlabPrompt := gitlabInfoResult.Config.Prompt
 
 	// 如果 gitlabPrompt 为空，使用默认的 gitlabPrompt
 	if gitlabPrompt == "" {
@@ -194,8 +268,16 @@ func CheckMergeRequestWithRAG(mergeRequest *model.MergeRequestInfo, diff []model
 		finalRule = gitlabPrompt
 	}
 
-	// 创建RAG客户端
-	ragClient := NewRAGClient("http://localhost:8000")
+	// 创建RAG客户端 - 使用配置的RAG服务URL
+	ragServiceURL := config.LoadConfig().RAGServiceURL
+	if ragServiceURL == "" {
+		return "", fmt.Errorf("RAG服务URL未配置，请设置RAG_SERVICE_URL环境变量")
+	}
+	fmt.Println("RAG服务URL:", ragServiceURL)
+	ragClient, err := NewRAGClient(ragServiceURL)
+	if err != nil {
+		return "", fmt.Errorf("创建RAG客户端失败: %v", err)
+	}
 
 	// 将diff转换为字符串
 	diffStr := ""
@@ -204,50 +286,77 @@ func CheckMergeRequestWithRAG(mergeRequest *model.MergeRequestInfo, diff []model
 		diffStr += change.Diff + "\n"
 	}
 
-	// 准备请求
+	// 构建Git URL - 从mergeRequest的WebURL中提取
+	gitURL := mergeRequest.WebURL
+	if strings.Contains(gitURL, "/-/merge_requests/") {
+		// 移除merge request部分，获取项目URL
+		parts := strings.Split(gitURL, "/-/merge_requests/")
+		if len(parts) > 0 {
+			gitURL = parts[0] + ".git"
+		}
+	}
+
+	// 准备RAG服务请求
 	req := &CodeReviewRequest{
-		GitURL:      mergeRequest.WebURL, // 使用WebURL作为git_url
+		GitURL:      gitURL,
 		Branch:      mergeRequest.SourceBranch,
 		DiffContent: diffStr,
-		Query:       finalRule, // 直接使用规则作为查询
-		GitlabToken: gitlabInfo.Token,
+		Query:       finalRule,
+		GitlabToken: gitlabToken,
 	}
 
 	// 调用RAG服务获取代码分析结果
-	_, err = ragClient.AnalyzeCodeWithRequest(req)
+	analysis, err := ragClient.AnalyzeCodeWithRequest(req)
 	if err != nil {
 		return "", fmt.Errorf("调用RAG服务失败: %v", err)
 	}
 
-	// 使用大模型生成审查结果
-	comments, err := ragClient.GenerateReview(req)
-	if err != nil {
-		return "", fmt.Errorf("生成审查结果失败: %v", err)
+	// 生成最终的审查结果
+	comments := analysis.Review
+	if comments == "" {
+		comments = "RAG服务未返回审查结果"
 	}
+	fmt.Println("RAG服务返回的审查结果:", comments)
 
-	fmt.Println("代码审查结果:", comments)
+	// 使用封装的函数调用AI服务
+	comments, err = callAIServiceWithRAGContext(comments, finalRule, mergeRequest, diff, aiConfig)
+	if err != nil {
+		return "", fmt.Errorf("调用AI服务失败: %v", err)
+	}
+	fmt.Println("AI服务返回的审查结果:", comments)
 
 	// 保存AI消息
-	// passed := -1
-	// if strings.Contains(comments, "未发现Bug") {
-	// 	passed = 1
-	// }
+	passed := -1
+	if strings.Contains(comments, "未发现Bug") || strings.Contains(comments, "通过") {
+		passed = 1
+	}
 
-	// aiMessage := &model.AImessage{
-	// 	ProjectID:  mergeRequest.ProjectID,
-	// 	MergeURL:   mergeRequest.WebURL,
-	// 	MergeID:    fmt.Sprintf("%d", mergeRequest.IID),
-	// 	AIModel:    aiConfig.Model,    // 使用配置的模型
-	// 	Rule:       model.RuleType(1), // 默认规则类型
-	// 	RuleID:     1,                 // 默认规则ID
-	// 	Result:     comments,
-	// 	Passed:     passed,
-	// 	CreateTime: time.Now().Unix(),
-	// }
+	aiMessage := &model.AImessage{
+		ProjectID:        uint(body.Project.ID),
+		MergeURL:         body.ObjectAttributes.URL,
+		ProjectName:      body.Project.Name,
+		ProjectNamespace: body.Project.PathWithNamespace,
+		MergeDescription: body.ObjectAttributes.Description,
+		MergeID:          fmt.Sprintf("%d", body.ObjectAttributes.IID),
+		AIModel:          "RAG",             // 标记为RAG服务
+		Rule:             model.RuleType(1), // 默认规则类型
+		RuleID:           1,                 // 默认规则ID
+		Result:           comments,
+		Passed:           passed,
+		CreateTime:       time.Now().Unix(),
+	}
 
-	// if err := db.Create(aiMessage).Error; err != nil {
-	// 	return "", 0, fmt.Errorf("保存AI消息失败: %v", err)
-	// }
+	if err := db.Create(aiMessage).Error; err != nil {
+		return "", fmt.Errorf("保存AI消息失败: %v", err)
+	}
+
+	// 发送评论到GitLab
+	postComment(gitlabInfoResult.Config.API, body.Project.ID, body.ObjectAttributes.IID, gitlabToken, comments)
+
+	// 推送webhook通知
+	pushWebhookIfNeeded(gitlabInfoResult.Config.WebhookURL, gitlabInfoResult.Config.WebhookStatus, body.Project.PathWithNamespace, body.ObjectAttributes.MergeURL, comments, aiMessage.ID, mergeRequest)
+
+	fmt.Println("RAG代码审查结果:", comments)
 
 	return comments, nil
 }
