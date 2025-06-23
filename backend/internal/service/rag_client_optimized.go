@@ -67,8 +67,8 @@ func NewOptimizedRAGClient(config *RAGClientConfig) (*OptimizedRAGClient, error)
 	}, nil
 }
 
-// AnalyzeCodeWithRequestOptimized 优化后的代码分析请求
-func (c *OptimizedRAGClient) AnalyzeCodeWithRequestOptimized(req *CodeReviewRequest) (*CodeAnalysisResponse, error) {
+// AnalyzeCodeWithRequest 实现RAGService接口
+func (c *OptimizedRAGClient) AnalyzeCodeWithRequest(req *CodeReviewRequest) (*CodeAnalysisResponse, error) {
 	// 生成缓存键
 	cacheKey := c.generateCacheKey(req)
 
@@ -101,6 +101,16 @@ func (c *OptimizedRAGClient) AnalyzeCodeWithRequestOptimized(req *CodeReviewRequ
 	c.cache.Set(cacheKey, result)
 
 	return result, nil
+}
+
+// GenerateReview 实现RAGService接口
+func (c *OptimizedRAGClient) GenerateReview(req *CodeReviewRequest) (string, error) {
+	analysis, err := c.AnalyzeCodeWithRequest(req)
+	if err != nil {
+		return "", err
+	}
+
+	return analysis.Review, nil
 }
 
 // performRequest 执行单个请求

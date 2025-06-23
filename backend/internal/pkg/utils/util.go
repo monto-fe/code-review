@@ -2,7 +2,6 @@ package utils
 
 import (
 	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"code-review-go/config"
+	"code-review-go/internal/model"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -118,17 +118,17 @@ func SplitIntegerToObject(n int, j []string) map[string]int {
 }
 
 // Base64ToBlob converts a base64 string to a blob
-func Base64ToBlob(base64String string, mimeType string) ([]byte, error) {
-	return base64.StdEncoding.DecodeString(base64String)
-}
+// func Base64ToBlob(base64String string, mimeType string) ([]byte, error) {
+// 	return base64.StdEncoding.DecodeString(base64String)
+// }
 
 // GenerateAudioFileKey generates a unique key for audio files
-func GenerateAudioFileKey(userID int, questionID int) string {
-	now := time.Now()
-	formattedDate := now.Format("2006_01_02")
-	timestamp := now.Unix()
-	return fmt.Sprintf("%d_%d_%s_%d.mp3", userID, timestamp, formattedDate, questionID)
-}
+// func GenerateAudioFileKey(userID int, questionID int) string {
+// 	now := time.Now()
+// 	formattedDate := now.Format("2006_01_02")
+// 	timestamp := now.Unix()
+// 	return fmt.Sprintf("%d_%d_%s_%d.mp3", userID, timestamp, formattedDate, questionID)
+// }
 
 // PushWeChatInfo 生成企业微信群消息
 func PushWeChatInfo(pathWithNamespace, mergeURL, result string, id int) string {
@@ -269,4 +269,59 @@ func FetchProjectIDs(token, gitlabAPI string) ([]string, error) {
 	}
 
 	return projectIDs, nil
+}
+
+const CodeReviewPrompt = `找出潜在问题：可能存在的bug、逻辑错误、安全隐患、资源泄漏等。`
+
+// GeneratePrompt 生成常规AI提示词
+func GeneratePrompt(rule string, mergeRequest *model.MergeRequestInfo, diff []model.Change) string {
+	var diffContent string
+	for _, change := range diff {
+		diffContent += fmt.Sprintf("File: %s\n%s\n\n", change.NewPath, change.Diff)
+	}
+	return GenerateAICheckPrompt(rule, mergeRequest.Title, mergeRequest.Description, diffContent)
+}
+
+// GenerateRAGEnhancedPrompt 生成基于RAG分析结果的增强提示词
+func GenerateRAGEnhancedPrompt(ragResult, rule, title, description, diffContent string) string {
+	return fmt.Sprintf(`
+你是一位资深的代码审查专家。基于RAG服务的初步分析结果，请进行进一步的代码审查。
+
+### RAG服务分析结果
+%s
+
+### 审查规则
+%s
+
+### 代码信息
+**标题**: %s
+**描述**: %s
+
+### 代码差异
+%s
+
+请基于RAG分析结果和上述规则进行深入审查，找出潜在问题：可能存在的bug、逻辑错误、安全隐患、资源泄漏等，用中文输出。，用中文输出。
+如果有问题用Markdown表格格式输出：
+      | 代码文件路径(行号) | 疑似Bug | 修改建议 |
+如果没有发现问题，请输出：'未发现Bug',不需要更多冗余信息。
+`, ragResult, rule, title, description, diffContent)
+}
+
+// GenerateAICheckPrompt 生成AI检查提示词
+func GenerateAICheckPrompt(rule, title, description, diffContent string) string {
+	return fmt.Sprintf(`请检查以下代码差异（diff），确保其符合以下要求：
+规则：%s
+
+代码信息：
+标题：%s
+描述：%s
+
+代码差异：
+%s
+
+请基于Diff内容和上述规则进行深入审查，找出潜在问题：可能存在的bug、逻辑错误、安全隐患、资源泄漏等，用中文输出。
+如果有问题用Markdown表格格式输出：
+      | 代码文件路径(行号) | 疑似Bug | 修改建议 |
+如果没有发现问题，请输出：'未发现Bug',不需要更多冗余信息。`,
+		rule, title, description, diffContent)
 }

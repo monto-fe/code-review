@@ -19,12 +19,24 @@ import (
 
 // RAGServiceManager RAG服务管理器，单例模式
 type RAGServiceManager struct {
-	ragClient     *RAGClient
+	ragService    RAGService
 	config        *config.Config
 	aiRuleService *AIRuleService
 	db            *gorm.DB
 	mu            sync.RWMutex
 	initialized   bool
+}
+
+// AnalysisData 分析所需的数据结构
+type AnalysisData struct {
+	GitlabInfo   *dto.GitlabCacheItem
+	GitlabToken  string
+	MergeRequest *model.MergeRequestInfo
+	Diff         []model.Change
+	AIConfig     *model.AIConfig
+	FinalRule    string
+	GitURL       string
+	DiffStr      string
 }
 
 var (
@@ -38,36 +50,6 @@ func GetRAGServiceManager() *RAGServiceManager {
 		ragManager = &RAGServiceManager{}
 	})
 	return ragManager
-}
-
-// Initialize 初始化RAG服务管理器
-func (m *RAGServiceManager) Initialize() error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	if m.initialized {
-		return nil
-	}
-
-	// 加载配置
-	m.config = config.LoadConfig()
-	if m.config.RAGServiceURL == "" {
-		return fmt.Errorf("RAG服务URL未配置，请设置RAG_SERVICE_URL环境变量")
-	}
-
-	// 创建RAG客户端
-	ragClient, err := NewRAGClient(m.config.RAGServiceURL)
-	if err != nil {
-		return fmt.Errorf("创建RAG客户端失败: %v", err)
-	}
-	m.ragClient = ragClient
-
-	// 初始化数据库服务
-	m.db = database.GetDB()
-	m.aiRuleService = NewAIRuleService(m.db)
-
-	m.initialized = true
-	return nil
 }
 
 // CheckMergeRequestWithRAGOptimized 优化后的RAG检查函数
@@ -96,7 +78,8 @@ func CheckMergeRequestWithRAGOptimized(body dto.WebhookBody) (string, error) {
 	}
 
 	// 执行AI增强分析
-	finalResult, err := manager.performAIEnhancement(ragResult, data)
+	prompt := manager.generateEnhancedPrompt(ragResult, data)
+	finalResult, err := manager.performAIEnhancement(prompt, data)
 	if err != nil {
 		return "", err
 	}
@@ -107,10 +90,45 @@ func CheckMergeRequestWithRAGOptimized(body dto.WebhookBody) (string, error) {
 		return "", err
 	}
 
-	// 发送通知
-	manager.sendNotifications(body, finalResult, data, aiMessage.ID)
+	// 发送通知 - 修复空指针问题
+	var aiMessageID uint
+	if aiMessage != nil {
+		aiMessageID = aiMessage.ID
+	}
+	manager.sendNotifications(body, finalResult, data, aiMessageID)
 
 	return finalResult, nil
+}
+
+// Initialize 初始化RAG服务管理器
+func (m *RAGServiceManager) Initialize() error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if m.initialized {
+		return nil
+	}
+
+	// 加载配置
+	m.config = config.LoadConfig()
+	if m.config.RAGServiceURL == "" {
+		return fmt.Errorf("RAG服务URL未配置，请设置RAG_SERVICE_URL环境变量")
+	}
+
+	// 使用工厂函数创建RAG客户端
+	ragService, err := CreateDefaultRAGClient(m.config.RAGServiceURL)
+	if err != nil {
+		return fmt.Errorf("创建RAG客户端失败: %v", err)
+	}
+
+	m.ragService = ragService
+
+	// 初始化数据库服务
+	m.db = database.GetDB()
+	m.aiRuleService = NewAIRuleService(m.db)
+
+	m.initialized = true
+	return nil
 }
 
 // validateRequest 前置验证
@@ -140,18 +158,6 @@ func (m *RAGServiceManager) validateRequest(body dto.WebhookBody) error {
 	}
 
 	return nil
-}
-
-// AnalysisData 分析所需的数据结构
-type AnalysisData struct {
-	GitlabInfo   *dto.GitlabCacheItem
-	GitlabToken  string
-	MergeRequest *model.MergeRequestInfo
-	Diff         []model.Change
-	AIConfig     *model.AIConfig
-	FinalRule    string
-	GitURL       string
-	DiffStr      string
 }
 
 // prepareData 准备分析所需的数据
@@ -271,7 +277,7 @@ func (m *RAGServiceManager) performRAGAnalysis(data *AnalysisData) (string, erro
 	}
 
 	// 调用RAG服务
-	analysis, err := m.ragClient.AnalyzeCodeWithRequest(req)
+	analysis, err := m.ragService.AnalyzeCodeWithRequest(req)
 	if err != nil {
 		return "", fmt.Errorf("调用RAG服务失败: %v", err)
 	}
@@ -286,7 +292,7 @@ func (m *RAGServiceManager) performRAGAnalysis(data *AnalysisData) (string, erro
 }
 
 // performAIEnhancement 执行AI增强分析
-func (m *RAGServiceManager) performAIEnhancement(ragResult string, data *AnalysisData) (string, error) {
+func (m *RAGServiceManager) performAIEnhancement(prompt string, data *AnalysisData) (string, error) {
 	// 根据AI配置类型选择提供者
 	var provider providers.AIProvider
 	switch data.AIConfig.Type {
@@ -298,9 +304,6 @@ func (m *RAGServiceManager) performAIEnhancement(ragResult string, data *Analysi
 		return "", fmt.Errorf("不支持的AI模型类型: %s", data.AIConfig.Type)
 	}
 
-	// 生成包含RAG上下文的提示词
-	prompt := m.generateEnhancedPrompt(ragResult, data)
-
 	// 调用AI服务
 	comments, err := provider.CallAI(prompt)
 	if err != nil {
@@ -308,33 +311,6 @@ func (m *RAGServiceManager) performAIEnhancement(ragResult string, data *Analysi
 	}
 
 	return comments, nil
-}
-
-// generateEnhancedPrompt 生成增强的提示词
-func (m *RAGServiceManager) generateEnhancedPrompt(ragResult string, data *AnalysisData) string {
-	diffContent := data.DiffStr
-
-	return fmt.Sprintf(`
-你是一位资深的代码审查专家。基于RAG服务的初步分析结果，请进行进一步的代码审查。
-
-### RAG服务分析结果
-%s
-
-### 审查规则
-%s
-
-### 代码信息
-**标题**: %s
-**描述**: %s
-
-### 代码差异
-%s
-
-请基于RAG分析结果和上述规则进行深入审查，找出疑似Bug的地方，用中文输出。
-如果有问题用Markdown表格格式输出：
-      | 不符合的代码行号 | 疑似Bug | 修改建议 |
-如果没有发现问题，请输出：'未发现Bug',不需要更多冗余信息。
-`, ragResult, data.FinalRule, data.MergeRequest.Title, data.MergeRequest.Description, diffContent)
 }
 
 // saveResult 保存分析结果
@@ -402,10 +378,7 @@ func NewRAGClientPool(baseURL string, poolSize int) (*RAGClientPool, error) {
 
 	// 预创建客户端
 	for i := 0; i < poolSize; i++ {
-		client, err := NewRAGClient(baseURL)
-		if err != nil {
-			return nil, err
-		}
+		client := NewRAGClient(baseURL)
 		pool.clients <- client
 	}
 
@@ -434,14 +407,14 @@ type RAGAnalysisContext struct {
 }
 
 // NewRAGAnalysisContext 创建RAG分析上下文
-func NewRAGAnalysisContext(timeout time.Duration) *RAGAnalysisContext {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	return &RAGAnalysisContext{
-		ctx:    ctx,
-		cancel: cancel,
-		start:  time.Now(),
-	}
-}
+// func NewRAGAnalysisContext(timeout time.Duration) *RAGAnalysisContext {
+// 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+// 	return &RAGAnalysisContext{
+// 		ctx:    ctx,
+// 		cancel: cancel,
+// 		start:  time.Now(),
+// 	}
+// }
 
 // Done 检查是否完成
 func (c *RAGAnalysisContext) Done() <-chan struct{} {
