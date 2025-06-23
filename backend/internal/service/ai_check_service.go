@@ -404,6 +404,8 @@ func postComment(api string, projectID, iid int, token, comments string) {
 		if err != nil {
 			fmt.Println("评论提交失败:", err)
 		}
+	} else {
+		fmt.Println("评论提交失败:", comments, iid, projectID, token, api)
 	}
 }
 

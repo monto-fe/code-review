@@ -2,6 +2,7 @@ package ai_check
 
 import (
 	"fmt"
+	"time"
 
 	"code-review-go/internal/dto"
 	"code-review-go/internal/pkg/response"
@@ -23,41 +24,55 @@ func AICheck(c *gin.Context) {
 	// 1. 解析请求体
 	var body dto.WebhookBody
 	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(400, gin.H{"msg": "参数错误", "error": err.Error()})
+		c.JSON(400, gin.H{
+			"msg":   "参数错误",
+			"error": err.Error(),
+		})
 		return
 	}
 
-	fmt.Println("body", body)
+	fmt.Printf("RAG检查请求: ProjectID=%d, MergeRequestID=%d\n",
+		body.Project.ID, body.ObjectAttributes.IID)
 
-	// 2. 立即响应
+	// 2. 立即响应（不阻塞webhook）
 	response.Success(c, gin.H{
 		"projectId":      body.Project.ID,
 		"mergeRequestId": body.ObjectAttributes.IID,
-	}, "Webhook处理成功，等待AI检测", 0)
+		"optimized":      true,
+		"timestamp":      time.Now().Unix(),
+	}, "AI检查已启动，请稍候查看结果", 0)
 
-	// 3. 后续逻辑异步处理
-	go handleAICheck(body)
+	// 3. 异步处理优化的RAG检查
+	go handleOptimizedAICheck(body)
 }
 
-func handleAICheck(body dto.WebhookBody) {
+// handleOptimizedAICheck 处理优化的AI检查
+func handleOptimizedAICheck(body dto.WebhookBody) {
+	startTime := time.Now()
+	fmt.Printf("开始AI检查流程: %s\n", startTime.Format("2006-01-02 15:04:05"))
+
+	// 检查Merge Request状态
 	if !service.ShouldProcessState(body.ObjectAttributes.State) {
+		fmt.Printf("跳过非opened状态的合并请求: %s\n", body.ObjectAttributes.State)
 		return
 	}
 
-	// 优先使用RAG服务进行检查
-	ragComments, err := service.CheckMergeRequestWithRAG(body)
+	// 使用优化的RAG检查服务
+	result, err := service.CheckMergeRequestWithRAGOptimized(body)
+
+	duration := time.Since(startTime)
+
 	if err != nil {
-		fmt.Println("RAG检查失败:", err)
-		// RAG检查失败时，回退到AI检查
-		comments, aiErr := service.CheckMergeRequestWithAI(body)
+		fmt.Printf("RAG检查失败 (耗时: %v): %v\n", duration, err)
+		// 最后回退到AI检查
+		aiResult, aiErr := service.CheckMergeRequestWithAI(body)
 		if aiErr != nil {
-			fmt.Println("AI检查也失败:", aiErr)
+			fmt.Printf("所有检查方式都失败: %v\n", aiErr)
 			return
 		}
-		fmt.Println("AI检查结果:", comments)
+		fmt.Printf("通过AI检查成功 (耗时: %v): %s\n", duration, aiResult)
 		return
 	}
 
-	// RAG检查成功
-	fmt.Println("RAG检查结果:", ragComments)
+	fmt.Printf("RAG检查成功 (耗时: %v): %s\n", duration, result)
 }
