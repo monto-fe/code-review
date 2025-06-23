@@ -6,10 +6,29 @@ WORKDIR /app
 ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple/
 ENV PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn
 
-# 安装构建依赖
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+# 安装构建依赖 - 兼容CentOS和Ubuntu
+RUN if command -v apt-get >/dev/null 2>&1; then \
+        # Ubuntu/Debian系统
+        apt-get update && apt-get install -y \
+            build-essential \
+            && rm -rf /var/lib/apt/lists/*; \
+    elif command -v yum >/dev/null 2>&1; then \
+        # CentOS/RHEL系统
+        yum update -y && yum install -y \
+            gcc \
+            gcc-c++ \
+            make \
+            && yum clean all; \
+    elif command -v dnf >/dev/null 2>&1; then \
+        # Fedora/CentOS 8+系统
+        dnf update -y && dnf install -y \
+            gcc \
+            gcc-c++ \
+            make \
+            && dnf clean all; \
+    else \
+        echo "Unsupported package manager"; exit 1; \
+    fi
 
 # 先复制requirements.txt以利用Docker缓存
 COPY requirements.txt .
@@ -23,11 +42,28 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-# 安装运行时依赖
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# 安装运行时依赖 - 兼容CentOS和Ubuntu
+RUN if command -v apt-get >/dev/null 2>&1; then \
+        # Ubuntu/Debian系统
+        apt-get update && apt-get install -y \
+            git \
+            curl \
+            && rm -rf /var/lib/apt/lists/*; \
+    elif command -v yum >/dev/null 2>&1; then \
+        # CentOS/RHEL系统
+        yum update -y && yum install -y \
+            git \
+            curl \
+            && yum clean all; \
+    elif command -v dnf >/dev/null 2>&1; then \
+        # Fedora/CentOS 8+系统
+        dnf update -y && dnf install -y \
+            git \
+            curl \
+            && dnf clean all; \
+    else \
+        echo "Unsupported package manager"; exit 1; \
+    fi
 
 # 从构建阶段复制Python包到系统Python目录
 COPY --from=builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
