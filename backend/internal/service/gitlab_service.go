@@ -366,6 +366,114 @@ func PostCommentToGitLab(gitlabAPI string, projectID, mergeRequestID int, gitlab
 	return &result, nil
 }
 
+// PostDiscussionsToGitLab 向GitLab发送行内评论（需要重新获取MR信息）
+func PostDiscussionsToGitLab(gitlabAPI string, projectID, mergeRequestID int, gitlabToken, comment, filePath string, lineNumber int) (*CommentResponse, error) {
+	// Step 1: 获取 MR 的 diff_refs
+	mrURL := fmt.Sprintf("%s/v4/projects/%d/merge_requests/%d", gitlabAPI, projectID, mergeRequestID)
+
+	mrBody, err := utils.CommonGetRequest("GET", mrURL, gitlabToken, nil)
+	if err != nil {
+		return nil, fmt.Errorf("获取合并请求信息失败: %v", err)
+	}
+
+	var mrData struct {
+		DiffRefs struct {
+			BaseSha  string `json:"base_sha"`
+			StartSha string `json:"start_sha"`
+			HeadSha  string `json:"head_sha"`
+		} `json:"diff_refs"`
+	}
+
+	if err := json.Unmarshal(mrBody, &mrData); err != nil {
+		return nil, fmt.Errorf("解析合并请求响应失败: %v", err)
+	}
+
+	// Step 2: 构造评论请求
+	payload := map[string]interface{}{
+		"body": comment,
+		"position": map[string]interface{}{
+			"base_sha":      mrData.DiffRefs.BaseSha,
+			"start_sha":     mrData.DiffRefs.StartSha,
+			"head_sha":      mrData.DiffRefs.HeadSha,
+			"position_type": "text",
+			"new_path":      filePath,
+			"new_line":      lineNumber,
+		},
+	}
+
+	// Step 3: 创建 diff note
+	discussionsURL := fmt.Sprintf("%s/v4/projects/%d/merge_requests/%d/discussions", gitlabAPI, projectID, mergeRequestID)
+
+	body, err := utils.CommonGetRequest("POST", discussionsURL, gitlabToken, payload)
+	if err != nil {
+		return nil, fmt.Errorf("发送行内评论失败: %v", err)
+	}
+
+	var result CommentResponse
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, fmt.Errorf("解析评论响应失败: %v", err)
+	}
+
+	return &result, nil
+}
+
+// PostDiscussionsToGitLabWithDiff 向GitLab发送行内评论（使用已有的diff信息，更高效）
+func PostDiscussionsToGitLabWithDiff(gitlabAPI string, projectID, mergeRequestID int, gitlabToken, comment, filePath string, lineNumber int, baseSha, startSha, headSha string) (*CommentResponse, error) {
+	// 构造评论请求
+	payload := map[string]interface{}{
+		"body": comment,
+		"position": map[string]interface{}{
+			"base_sha":      baseSha,
+			"start_sha":     startSha,
+			"head_sha":      headSha,
+			"position_type": "text",
+			"new_path":      filePath,
+			"new_line":      lineNumber,
+		},
+	}
+
+	// 创建 diff note
+	discussionsURL := fmt.Sprintf("%s/v4/projects/%d/merge_requests/%d/discussions", gitlabAPI, projectID, mergeRequestID)
+
+	body, err := utils.CommonGetRequest("POST", discussionsURL, gitlabToken, payload)
+	if err != nil {
+		return nil, fmt.Errorf("发送行内评论失败: %v", err)
+	}
+
+	var result CommentResponse
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, fmt.Errorf("解析评论响应失败: %v", err)
+	}
+
+	return &result, nil
+}
+
+// 使用示例：
+// 方式1：自动获取MR信息（适用于独立调用）
+// result, err := PostDiscussionsToGitLab(
+//     "https://gitlab.com/api/v4",
+//     123456,                    // projectID
+//     1,                         // mergeRequestID
+//     "YOUR_GITLAB_TOKEN",
+//     "⚠️ 建议加上错误处理逻辑",
+//     "src/api/userController.js", // filePath
+//     23,                        // lineNumber
+// )
+//
+// 方式2：使用已有的diff信息（更高效，适用于AI检查流程中）
+// result, err := PostDiscussionsToGitLabWithDiff(
+//     "https://gitlab.com/api/v4",
+//     123456,                    // projectID
+//     1,                         // mergeRequestID
+//     "YOUR_GITLAB_TOKEN",
+//     "⚠️ 建议加上错误处理逻辑",
+//     "src/api/userController.js", // filePath
+//     23,                        // lineNumber
+//     "abc123",                  // baseSha
+//     "def456",                  // startSha
+//     "ghi789",                  // headSha
+// )
+
 // 通过id获取Gitlab Token 详情，不返回token
 func (s *GitlabService) GetGitlabTokenDetail(id uint) (*model.GitlabInfo, error) {
 	var gitlabInfo model.GitlabInfo

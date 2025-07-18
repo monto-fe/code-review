@@ -13,6 +13,7 @@ const settings: SettingsType = {
   ajaxResponseNoVerifyUrl: [
     '/login', // 用户登录
     '/userInfo', // 获取用户信息
+    '/user/login'
   ],
 
   /* 以下是针对所有 Layout 扩展字段 */
