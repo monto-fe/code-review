@@ -2,7 +2,8 @@ import os
 from typing import List, Optional, Dict
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
-from langchain.embeddings import HuggingFaceEmbeddings
+# from langchain.embeddings import HuggingFaceEmbeddings  # 老写法，已弃用
+from langchain_huggingface import HuggingFaceEmbeddings  # 新写法
 # from langchain.chains import LLMChain
 # from langchain.prompts import PromptTemplate
 # from langchain.llms import OpenAI
@@ -438,7 +439,11 @@ def analyze_gitlab_code(git_url: str, branch: str, diff_content: str, query: Opt
             
             # 尝试加载现有的向量存储，如果不存在则创建新的
             try:
-                vectorstore = FAISS.load_local(vector_store_path, embeddings)
+                vectorstore = FAISS.load_local(
+                    vector_store_path,
+                    embeddings,
+                    allow_dangerous_deserialization=True
+                )
                 print(f"从 {vector_store_path} 加载向量存储")
             except Exception as e:
                 print(f"加载向量存储失败: {str(e)}")

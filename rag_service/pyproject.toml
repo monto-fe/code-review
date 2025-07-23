@@ -1,0 +1,33 @@
+[project]
+name = "code-review-rag-service"
+version = "0.1.0"
+description = "基于 RAG 的代码审查服务，支持 GitLab 代码分析和审查建议生成"
+authors = [
+    { name = "你的名字", email = "1045465391@qq.com" }
+]
+requires-python = ">=3.9"
+
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "python-dotenv",
+    "gitpython",
+    "langchain",
+    "langchain-community",
+    "sentence-transformers",
+    "faiss-cpu",
+    "torch==2.1.2",
+    "torchvision==0.16.2",
+    "pydantic>=2.0.0"
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["app", "rag_engine"]
+
+[tool.poetry.dependencies]
+sentence-transformers = ">=2.2.2"
+huggingface_hub = "<0.20.0"
