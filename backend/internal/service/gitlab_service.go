@@ -224,8 +224,6 @@ func (s *GitlabService) UpdateGitlabInfo(data model.GitlabInfoUpdate) (*model.Gi
 				s.db.Model(&model.GitlabInfo{}).Where("id = ?", data.ID).Update("project_ids_synced", ProjectIdsSyncedFailed)
 			}
 		}()
-	} else {
-		s.db.Model(&model.GitlabInfo{}).Where("id = ?", data.ID).Update("project_ids_synced", ProjectIdsSyncedFailed)
 	}
 
 	// 获取更新后的记录
