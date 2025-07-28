@@ -7,8 +7,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"strconv"
 	"strings"
 	"time"
+
+	"bytes"
 
 	"gorm.io/gorm"
 )
@@ -314,6 +319,23 @@ func GetMergeRequestInfo(gitlabAPI, projectID, gitlabToken string) (*model.Merge
 	return &mergeRequests[0], nil
 }
 
+// 获取diff refs
+func GetMergeRequestInfoRefs(gitlabAPI, projectID, mergeRequestIID, gitlabToken string) (*model.MergeRequestInfo, error) {
+	url := fmt.Sprintf("%s/v4/projects/%s/merge_requests/%s", gitlabAPI, projectID, mergeRequestIID)
+
+	body, err := utils.CommonGetRequest("GET", url, gitlabToken, nil)
+	if err != nil {
+		return nil, fmt.Errorf("获取合并请求失败: %v", err)
+	}
+
+	var mergeRequest model.MergeRequestInfo
+	if err := json.Unmarshal(body, &mergeRequest); err != nil {
+		return nil, fmt.Errorf("解析响应失败: %v", err)
+	}
+
+	return &mergeRequest, nil
+}
+
 // GetMergeRequestDiff 获取合并请求差异
 func GetMergeRequestDiff(gitlabAPI, projectID, mergeRequestID, gitlabToken string) ([]model.Change, error) {
 	url := fmt.Sprintf("%s/v4/projects/%s/merge_requests/%s/changes", gitlabAPI, projectID, mergeRequestID)
@@ -364,6 +386,304 @@ func PostCommentToGitLab(gitlabAPI string, projectID, mergeRequestID int, gitlab
 	}
 
 	return &result, nil
+}
+
+// LineCommentRequest 行级评论请求
+type LineCommentRequest struct {
+	Body     string `json:"body"`
+	Position struct {
+		BaseSHA      string `json:"base_sha"`
+		StartSHA     string `json:"start_sha"`
+		HeadSHA      string `json:"head_sha"`
+		NewPath      string `json:"new_path"`
+		NewLine      int    `json:"new_line"`
+		PositionType string `json:"position_type"`
+	} `json:"position"`
+}
+
+// PostLineCommentToGitLab 向GitLab发送行级评论
+func PostLineCommentToGitLab(gitlabAPI string, projectID, mergeRequestID int, gitlabToken, comment string, position LineCommentRequest) (*CommentResponse, error) {
+	url := fmt.Sprintf("%s/v4/projects/%d/merge_requests/%d/discussions", gitlabAPI, projectID, mergeRequestID)
+	fmt.Printf("GitLab行级评论请求：\nURL: %s\nToken: %s...%s\nComment: %s\nPosition: %+v\n",
+		url,
+		gitlabToken[:4], gitlabToken[len(gitlabToken)-4:],
+		comment,
+		position,
+	)
+	requestBody := map[string]interface{}{
+		"body": comment,
+		"position": map[string]interface{}{
+			"base_sha":      position.Position.BaseSHA,
+			"start_sha":     position.Position.StartSHA,
+			"head_sha":      position.Position.HeadSHA,
+			"new_path":      position.Position.NewPath,
+			"new_line":      position.Position.NewLine,
+			"position_type": position.Position.PositionType,
+		},
+	}
+	fmt.Printf("请求体: %+v\n", requestBody)
+
+	// 直接使用http包发送请求，以便获取详细错误信息
+	jsonData, err := json.Marshal(requestBody)
+	if err != nil {
+		return nil, fmt.Errorf("序列化请求体失败: %v", err)
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, fmt.Errorf("创建请求失败: %v", err)
+	}
+
+	req.Header.Set("PRIVATE-TOKEN", gitlabToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("发送请求失败: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// 读取响应体
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("读取响应失败: %v", err)
+	}
+
+	// 检查状态码
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		fmt.Printf("GitLab API错误响应，状态码: %d，响应内容: %s\n", resp.StatusCode, string(body))
+		return nil, fmt.Errorf("GitLab API返回错误状态码: %d，响应: %s", resp.StatusCode, string(body))
+	}
+
+	var result CommentResponse
+	if err := json.Unmarshal(body, &result); err != nil {
+		fmt.Printf("解析响应失败，响应内容: %s\n", string(body))
+		return nil, fmt.Errorf("解析响应失败: %v", err)
+	}
+
+	fmt.Printf("行级评论发送成功，响应: %+v\n", result)
+	return &result, nil
+}
+
+// CommentInfo 评论信息
+type CommentInfo struct {
+	File     string `json:"file"`
+	Line     int    `json:"line"`
+	Message  string `json:"message"`
+	Severity string `json:"severity"` // error, warning, info
+	Type     string `json:"type"`     // "line" 或 "general"
+}
+
+// 返回新文件的最大行号
+func getNewFileLineCount(diffText string) int {
+	lines := strings.Split(diffText, "\n")
+	maxLine := 0
+	curLine := 0
+	for _, line := range lines {
+		if strings.HasPrefix(line, "@@") {
+			// 解析 @@ -a,b +c,d @@
+			// 例：@@ -1,10 +1,9 @@
+			parts := strings.Split(line, " ")
+			for _, part := range parts {
+				if strings.HasPrefix(part, "+") {
+					plus := strings.TrimPrefix(part, "+")
+					plus = strings.Split(plus, ",")[0]
+					if n, err := strconv.Atoi(plus); err == nil {
+						curLine = n - 1 // diff 行号起始
+					}
+				}
+			}
+		} else if len(line) > 0 && (line[0] == ' ' || line[0] == '+') {
+			curLine++
+			if curLine > maxLine {
+				maxLine = curLine
+			}
+		}
+	}
+	return maxLine
+}
+
+// 获取所有可评论的 new_line 行号
+func getCommentableLines(diffText string) map[int]bool {
+	lines := strings.Split(diffText, "\n")
+	commentable := make(map[int]bool)
+	curLine := 0
+
+	fmt.Printf("解析diff文本:\n%s\n", diffText)
+
+	for i, line := range lines {
+		fmt.Printf("第%d行: %s\n", i, line)
+
+		if strings.HasPrefix(line, "@@") {
+			// 解析 @@ -a,b +c,d @@
+			parts := strings.Split(line, " ")
+			for _, part := range parts {
+				if strings.HasPrefix(part, "+") {
+					plus := strings.TrimPrefix(part, "+")
+					plus = strings.Split(plus, ",")[0]
+					if n, err := strconv.Atoi(plus); err == nil {
+						curLine = n - 1
+						fmt.Printf("找到新文件起始行号: %d\n", curLine)
+					}
+				}
+			}
+		} else if len(line) > 0 && (line[0] == ' ' || line[0] == '+') {
+			curLine++
+			commentable[curLine] = true
+			fmt.Printf("标记可评论行号: %d (内容: %s)\n", curLine, line)
+		}
+	}
+
+	fmt.Printf("最终可评论行号: %+v\n", commentable)
+	return commentable
+}
+
+// ParseCommentsForLineComments 解析评论内容，返回所有评论（包括行级和普通评论）
+func ParseCommentsForLineComments(comments string, diff []model.Change) []CommentInfo {
+	var allComments []CommentInfo
+
+	// 统计每个文件的可评论行号
+	fileCommentableLines := make(map[string]map[int]bool)
+	for _, change := range diff {
+		fileCommentableLines[change.NewPath] = getCommentableLines(change.Diff)
+	}
+
+	lines := strings.Split(comments, "\n")
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		commentInfo := parseLineComment(line, fileCommentableLines)
+		if commentInfo != nil {
+			allComments = append(allComments, *commentInfo)
+		}
+	}
+
+	return allComments
+}
+
+// 修改 parseLineComment，返回所有解析的评论
+func parseLineComment(line string, fileCommentableLines map[string]map[int]bool) *CommentInfo {
+	// 格式: "src/main.go:15: 问题"
+	if strings.Contains(line, ":") {
+		parts := strings.SplitN(line, ":", 3)
+		if len(parts) >= 3 {
+			filePath := parts[0]
+			if lineNum, err := strconv.Atoi(parts[1]); err == nil {
+				message := parts[2]
+				commentInfo := &CommentInfo{
+					File:     filePath,
+					Line:     lineNum,
+					Message:  strings.TrimSpace(message),
+					Severity: determineSeverity(message),
+				}
+
+				// 检查是否可以进行行级评论
+				commentable := fileCommentableLines[filePath]
+				if commentable != nil && commentable[lineNum] {
+					commentInfo.Type = "line"
+				} else {
+					commentInfo.Type = "general"
+				}
+
+				return commentInfo
+			}
+		}
+	}
+	return nil
+}
+
+// ClassifyComments 将评论分类为行级评论和普通评论
+func ClassifyComments(comments []CommentInfo) ([]CommentInfo, []CommentInfo) {
+	var lineComments []CommentInfo
+	var generalComments []CommentInfo
+
+	for _, comment := range comments {
+		if comment.Type == "line" {
+			lineComments = append(lineComments, comment)
+		} else {
+			generalComments = append(generalComments, comment)
+		}
+	}
+
+	return lineComments, generalComments
+}
+
+// determineSeverity 确定评论的严重程度
+func determineSeverity(message string) string {
+	messageLower := strings.ToLower(message)
+
+	// 错误级别关键词
+	errorKeywords := []string{"error", "错误", "严重", "critical", "致命", "exception", "异常", "crash", "崩溃"}
+	for _, keyword := range errorKeywords {
+		if strings.Contains(messageLower, keyword) {
+			return "error"
+		}
+	}
+
+	// 警告级别关键词
+	warningKeywords := []string{"warning", "警告", "注意", "attention", "潜在", "potential", "可能", "maybe"}
+	for _, keyword := range warningKeywords {
+		if strings.Contains(messageLower, keyword) {
+			return "warning"
+		}
+	}
+
+	// 默认返回信息级别
+	return "info"
+}
+
+// PostLineComments 发送行级评论，返回失败的行级评论列表
+func PostLineComments(gitlabAPI string, projectID, mergeRequestID int, gitlabToken string, comments []CommentInfo, diff []model.Change) ([]string, error) {
+	// 获取合并请求的SHA信息
+	mergeRequest, err := GetMergeRequestInfoRefs(gitlabAPI, strconv.Itoa(projectID), strconv.Itoa(mergeRequestID), gitlabToken)
+	if err != nil {
+		return nil, fmt.Errorf("获取合并请求信息失败: %v", err)
+	}
+	baseSHA := mergeRequest.DiffRefs.BaseSHA
+	startSHA := mergeRequest.DiffRefs.StartSHA
+	headSHA := mergeRequest.DiffRefs.HeadSHA
+
+	failedComments := make([]string, 0)
+
+	for _, comment := range comments {
+		// 查找对应的文件变更
+		var targetChange *model.Change
+		for _, change := range diff {
+			if change.NewPath == comment.File || change.OldPath == comment.File {
+				targetChange = &change
+				break
+			}
+		}
+		if targetChange == nil {
+			// 文件变更都找不到，API一定会失败
+			failedComments = append(failedComments, fmt.Sprintf("%s:%d: %s", comment.File, comment.Line, comment.Message))
+			continue
+		}
+
+		// 构建位置信息
+		position := LineCommentRequest{}
+		// 为行级评论添加质量反馈复选框
+		position.Body = fmt.Sprintf("[%s] %s\n\n---\n**请评价此评论的质量：**\n- [ ] 精准定位并提供建议\n- [ ] 完全误导性建议",
+			strings.ToUpper(comment.Severity), comment.Message)
+		position.Position.BaseSHA = baseSHA
+		position.Position.StartSHA = startSHA
+		position.Position.HeadSHA = headSHA
+		position.Position.NewPath = comment.File
+		position.Position.NewLine = comment.Line
+		position.Position.PositionType = "text"
+
+		// 只以API返回为准
+		_, err := PostLineCommentToGitLab(gitlabAPI, projectID, mergeRequestID, gitlabToken, position.Body, position)
+		if err != nil {
+			failedComments = append(failedComments, fmt.Sprintf("%s:%d: %s", comment.File, comment.Line, comment.Message))
+		}
+	}
+
+	return failedComments, nil
 }
 
 // 通过id获取Gitlab Token 详情，不返回token

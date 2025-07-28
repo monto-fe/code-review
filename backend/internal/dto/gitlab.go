@@ -42,4 +42,6 @@ type GitlabCacheItem struct {
 	WebhookURL      string
 	WebhookStatus   int8
 	RuleCheckStatus int8
+	// 评论类型：0-普通评论，1-行级评论
+	CommentType int8
 }

@@ -6,6 +6,7 @@ import (
 	"code-review-go/internal/database"
 	dto "code-review-go/internal/dto"
 	"code-review-go/internal/model"
+	"code-review-go/internal/pkg/utils"
 	"code-review-go/internal/service/providers"
 	"context"
 	"fmt"
@@ -37,6 +38,7 @@ type AnalysisData struct {
 	FinalRule    string
 	GitURL       string
 	DiffStr      string
+	CommentType  int8
 }
 
 var (
@@ -53,41 +55,41 @@ func GetRAGServiceManager() *RAGServiceManager {
 }
 
 // CheckMergeRequestWithRAGOptimized 优化后的RAG检查函数
-func CheckMergeRequestWithRAGOptimized(body dto.WebhookBody) (string, error) {
+func CheckMergeRequestWithRAGOptimized(body dto.WebhookBody) (string, *AnalysisData, uint, error) {
 	// 获取RAG服务管理器
 	manager := GetRAGServiceManager()
 	if err := manager.Initialize(); err != nil {
-		return "", err
+		return "", nil, 0, err
 	}
 
 	// 前置验证
-	if err := manager.validateRequest(body); err != nil {
-		return "", err
+	if err := manager.ValidateRequest(body); err != nil {
+		return "", nil, 0, err
 	}
 
 	// 获取必要数据
-	data, err := manager.prepareData(body)
+	data, err := manager.PrepareData(body)
 	if err != nil {
-		return "", err
+		return "", nil, 0, err
 	}
 
 	// 执行RAG分析
 	ragResult, err := manager.performRAGAnalysis(data)
 	if err != nil {
-		return "", err
+		return "", data, 0, err
 	}
 
 	// 执行AI增强分析
 	prompt := manager.generateEnhancedPrompt(ragResult, data)
-	finalResult, err := manager.performAIEnhancement(prompt, data)
+	finalResult, err := manager.PerformAIEnhancement(prompt, data)
 	if err != nil {
-		return "", err
+		return "", data, 0, err
 	}
 
 	// 保存结果
-	aiMessage, err := manager.saveResult(body, finalResult, data)
+	aiMessage, err := manager.SaveResult(body, finalResult, data)
 	if err != nil {
-		return "", err
+		return "", data, 0, err
 	}
 
 	// 发送通知 - 修复空指针问题
@@ -95,9 +97,9 @@ func CheckMergeRequestWithRAGOptimized(body dto.WebhookBody) (string, error) {
 	if aiMessage != nil {
 		aiMessageID = aiMessage.ID
 	}
-	manager.sendNotifications(body, finalResult, data, aiMessageID)
+	manager.SendNotifications(body, finalResult, data, aiMessageID)
 
-	return finalResult, nil
+	return finalResult, data, aiMessageID, nil
 }
 
 // Initialize 初始化RAG服务管理器
@@ -131,8 +133,8 @@ func (m *RAGServiceManager) Initialize() error {
 	return nil
 }
 
-// validateRequest 前置验证
-func (m *RAGServiceManager) validateRequest(body dto.WebhookBody) error {
+// ValidateRequest 前置验证
+func (m *RAGServiceManager) ValidateRequest(body dto.WebhookBody) error {
 	// 验证GitLab配置
 	gitlabCache := cache.GetGitlabCache()
 	_, gitlabInfo, ok := cache.FindTokenByProjectID(fmt.Sprintf("%d", body.Project.ID), gitlabCache)
@@ -160,8 +162,8 @@ func (m *RAGServiceManager) validateRequest(body dto.WebhookBody) error {
 	return nil
 }
 
-// prepareData 准备分析所需的数据
-func (m *RAGServiceManager) prepareData(body dto.WebhookBody) (*AnalysisData, error) {
+// PrepareData 准备分析所需的数据
+func (m *RAGServiceManager) PrepareData(body dto.WebhookBody) (*AnalysisData, error) {
 	// 获取GitLab配置
 	gitlabCache := cache.GetGitlabCache()
 	gitlabToken, gitlabInfo, _ := cache.FindTokenByProjectID(fmt.Sprintf("%d", body.Project.ID), gitlabCache)
@@ -193,6 +195,7 @@ func (m *RAGServiceManager) prepareData(body dto.WebhookBody) (*AnalysisData, er
 	return &AnalysisData{
 		GitlabInfo:   &gitlabInfo,
 		GitlabToken:  gitlabToken,
+		CommentType:  gitlabInfo.CommentType,
 		MergeRequest: mergeRequest,
 		Diff:         diff,
 		AIConfig:     aiConfig,
@@ -291,8 +294,8 @@ func (m *RAGServiceManager) performRAGAnalysis(data *AnalysisData) (string, erro
 	return comments, nil
 }
 
-// performAIEnhancement 执行AI增强分析
-func (m *RAGServiceManager) performAIEnhancement(prompt string, data *AnalysisData) (string, error) {
+// PerformAIEnhancement 执行AI增强分析
+func (m *RAGServiceManager) PerformAIEnhancement(prompt string, data *AnalysisData) (string, error) {
 	// 根据AI配置类型选择提供者
 	var provider providers.AIProvider
 	switch data.AIConfig.Type {
@@ -313,8 +316,8 @@ func (m *RAGServiceManager) performAIEnhancement(prompt string, data *AnalysisDa
 	return comments, nil
 }
 
-// saveResult 保存分析结果
-func (m *RAGServiceManager) saveResult(body dto.WebhookBody, comments string, data *AnalysisData) (*model.AImessage, error) {
+// SaveResult 保存分析结果
+func (m *RAGServiceManager) SaveResult(body dto.WebhookBody, comments string, data *AnalysisData) (*model.AImessage, error) {
 	// 判断是否通过
 	passed := -1
 	if strings.Contains(comments, "未发现Bug") || strings.Contains(comments, "通过") {
@@ -345,10 +348,78 @@ func (m *RAGServiceManager) saveResult(body dto.WebhookBody, comments string, da
 	return aiMessage, nil
 }
 
-// sendNotifications 发送通知
-func (m *RAGServiceManager) sendNotifications(body dto.WebhookBody, comments string, data *AnalysisData, aiMessageID uint) {
-	// 发送评论到GitLab
-	postComment(data.GitlabInfo.Config.API, body.Project.ID, body.ObjectAttributes.IID, data.GitlabToken, comments)
+// addQualityFeedbackCheckboxes 添加评论质量反馈复选框
+func addQualityFeedbackCheckboxes(comments string) string {
+	return comments + "\n\n---\n**请评价此评论的质量：**\n" +
+		"- [ ] 评论内容准确且有用\n" +
+		"- [ ] 精准定位并提供建议\n" +
+		"- [ ] 建议不够具体\n" +
+		"- [ ] 完全误导性建议\n"
+}
+
+// SendNotifications 发送通知
+func (m *RAGServiceManager) SendNotifications(body dto.WebhookBody, comments string, data *AnalysisData, aiMessageID uint) {
+	if data.CommentType == utils.CommentTypeCommon {
+		// 为普通评论添加质量反馈复选框
+		commentWithFeedback := addQualityFeedbackCheckboxes(comments)
+		PostCommentToGitLab(data.GitlabInfo.Config.API, body.Project.ID, body.ObjectAttributes.IID, data.GitlabToken, commentWithFeedback)
+	} else {
+		// 解析所有评论内容
+		allComments := ParseCommentsForLineComments(comments, data.Diff)
+		fmt.Printf("解析的所有评论: %+v\n", allComments)
+
+		// 分类评论
+		lineComments, generalComments := ClassifyComments(allComments)
+		fmt.Printf("行级评论: %+v\n", lineComments)
+		fmt.Printf("普通评论: %+v\n", generalComments)
+
+		// 处理行级评论
+		var failedLineComments []string
+		if len(lineComments) > 0 {
+			var err error
+			failedLineComments, err = PostLineComments(data.GitlabInfo.Config.API, body.Project.ID, body.ObjectAttributes.IID, data.GitlabToken, lineComments, data.Diff)
+			if err != nil {
+				fmt.Printf("发送行级评论失败: %v\n", err)
+			}
+			if len(failedLineComments) > 0 {
+				fmt.Printf("失败的行级评论: %v\n", failedLineComments)
+			}
+		}
+
+		// 构建普通评论内容
+		var generalCommentContent strings.Builder
+
+		// 1. 添加原有的普通评论
+		for _, comment := range generalComments {
+			generalCommentContent.WriteString(fmt.Sprintf("- %s:%d: %s\n", comment.File, comment.Line, comment.Message))
+		}
+
+		// 2. 添加失败的行级评论
+		if len(failedLineComments) > 0 {
+			if generalCommentContent.Len() > 0 {
+				generalCommentContent.WriteString("\n")
+			}
+			generalCommentContent.WriteString("以下评论因行级评论失败，转为普通评论：\n")
+			for _, failedComment := range failedLineComments {
+				generalCommentContent.WriteString("- ")
+				generalCommentContent.WriteString(failedComment)
+				generalCommentContent.WriteString("\n")
+			}
+		}
+
+		// 3. 添加评论质量反馈复选框
+		if generalCommentContent.Len() > 0 {
+			generalCommentContent.WriteString(addQualityFeedbackCheckboxes(""))
+		}
+
+		// 发送普通评论（如果有内容）
+		if generalCommentContent.Len() > 0 {
+			_, err := PostCommentToGitLab(data.GitlabInfo.Config.API, body.Project.ID, body.ObjectAttributes.IID, data.GitlabToken, generalCommentContent.String())
+			if err != nil {
+				fmt.Printf("普通评论失败: %v\n", err)
+			}
+		}
+	}
 
 	// 推送webhook通知
 	pushWebhookIfNeeded(
@@ -366,7 +437,6 @@ func (m *RAGServiceManager) sendNotifications(body dto.WebhookBody, comments str
 type RAGClientPool struct {
 	clients chan *RAGClient
 	baseURL string
-	mu      sync.Mutex
 }
 
 // NewRAGClientPool 创建RAG客户端连接池

@@ -79,8 +79,10 @@ func main() {
 	routes.InitializeWebSocketRoutes(r, hub)
 
 	// 启动服务器
-	log.Printf("Server is running on http://%s:%s", cfg.IP, cfg.Port)
+	// log.Printf("Server is running on http://%s:%s", cfg.IP, cfg.Port)
 	if err := r.Run(":" + cfg.Port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
+	} else {
+		log.Printf("Server is running on http://%s:%s", cfg.IP, cfg.Port)
 	}
 }

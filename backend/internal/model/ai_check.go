@@ -1,6 +1,12 @@
 package model
 
 // MergeRequestInfo 合并请求信息
+
+type DiffRefs struct {
+	BaseSHA  string `json:"base_sha"`
+	HeadSHA  string `json:"head_sha"`
+	StartSHA string `json:"start_sha"`
+}
 type MergeRequestInfo struct {
 	ID           int    `json:"id"`
 	IID          int    `json:"iid"`
@@ -29,6 +35,7 @@ type MergeRequestInfo struct {
 		SourceBranch string `json:"source_branch"`
 		TargetBranch string `json:"target_branch"`
 	} `json:"object_attributes"`
+	DiffRefs DiffRefs `json:"diff_refs"`
 }
 
 // Change 文件变更信息

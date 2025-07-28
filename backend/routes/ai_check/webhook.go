@@ -6,6 +6,7 @@ import (
 
 	"code-review-go/internal/dto"
 	"code-review-go/internal/pkg/response"
+	"code-review-go/internal/pkg/utils"
 	"code-review-go/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -34,6 +35,12 @@ func AICheck(c *gin.Context) {
 	fmt.Printf("RAG检查请求: ProjectID=%d, MergeRequestID=%d\n",
 		body.Project.ID, body.ObjectAttributes.IID)
 
+	// 💡 防止重复执行
+	if utils.IsDuplicateWebhook(body) {
+		fmt.Println("重复 webhook 请求，跳过处理")
+		return
+	}
+
 	// 2. 立即响应（不阻塞webhook）
 	response.Success(c, gin.H{
 		"projectId":      body.Project.ID,
@@ -52,21 +59,27 @@ func handleOptimizedAICheck(body dto.WebhookBody) {
 	fmt.Printf("开始AI检查流程: %s\n", startTime.Format("2006-01-02 15:04:05"))
 
 	// 检查Merge Request状态
-	if !service.ShouldProcessState(body.ObjectAttributes.State) {
-		fmt.Printf("跳过非opened状态的合并请求: %s\n", body.ObjectAttributes.State)
+	if !service.ShouldProcessState(body) {
+		fmt.Printf("跳过非opened状态的合并请求: %+v\n", body)
 		return
 	}
 
 	// 使用优化的RAG检查服务
-	result, err := service.CheckMergeRequestWithRAGOptimized(body)
+	result, data, aiMessageID, err := service.CheckMergeRequestWithRAGOptimized(body)
+	fmt.Printf("RAG检查结果返回: %s\n", result)
 
 	duration := time.Since(startTime)
 
 	if err != nil {
 		fmt.Printf("RAG检查失败 (耗时: %v): %v\n", duration, err)
+
 		// 最后回退到AI检查
 		aiResult, aiErr := service.CheckMergeRequestWithAI(body)
 		if aiErr != nil {
+			if data != nil {
+				manager := service.GetRAGServiceManager()
+				manager.SendNotifications(body, fmt.Sprintf("AI审核检查失败: %v", aiErr), data, aiMessageID)
+			}
 			fmt.Printf("所有检查方式都失败: %v\n", aiErr)
 			return
 		}

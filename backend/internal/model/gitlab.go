@@ -19,6 +19,7 @@ type GitlabInfo struct {
 	ProjectIds       string `json:"project_ids,omitempty" gorm:"type:text"`
 	ProjectIdsSynced int8   `json:"project_ids_synced" gorm:"default:2"` // 1: 缓存失败, 2: 缓存中, 3: 缓存成功
 	RuleCheckStatus  int8   `json:"rule_check_status,omitempty"`         // 1: 启用, 2: 禁用
+	CommentType      int8   `json:"comment_type,omitempty"`              // 0: 普通评论, 1: 行级评论
 	CreateTime       int64  `json:"create_time"`
 	UpdateTime       int64  `json:"update_time"`
 }
@@ -44,6 +45,7 @@ type GitlabInfoCreate struct {
 	Prompt          string `json:"prompt,omitempty" gorm:"type:text"`
 	WebhookStatus   int8   `json:"webhook_status,omitempty"`    // 1: 启用, 2: 禁用
 	RuleCheckStatus int8   `json:"rule_check_status,omitempty"` // 1: 启用, 2: 禁用
+	CommentType     int8   `json:"comment_type,omitempty"`      // 0: 普通评论, 1: 行级评论
 }
 
 type GitlabInfoUpdate struct {
@@ -62,6 +64,7 @@ type GitlabInfoUpdate struct {
 	Prompt          string `json:"prompt,omitempty" gorm:"type:text"`
 	WebhookStatus   int8   `json:"webhook_status,omitempty"`
 	RuleCheckStatus int8   `json:"rule_check_status,omitempty"`
+	CommentType     int8   `json:"comment_type,omitempty"`
 }
 
 // GitlabCacheItem Gitlab 缓存项
@@ -72,6 +75,7 @@ type GitlabCacheItem struct {
 	Prompt          string   `json:"prompt"`
 	WebhookStatus   int8     `json:"webhook_status"`
 	RuleCheckStatus int8     `json:"rule_check_status"`
+	CommentType     int8     `json:"comment_type"`
 }
 
 // GitlabCache Gitlab 缓存

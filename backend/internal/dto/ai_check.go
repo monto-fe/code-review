@@ -19,9 +19,16 @@ type ObjectAttributes struct {
 	SourceBranch      string `json:"source_branch"`
 	TargetBranch      string `json:"target_branch"`
 	PathWithNamespace string `json:"path_with_namespace"`
+	Note              string `json:"note,omitempty"`
 }
 
 type WebhookBody struct {
+	ObjectKind       string           `json:"object_kind,omitempty"`
 	Project          ProjectInfo      `json:"project"`
 	ObjectAttributes ObjectAttributes `json:"object_attributes"`
+	MergeRequest     MergeRequest     `json:"merge_request,omitempty"`
+}
+
+type MergeRequest struct {
+	State string `json:"state"`
 }

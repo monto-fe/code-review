@@ -81,11 +81,21 @@ func (c *RAGClient) GenerateReview(req *CodeReviewRequest) (string, error) {
 
 // generateEnhancedPrompt 生成增强的提示词
 func (m *RAGServiceManager) generateEnhancedPrompt(ragResult string, data *AnalysisData) string {
-	return utils.GenerateRAGEnhancedPrompt(
-		ragResult,
-		data.FinalRule,
-		data.MergeRequest.Title,
-		data.MergeRequest.Description,
-		data.DiffStr,
-	)
+	if data.CommentType == utils.CommentTypeCommon {
+		return utils.GenerateRAGEnhancedCommonPrompt(
+			ragResult,
+			data.FinalRule,
+			data.MergeRequest.Title,
+			data.MergeRequest.Description,
+			data.DiffStr,
+		)
+	} else {
+		return utils.GenerateRAGEnhancedInlinePrompt(
+			ragResult,
+			data.FinalRule,
+			data.MergeRequest.Title,
+			data.MergeRequest.Description,
+			data.DiffStr,
+		)
+	}
 }

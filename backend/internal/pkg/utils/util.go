@@ -271,6 +271,9 @@ func FetchProjectIDs(token, gitlabAPI string) ([]string, error) {
 	return projectIDs, nil
 }
 
+const CommentTypeCommon = 0 // 普通评论
+const CommentTypeInline = 1 // 行级评论
+
 const CodeReviewPrompt = `找出潜在问题：可能存在的bug、逻辑错误、安全隐患、资源泄漏等。`
 
 // GeneratePrompt 生成常规AI提示词
@@ -279,11 +282,11 @@ func GeneratePrompt(rule string, mergeRequest *model.MergeRequestInfo, diff []mo
 	for _, change := range diff {
 		diffContent += fmt.Sprintf("File: %s\n%s\n\n", change.NewPath, change.Diff)
 	}
-	return GenerateAICheckPrompt(rule, mergeRequest.Title, mergeRequest.Description, diffContent)
+	return GenerateAICheckCommonPrompt(rule, mergeRequest.Title, mergeRequest.Description, diffContent)
 }
 
-// GenerateRAGEnhancedPrompt 生成基于RAG分析结果的增强提示词
-func GenerateRAGEnhancedPrompt(ragResult, rule, title, description, diffContent string) string {
+// GenerateRAGEnhancedInlinePrompt RAG行级评论提示词
+func GenerateRAGEnhancedInlinePrompt(ragResult, rule, title, description, diffContent string) string {
 	return fmt.Sprintf(`
 你是一位资深的代码审查专家。基于RAG服务的初步分析结果，请进行进一步的代码审查。
 
@@ -300,15 +303,52 @@ func GenerateRAGEnhancedPrompt(ragResult, rule, title, description, diffContent 
 ### 代码差异
 %s
 
-请基于RAG分析结果和上述规则进行深入审查，找出潜在问题：可能存在的bug、逻辑错误、安全隐患、资源泄漏等，用中文输出。，用中文输出。
-如果有问题用Markdown表格格式输出：
-      | 代码文件路径(行号) | 疑似Bug | 修改建议 |
-如果没有发现问题，请输出：'未发现Bug',不需要更多冗余信息。
+请基于RAG分析结果和上述规则进行深入审查，找出潜在问题：可能存在的bug、逻辑错误、安全隐患、资源泄漏等，用中文输出。
+
+**输出要求：**
+1. 每个问题单独一行，格式如下（严格按照此格式输出，便于自动解析）：
+   文件路径:行号:问题描述:修改建议
+2. 示例：
+   src/main.go:15:可能存在空指针:建议增加非空判断
+   src/utils.go:42:未处理的错误:建议添加错误处理
+3. 如果没有发现问题，请输出：✅ 代码审查通过 - 未发现明显问题，代码质量良好
+
+**重要注意事项：**
+- 行号必须是diff中实际存在的可评论行（即diff视图中有"+"或" "的行）
+- 对于文件级问题（如"文件末尾缺少换行符"、"文件编码问题"等），输出普通评论
+- 确保指定的行号在diff patch中确实存在，避免无效行号导致评论失败
+
+请不要输出多余的解释或表格，只输出上述格式内容。
 `, ragResult, rule, title, description, diffContent)
 }
 
-// GenerateAICheckPrompt 生成AI检查提示词
-func GenerateAICheckPrompt(rule, title, description, diffContent string) string {
+// GenerateRAGEnhancedCommonPrompt RAG普通评论提示词
+func GenerateRAGEnhancedCommonPrompt(ragResult, rule, title, description, diffContent string) string {
+	return fmt.Sprintf(`
+你是一位资深的代码审查专家。基于RAG服务的初步分析结果，请进行进一步的代码审查。
+
+### RAG服务分析结果
+%s
+
+### 审查规则
+%s
+
+### 代码信息
+**标题**: %s
+**描述**: %s
+
+### 代码差异
+%s
+
+请基于RAG分析结果和上述规则进行深入审查，找出潜在问题：可能存在的bug、逻辑错误、安全隐患、资源泄漏等，用中文输出。
+如果有问题用Markdown表格格式输出：
+      | 代码文件路径(行号) | 疑似Bug | 修改建议 |
+如果没有发现问题，请输出：✅ 代码审查通过 - 未发现明显问题，代码质量良好
+`, ragResult, rule, title, description, diffContent)
+}
+
+// GenerateAICheckInlinePrompt 生成AI检查行级评论提示词
+func GenerateAICheckInlinePrompt(rule, title, description, diffContent string) string {
 	return fmt.Sprintf(`请检查以下代码差异（diff），确保其符合以下要求：
 规则：%s
 
@@ -322,6 +362,25 @@ func GenerateAICheckPrompt(rule, title, description, diffContent string) string 
 请基于Diff内容和上述规则进行深入审查，找出潜在问题：可能存在的bug、逻辑错误、安全隐患、资源泄漏等，用中文输出。
 如果有问题用Markdown表格格式输出：
       | 代码文件路径(行号) | 疑似Bug | 修改建议 |
-如果没有发现问题，请输出：'未发现Bug',不需要更多冗余信息。`,
+
+`, rule, title, description, diffContent)
+}
+
+// GenerateAICheckCommonPrompt 生成AI检查普通评论提示词
+func GenerateAICheckCommonPrompt(rule, title, description, diffContent string) string {
+	return fmt.Sprintf(`请检查以下代码差异（diff），确保其符合以下要求：
+规则：%s
+
+代码信息：
+标题：%s
+描述：%s
+
+代码差异：
+%s
+
+请基于Diff内容和上述规则进行深入审查，找出潜在问题：可能存在的bug、逻辑错误、安全隐患、资源泄漏等，用中文输出。
+如果有问题用Markdown表格格式输出：
+      | 代码文件路径(行号) | 疑似Bug | 修改建议 |
+如果没有发现问题，请输出：✅ 代码审查通过 - 未发现明显问题，代码质量良好`,
 		rule, title, description, diffContent)
 }
