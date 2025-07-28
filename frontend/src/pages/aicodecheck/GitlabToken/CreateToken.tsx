@@ -1,10 +1,10 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Form, Input, DatePicker, Button, Collapse, Layout, Card, message } from 'antd';
+import { Form, Input, DatePicker, Button, Collapse, Layout, Card, message, Switch } from 'antd';
 import type { FormInstance } from 'antd';
 import { BasicContext } from '@/store/context';
 import { useI18n } from '@/store/i18n';
-import { queryList, removeData, updateData as updateDataService, createData, getDetail } from './service';
-import { TableQueryParam, TableListItem } from './data';
+import { updateData as updateDataService, createData, getDetail } from './service';
+import { TableListItem } from './data';
 import PromptDrawer from './promptDrawer';
 import dayjs from 'dayjs';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -45,6 +45,7 @@ const AIConfigPage: React.FC<AIConfigPageProps> = ({
   const [promptDrawerVisible, setPromptDrawerVisible] = useState(false);
   const [createSubmitLoading, setCreateSubmitLoading] = useState(false);
   const [updateData, setUpdateData] = useState<Partial<TableListItem>>(initialValues);
+  const [commentType, setCommentType] = useState(1);
 
   const [prompts, setPrompts] = useState([{
     title: '推荐提示词',
@@ -67,9 +68,13 @@ const AIConfigPage: React.FC<AIConfigPageProps> = ({
           ...detail,
           expired: detail.expired ? dayjs(detail.expired * 1000) : undefined,
         });
+        setCommentType(detail.comment_type || 1);
         setPrompt(detail.prompt || '');
         setUpdateData(detail);
       });
+    } else {
+      // 新建时设置默认值
+      setCommentType(1);
     }
   }, [id]);
 
@@ -81,6 +86,7 @@ const AIConfigPage: React.FC<AIConfigPageProps> = ({
     }
     onSubmit({ 
       ...values, 
+      comment_type: commentType,
       prompt, 
       expired: values.expired?.unix(),
       status: 1
@@ -199,6 +205,17 @@ const AIConfigPage: React.FC<AIConfigPageProps> = ({
                 tooltip="触发目标分支，不填写则匹配全部"
               >
                 <Input placeholder="请输入目标分支" />
+              </Form.Item>
+              <Form.Item
+                label="评论方式"
+                tooltip="默认普通评论，开启行内评论"
+              >
+                <Switch
+                  checkedChildren="行内评论"
+                  unCheckedChildren="普通评论"
+                  checked={commentType === 2}
+                  onChange={(checked) => setCommentType(checked ? 2 : 1)}
+                />
               </Form.Item>
             </Panel>
           </Collapse>

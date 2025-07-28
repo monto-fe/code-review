@@ -36,6 +36,7 @@ const GitlabTokenDetail: React.FC = () => {
             <Descriptions.Item label="API">{data.api}</Descriptions.Item>
             <Descriptions.Item label="Token">{data.token}</Descriptions.Item>
             <Descriptions.Item label="有效期">--</Descriptions.Item>
+            <Descriptions.Item label="评论类型">{data.comment_type===1?'普通评论':'行内评论'}</Descriptions.Item>
             <Descriptions.Item label="Webhook名称">{data.webhook_name}</Descriptions.Item>
             <Descriptions.Item label="Webhook地址">{data.webhook_url}</Descriptions.Item>
             <Descriptions.Item label="源分支">{data.source_branch}</Descriptions.Item>

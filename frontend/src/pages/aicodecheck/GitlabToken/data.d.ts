@@ -16,4 +16,5 @@ export interface TableListItem {
   webhook_status?: number;
   rule_check_status?: number;
   status?: number;
+  comment_type?: number;
 }
