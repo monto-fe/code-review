@@ -192,6 +192,11 @@ definitions:
       level:
         type: integer
     type: object
+  dto.MergeRequest:
+    properties:
+      state:
+        type: string
+    type: object
   dto.ObjectAttributes:
     properties:
       action:
@@ -201,6 +206,8 @@ definitions:
       iid:
         type: integer
       merge_url:
+        type: string
+      note:
         type: string
       path_with_namespace:
         type: string
@@ -301,8 +308,12 @@ definitions:
     type: object
   dto.WebhookBody:
     properties:
+      merge_request:
+        $ref: '#/definitions/dto.MergeRequest'
       object_attributes:
         $ref: '#/definitions/dto.ObjectAttributes'
+      object_kind:
+        type: string
       project:
         $ref: '#/definitions/dto.ProjectInfo'
     type: object
@@ -399,6 +410,9 @@ definitions:
     properties:
       api:
         type: string
+      comment_type:
+        description: '0: 普通评论, 1: 行级评论'
+        type: integer
       create_time:
         type: integer
       expired:
@@ -443,6 +457,9 @@ definitions:
     properties:
       api:
         type: string
+      comment_type:
+        description: '0: 普通评论, 1: 行级评论'
+        type: integer
       expired:
         type: integer
       gitlab_url:

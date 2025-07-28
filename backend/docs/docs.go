@@ -1544,6 +1544,14 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.MergeRequest": {
+            "type": "object",
+            "properties": {
+                "state": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.ObjectAttributes": {
             "type": "object",
             "properties": {
@@ -1557,6 +1565,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "merge_url": {
+                    "type": "string"
+                },
+                "note": {
                     "type": "string"
                 },
                 "path_with_namespace": {
@@ -1707,8 +1718,14 @@ const docTemplate = `{
         "dto.WebhookBody": {
             "type": "object",
             "properties": {
+                "merge_request": {
+                    "$ref": "#/definitions/dto.MergeRequest"
+                },
                 "object_attributes": {
                     "$ref": "#/definitions/dto.ObjectAttributes"
+                },
+                "object_kind": {
+                    "type": "string"
                 },
                 "project": {
                     "$ref": "#/definitions/dto.ProjectInfo"
@@ -1853,6 +1870,10 @@ const docTemplate = `{
                 "api": {
                     "type": "string"
                 },
+                "comment_type": {
+                    "description": "0: 普通评论, 1: 行级评论",
+                    "type": "integer"
+                },
                 "create_time": {
                     "type": "integer"
                 },
@@ -1923,6 +1944,10 @@ const docTemplate = `{
             "properties": {
                 "api": {
                     "type": "string"
+                },
+                "comment_type": {
+                    "description": "0: 普通评论, 1: 行级评论",
+                    "type": "integer"
                 },
                 "expired": {
                     "type": "integer"
