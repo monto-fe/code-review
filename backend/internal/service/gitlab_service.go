@@ -65,6 +65,7 @@ func (s *GitlabService) GetGitlabInfo() ([]dto.GitlabInfoResponse, error) {
 			WebhookStatus:    info.WebhookStatus,
 			ProjectIdsSynced: info.ProjectIdsSynced,
 			RuleCheckStatus:  info.RuleCheckStatus,
+			CommentType:      info.CommentType,
 			CreateTime:       info.CreateTime,
 			UpdateTime:       info.UpdateTime,
 		}
@@ -94,6 +95,7 @@ func (s *GitlabService) CreateGitlabToken(data model.GitlabInfoCreate) (*model.G
 		WebhookStatus:    data.WebhookStatus,
 		RuleCheckStatus:  data.RuleCheckStatus,
 		ProjectIdsSynced: ProjectIdsSyncedPending,
+		CommentType:      data.CommentType,
 		CreateTime:       now,
 		UpdateTime:       now,
 	}
@@ -194,6 +196,9 @@ func (s *GitlabService) UpdateGitlabInfo(data model.GitlabInfoUpdate) (*model.Gi
 	}
 	if data.RuleCheckStatus != 0 {
 		updates["rule_check_status"] = data.RuleCheckStatus
+	}
+	if data.CommentType != 0 {
+		updates["comment_type"] = data.CommentType
 	}
 
 	if err := s.db.Model(&existing).Updates(updates).Error; err != nil {

@@ -129,7 +129,7 @@ CREATE TABLE IF NOT EXISTS `t_gitlab_info` (
   `project_ids` text COLLATE utf8mb4_general_ci COMMENT '项目ID列表，逗号分隔',
   `project_ids_synced` tinyint(1) NOT NULL DEFAULT 0 COMMENT '项目ID是否已同步(0: 未同步, 1: 已同步)',
   `rule_check_status` tinyint NOT NULL DEFAULT 0 COMMENT '规则检查状态(0: 未检查, 1: 检查中, 2: 已检查)',
-  `comment_type` tinyint NOT NULL DEFAULT 0 COMMENT '评论类型(0: 普通评论, 1: 代码评论)',
+  `comment_type` tinyint NOT NULL DEFAULT 1 COMMENT '评论类型(1: 普通评论, 2: 代码评论)',
   `operator` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作人',
   `create_time` int unsigned NOT NULL DEFAULT 0 COMMENT '创建时间',
   `update_time` int unsigned NOT NULL DEFAULT 0 COMMENT '更新时间',

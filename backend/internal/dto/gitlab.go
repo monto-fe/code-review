@@ -25,6 +25,7 @@ type GitlabInfoResponse struct {
 	ProjectIdsSynced int8   `json:"project_ids_synced"`
 	WebhookStatus    int8   `json:"webhook_status"`
 	RuleCheckStatus  int8   `json:"rule_check_status"`
+	CommentType      int8   `json:"comment_type"`
 	CreateTime       int64  `json:"create_time"`
 	UpdateTime       int64  `json:"update_time"`
 }

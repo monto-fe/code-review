@@ -271,8 +271,8 @@ func FetchProjectIDs(token, gitlabAPI string) ([]string, error) {
 	return projectIDs, nil
 }
 
-const CommentTypeCommon = 0 // 普通评论
-const CommentTypeInline = 1 // 行级评论
+const CommentTypeCommon = 1 // 普通评论
+const CommentTypeInline = 2 // 行级评论
 
 const CodeReviewPrompt = `找出潜在问题：可能存在的bug、逻辑错误、安全隐患、资源泄漏等。`
 
