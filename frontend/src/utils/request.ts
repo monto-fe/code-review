@@ -42,31 +42,23 @@ const serverCodeMessage: { [key: number]: string } = {
   504: 'Gateway Timeout',
 };
 
-const needLoginCodes = [10012, 401, 10009];
+const needLoginCodes = [10012, 401, 10009, 10005];
 
 const errorHandler = (error: any) => {
   const { response, message, code } = error;
   if (message === 'CustomError') {
-    // 自定义错误
+    // 自定义错误，这里不用判断登录状态，已经在路由拦截了
+    // 判断非登录错误，需要提醒出来
     const { config, data } = response;
     const { url, baseURL } = config;
-    const { ret_code, message } = data;
     const reqUrl = url.split('?')[0].replace(baseURL, '');
     const noVerifyBool = settings.ajaxResponseNoVerifyUrl.includes(reqUrl);
     if (!noVerifyBool) {
-
-      if (!needLoginCodes.includes(ret_code)) {
+      if (!needLoginCodes.includes(data.ret_code)) {
         notification.error({
           message: `提示 (Tips)`,
-          description: customCodeMessage[ret_code] || message || 'Error',
+          description: customCodeMessage[data.ret_code] || data.message || 'Error',
         });
-      }
-
-      console.log(`当前code: ${ret_code}`);
-      if (ret_code === 10005 && ret_code === 10009) {
-        setTimeout(() => {
-          window.location.href = '/user/login';
-        }, 500);
       }
     }
   } else if (message === 'CancelToken') {
@@ -99,7 +91,7 @@ const errorHandler = (error: any) => {
 const request = axios.create({
   baseURL: import.meta.env.VITE_APP_APIHOST || '',
   withCredentials: false, // 当跨域请求时不发送cookie
-  timeout: 5000, // 请求超时时间,5000(单位毫秒) / 0 不做限制
+  timeout: 30000, // 请求超时时间,30000(单位毫秒) / 0 不做限制
 });
 
 // 全局设置 - post请求头

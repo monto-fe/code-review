@@ -2,16 +2,16 @@ import * as path from 'path';
 import { defineConfig, loadEnv, PluginOption } from 'vite';
 import react from '@vitejs/plugin-react';
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons';
-import { viteMockServe } from 'vite-plugin-mock';
+// import { viteMockServe } from 'vite-plugin-mock';
 
 // https://vitejs.dev/config/
-export default defineConfig(({ command, mode }) => {
+export default defineConfig(({ mode }) => {
   const root = process.cwd();
 
   const env = loadEnv(mode, root);
-  const { VITE_APP_PORT, VITE_APP_MOCK } = env;
+  const { VITE_APP_PORT } = env;
 
-  const isBuild = command === 'build';
+  // const isBuild = command === 'build';
 
   // vite 插件
   const vitePlugins: (PluginOption | PluginOption[])[] = [
@@ -25,18 +25,18 @@ export default defineConfig(({ command, mode }) => {
     }),
   ];
   // vite-plugin-mock
-  if (VITE_APP_MOCK === 'true') {
-    vitePlugins.push(
-      viteMockServe({
-        mockPath: 'mock',
-        supportTs: true,
-        watchFiles: true,
-        localEnabled: !isBuild,
-        prodEnabled: isBuild,
-        logger: true,
-      }),
-    );
-  }
+  // if (VITE_APP_MOCK === 'true') {
+  //   vitePlugins.push(
+  //     viteMockServe({
+  //       mockPath: 'mock',
+  //       supportTs: true,
+  //       watchFiles: true,
+  //       localEnabled: !isBuild,
+  //       prodEnabled: isBuild,
+  //       logger: true,
+  //     }),
+  //   );
+  // }
 
   return {
     root,
