@@ -41,6 +41,7 @@ func InitGitlabCache() error {
 				item := gitlabCache[info.ID]
 				item.ProjectIDs = ids
 				item.Config.ProjectIds = projectIDsStr
+				item.CommentType = info.CommentType
 				gitlabCache[info.ID] = item
 				gitlabCacheLock.Unlock()
 			}(info)
@@ -57,6 +58,7 @@ func InitGitlabCache() error {
 			WebhookURL:      info.WebhookURL,
 			WebhookStatus:   info.WebhookStatus,
 			RuleCheckStatus: info.RuleCheckStatus,
+			CommentType:     info.CommentType,
 		}
 	}
 

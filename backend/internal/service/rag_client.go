@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
-	"code-review-go/internal/pkg/utils"
 )
 
 // RAGClient RAG服务客户端
@@ -77,25 +75,4 @@ func (c *RAGClient) GenerateReview(req *CodeReviewRequest) (string, error) {
 
 	// 直接返回RAG服务的审查结果
 	return analysis.Review, nil
-}
-
-// generateEnhancedPrompt 生成增强的提示词
-func (m *RAGServiceManager) generateEnhancedPrompt(ragResult string, data *AnalysisData) string {
-	if data.CommentType == utils.CommentTypeCommon {
-		return utils.GenerateRAGEnhancedCommonPrompt(
-			ragResult,
-			data.FinalRule,
-			data.MergeRequest.Title,
-			data.MergeRequest.Description,
-			data.DiffStr,
-		)
-	} else {
-		return utils.GenerateRAGEnhancedInlinePrompt(
-			ragResult,
-			data.FinalRule,
-			data.MergeRequest.Title,
-			data.MergeRequest.Description,
-			data.DiffStr,
-		)
-	}
 }

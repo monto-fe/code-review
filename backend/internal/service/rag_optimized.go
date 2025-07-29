@@ -294,6 +294,28 @@ func (m *RAGServiceManager) performRAGAnalysis(data *AnalysisData) (string, erro
 	return comments, nil
 }
 
+// generateEnhancedPrompt 生成增强的提示词
+func (m *RAGServiceManager) generateEnhancedPrompt(ragResult string, data *AnalysisData) string {
+	fmt.Printf("ragResult: %v\n", data.CommentType)
+	if data.CommentType == utils.CommentTypeCommon {
+		return utils.GenerateRAGEnhancedCommonPrompt(
+			ragResult,
+			data.FinalRule,
+			data.MergeRequest.Title,
+			data.MergeRequest.Description,
+			data.DiffStr,
+		)
+	} else {
+		return utils.GenerateRAGEnhancedInlinePrompt(
+			ragResult,
+			data.FinalRule,
+			data.MergeRequest.Title,
+			data.MergeRequest.Description,
+			data.DiffStr,
+		)
+	}
+}
+
 // PerformAIEnhancement 执行AI增强分析
 func (m *RAGServiceManager) PerformAIEnhancement(prompt string, data *AnalysisData) (string, error) {
 	// 根据AI配置类型选择提供者

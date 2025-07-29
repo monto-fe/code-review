@@ -156,7 +156,9 @@ func postComment(api string, projectID, iid int, token, comments string) {
 			generalCommentContent.WriteString("\n---\n")
 			generalCommentContent.WriteString("**请评价此评论的质量：**\n")
 			generalCommentContent.WriteString("- [ ] 精准定位并提供建议\n")
+			generalCommentContent.WriteString("- [ ] 部分有效但需要改进\n")
 			generalCommentContent.WriteString("- [ ] 完全误导性建议\n")
+			generalCommentContent.WriteString("- [ ] 建议不相关\n")
 		}
 
 		// 发送普通评论（如果有内容）

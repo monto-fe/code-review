@@ -670,7 +670,7 @@ func PostLineComments(gitlabAPI string, projectID, mergeRequestID int, gitlabTok
 		// 构建位置信息
 		position := LineCommentRequest{}
 		// 为行级评论添加质量反馈复选框
-		position.Body = fmt.Sprintf("[%s] %s\n\n---\n**请评价此评论的质量：**\n- [ ] 精准定位并提供建议\n- [ ] 完全误导性建议",
+		position.Body = fmt.Sprintf("[%s] %s\n\n---\n**请评价此评论的质量：**\n- [ ] 精准定位并提供建议\n- [ ] 部分有效但需要改进\n- [ ] 完全误导性建议\n- [ ] 建议不相关\n\n**评价说明：**\n- 精准定位：评论准确指出了代码问题，并提供了具体可行的改进建议\n- 部分有效：评论有一定道理，但建议不够具体或存在小问题\n- 完全误导：评论对代码理解有误，建议会引入新的问题\n- 不相关：评论与当前代码变更无关\n\n**您的反馈将帮助我们改进AI代码审查质量！**",
 			strings.ToUpper(comment.Severity), comment.Message)
 		position.Position.BaseSHA = baseSHA
 		position.Position.StartSHA = startSHA
