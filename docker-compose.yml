@@ -48,6 +48,16 @@ services:
       - VECTOR_STORE_TYPE=${VECTOR_STORE_TYPE}
       - VECTOR_STORE_PATH=${VECTOR_STORE_PATH}
       - GIT_TEMP_DIR=${GIT_TEMP_DIR}
+      # 充分利用多核的环境变量
+      - OMP_NUM_THREADS=4
+      - MKL_NUM_THREADS=4
+      - OPENBLAS_NUM_THREADS=4
+      - NUMEXPR_NUM_THREADS=4
+      - VECLIB_MAXIMUM_THREADS=4
+      - BLAS_NUM_THREADS=4
+      - LAPACK_NUM_THREADS=4
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
     ports:
       - "${RAG_SERVICE_PORT}:8000"  # RAG服务端口
     restart: always
@@ -56,6 +66,18 @@ services:
       - git_cache:/tmp/git_repos  # 持久化Git缓存
     networks:
       - backend-network
+    # 增加资源限制，充分利用4核16G配置
+    ulimits:
+      nproc: 65536  # 提高进程数限制
+      nofile: 65536  # 提高文件描述符限制
+    deploy:
+      resources:
+        limits:
+          memory: 8G  # 充分利用内存
+          cpus: '3.0'  # 充分利用CPU
+        reservations:
+          memory: 4G  # 提高内存预留
+          cpus: '1.5'  # 提高CPU预留
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -71,4 +93,4 @@ volumes:
   rag_data:  # 向量存储数据卷
     driver: local
   git_cache:  # Git缓存数据卷
-    driver: local
+    driver: local 

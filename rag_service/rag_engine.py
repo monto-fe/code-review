@@ -147,39 +147,6 @@ def get_git_url_with_token(git_url: str, gitlab_token: str) -> str:
         else:
             raise ValueError(f"不支持的URL格式: {git_url}")
 
-def read_branch_files(repo_path: str, branch: str) -> Dict[str, str]:
-    """
-    读取指定分支的所有文件内容
-    
-    Args:
-        repo_path: 仓库本地路径
-        branch: 分支名
-    
-    Returns:
-        Dict[str, str]: 文件路径到文件内容的映射
-    """
-    repo = Repo(repo_path)
-    repo.git.checkout(branch)
-    
-    files_content = {}
-    for root, _, files in os.walk(repo_path):
-        for file in files:
-            # 跳过.git目录和临时文件
-            if '.git' in root or file.startswith('.'):
-                continue
-                
-            file_path = os.path.join(root, file)
-            try:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    # 使用相对路径作为键
-                    rel_path = os.path.relpath(file_path, repo_path)
-                    files_content[rel_path] = f.read()
-            except Exception as e:
-                print(f"读取文件 {file_path} 失败: {str(e)}")
-                continue
-    
-    return files_content
-
 def extract_files_from_diff(diff_content: str) -> List[str]:
     """
     从diff内容中提取变更的文件路径
@@ -389,20 +356,74 @@ def analyze_gitlab_code(git_url: str, branch: str, diff_content: str, query: Opt
             os.environ['GIT_HTTP_LOW_SPEED_TIME'] = '300'
             os.environ['GIT_HTTP_LOW_SPEED_LIMIT'] = '1000'
             
-            # 克隆仓库
-            repo = Repo.clone_from(auth_git_url, temp_dir)
-            print(f"repo: {repo}")
+            # 优化克隆：只克隆指定分支，深度为1
+            print(f"开始克隆分支 {branch}，深度为1")
+            repo = Repo.clone_from(
+                auth_git_url, 
+                temp_dir,
+                branch=branch,  # 只克隆指定分支
+                depth=1,  # 只克隆最新一次提交
+                single_branch=True  # 只克隆一个分支
+            )
+            print(f"克隆完成，repo: {repo}")
+            
+            # 验证分支是否正确
+            current_branch = repo.active_branch.name
+            print(f"当前分支: {current_branch}")
+            if current_branch != branch:
+                print(f"警告：克隆的分支 {current_branch} 与请求的分支 {branch} 不匹配")
+                
         except Exception as e:
             print(f"克隆仓库失败: {str(e)}")
-            raise Exception(f"无法克隆仓库: {str(e)}")
-        
-        # 读取整个分支的文件
-        branch_files = read_branch_files(temp_dir, branch)
-        print(f"读取到 {len(branch_files)} 个文件")
+            # 如果单分支克隆失败，尝试完整克隆
+            print("尝试完整克隆...")
+            repo = Repo.clone_from(auth_git_url, temp_dir)
+            # 切换到指定分支
+            repo.git.checkout(branch)
+            print(f"完整克隆完成，repo: {repo}")
         
         # 从diff中提取变更的文件
         changed_files = extract_files_from_diff(diff_content)
         print(f"changed_files: {changed_files}")
+        
+        # 只读取变更的文件，而不是整个分支
+        branch_files = {}
+        if changed_files:
+            for file_path in changed_files:
+                try:
+                    full_path = os.path.join(temp_dir, file_path)
+                    if os.path.exists(full_path):
+                        with open(full_path, 'r', encoding='utf-8') as f:
+                            branch_files[file_path] = f.read()
+                        print(f"读取文件: {file_path}")
+                    else:
+                        print(f"文件不存在: {file_path}")
+                except Exception as e:
+                    print(f"读取文件 {file_path} 失败: {str(e)}")
+                    continue
+        
+        # 如果没有找到变更文件，尝试读取一些关键文件作为上下文
+        if not branch_files:
+            print("未找到变更文件，尝试读取关键文件作为上下文")
+            # 读取一些常见的配置文件
+            context_files = [
+                'README.md', 'requirements.txt', 'pyproject.toml', 
+                'package.json', 'Dockerfile', 'docker-compose.yml',
+                'app.py', 'main.py', 'index.js', 'index.ts'
+            ]
+            
+            for file_name in context_files:
+                try:
+                    full_path = os.path.join(temp_dir, file_name)
+                    if os.path.exists(full_path):
+                        with open(full_path, 'r', encoding='utf-8') as f:
+                            branch_files[file_name] = f.read()
+                        print(f"读取上下文文件: {file_name}")
+                except Exception as e:
+                    print(f"读取上下文文件 {file_name} 失败: {str(e)}")
+                    continue
+        
+        print(f"读取到 {len(branch_files)} 个文件")
         
         # 获取向量存储路径
         print(f"git_url: {git_url}")
@@ -416,13 +437,14 @@ def analyze_gitlab_code(git_url: str, branch: str, diff_content: str, query: Opt
             chunk_overlap=200
         )
         
-        # 处理所有分支文件用于上下文
+        # 处理文件内容用于上下文
         all_texts = []
         for file_path, content in branch_files.items():
             all_texts.append(f"文件: {file_path}\n内容:\n{content}\n")
         
         if not all_texts:
-            raise ValueError("没有找到任何文件内容")
+            print("警告：没有找到任何文件内容，将使用diff内容作为上下文")
+            all_texts.append(f"代码变更:\n{diff_content}\n")
         
         print(f"准备处理 {len(all_texts)} 个文本块")
         
@@ -458,13 +480,6 @@ def analyze_gitlab_code(git_url: str, branch: str, diff_content: str, query: Opt
         
         # 使用LLM生成代码审查建议
         try:
-            # llm = OpenAI(temperature=0)
-            #prompt = PromptTemplate(
-            #    input_variables=["code_changes", "context"],
-            #    template=CODE_REVIEW_TEMPLATE
-            #)
-            # chain = LLMChain(llm=llm, prompt=prompt)
-            
             # 构建最优查询
             optimal_query = build_optimal_query(diff_content, query)
             print(f"构建的最优查询: {optimal_query}")
@@ -482,12 +497,6 @@ def analyze_gitlab_code(git_url: str, branch: str, diff_content: str, query: Opt
                     context_parts.append(f"文件 {file_path} 的完整内容:\n{branch_files[file_path]}")
             
             context = "\n\n".join(context_parts)
-            
-            # 生成审查结果
-            # result = chain.run(
-            #     code_changes=diff_content,
-            #     context=context
-            # )
             
             # 将代码变更和上下文作为字典返回
             result_dict = {

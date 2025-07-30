@@ -12,11 +12,14 @@
 
 - docker && docker compose > 2.0
 - git
+- 虚拟机配置最小配置
+  - 支持RAG增强检索：4C16G100G
+  - 不需要RAG增强检索：2C8G50G
 
 ### 1️⃣ 克隆项目
 
 ```bash
-git clone https://github.com/richLpf/code-review.git
+git clone https://github.com/monto-fe/code-review.git
 cd code-review
 ```
 
@@ -78,6 +81,10 @@ docker compose -f docker-compose.mariadb.yml up -d
 
 ## 📡 配置 Webhook（GitLab）
 
+### 方法一：直接在管理员Gitlab账户中配置系统钩子
+
+### 方法二：
+
 在对应项目中：
 
 > `Settings` ➜ `Webhooks`
@@ -124,14 +131,17 @@ http://192.168.1.1:9000/v1/webhook/merge
 * ✅ 提供一键启动的 Docker 镜像（支持挂载配置）
 * ✅ 优化 GitLab Token 添加/更新流程，自动刷新模型缓存
 * ✅ 支持自定义提示词检测代码
+* ✅ 支持RAG检索代码仓库
+* ✅ 支持行级评论
 
 ---
 
 ## 🔭 规划中功能
 
-* [ ] 支持RAG检索代码仓库
+* [ ] 支持通过 `projectId + mergeId` 直接发起 AI 审查
+* [ ] 支持读取回复评论信息
 * [ ] 完成控制台权限管理能力
 * [ ] 支持Qwen大模型
+* [ ] 支持Kimi k2模型
 * [ ] 根据description描述信息，搜索对应的需求注意事项，进行检测
-* [ ] 支持通过 `projectId + mergeId` 直接发起 AI 审查
 * [ ] 支持监听 GitLab Push 事件
