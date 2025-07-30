@@ -2,16 +2,21 @@ FROM python:3.9-slim as builder
 
 WORKDIR /app
 
-# 设置pip镜像源
+# 设置pip镜像源和优化参数
 ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple/
 ENV PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn
+ENV PIP_NO_CACHE_DIR=1
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+
 
 # 安装构建依赖 - 兼容CentOS和Ubuntu
 RUN if command -v apt-get >/dev/null 2>&1; then \
-        # Ubuntu/Debian系统
+        # Ubuntu/Debian系统 - 使用国内镜像源
+        sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list && \
+        sed -i 's/security.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list && \
         apt-get update && apt-get install -y \
             build-essential \
-            && rm -rf /var/lib/apt/lists/*; \
+            && apt-get clean && rm -rf /var/lib/apt/lists/* || true; \
     elif command -v yum >/dev/null 2>&1; then \
         # CentOS/RHEL系统
         yum update -y && yum install -y \
@@ -30,12 +35,12 @@ RUN if command -v apt-get >/dev/null 2>&1; then \
         echo "Unsupported package manager"; exit 1; \
     fi
 
-# 先复制requirements.txt以利用Docker缓存
-COPY requirements.txt .
+# 先复制pyproject.toml以利用Docker缓存
+COPY pyproject.toml ./
 
-# 安装Python依赖
-RUN pip install --upgrade pip setuptools wheel && \
-    pip install -r requirements.txt
+# 安装Python依赖（限制线程数）
+RUN pip install --upgrade pip setuptools wheel --no-cache-dir --disable-pip-version-check && \
+    pip install -e . --no-cache-dir --disable-pip-version-check
 
 # 生产阶段
 FROM python:3.9-slim
@@ -44,11 +49,13 @@ WORKDIR /app
 
 # 安装运行时依赖 - 兼容CentOS和Ubuntu
 RUN if command -v apt-get >/dev/null 2>&1; then \
-        # Ubuntu/Debian系统
+        # Ubuntu/Debian系统 - 使用国内镜像源
+        sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list && \
+        sed -i 's/security.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list && \
         apt-get update && apt-get install -y \
             git \
             curl \
-            && rm -rf /var/lib/apt/lists/*; \
+            && apt-get clean && rm -rf /var/lib/apt/lists/* || true; \
     elif command -v yum >/dev/null 2>&1; then \
         # CentOS/RHEL系统
         yum update -y && yum install -y \

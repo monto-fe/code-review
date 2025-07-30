@@ -29,6 +29,10 @@ FROM alpine:latest
 
 WORKDIR /app
 
+# 配置 Alpine 镜像源（国内推荐）
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
+ && apk update
+
 # 安装必要的运行时依赖
 RUN apk add --no-cache ca-certificates tzdata
 
