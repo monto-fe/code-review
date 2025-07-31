@@ -29,12 +29,13 @@ services:
       - DB_DATABASE=${DB_DATABASE}
       - CONSOLE_PORT=${CONSOLE_PORT}
       - IP=${IP}
-      - RAG_SERVICE_URL=http://rag-service:8000/api/code-analysis  # 添加RAG服务URL
+      - RAG_SERVICE_URL=http://${IP}:8000/api/code-analysis
     ports:
       - "${API_PORT}:9000"
     restart: always
     depends_on:
-      - rag-service
+      rag-service:
+        condition: service_healthy
     networks:
       - backend-network
 
@@ -79,7 +80,7 @@ services:
           memory: 4G  # 提高内存预留
           cpus: '1.5'  # 提高CPU预留
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD-SHELL", "python -c \"import requests; requests.get('http://localhost:8000/health')\""]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -93,4 +94,4 @@ volumes:
   rag_data:  # 向量存储数据卷
     driver: local
   git_cache:  # Git缓存数据卷
-    driver: local 
+    driver: local

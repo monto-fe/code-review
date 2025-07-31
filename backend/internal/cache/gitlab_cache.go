@@ -38,12 +38,11 @@ func InitGitlabCache() error {
 					Update("project_ids", projectIDsStr).Error
 				// 更新缓存（加锁）
 				gitlabCacheLock.Lock()
-				if item, exists := gitlabCache[info.ID]; exists {
-					item.ProjectIDs = ids
-					item.Config.ProjectIds = projectIDsStr
-					item.CommentType = info.CommentType
-					gitlabCache[info.ID] = item
-				}
+				item := gitlabCache[info.ID]
+				item.ProjectIDs = ids
+				item.Config.ProjectIds = projectIDsStr
+				item.CommentType = info.CommentType
+				gitlabCache[info.ID] = item
 				gitlabCacheLock.Unlock()
 			}(info)
 			projectIDs = []string{}
@@ -69,29 +68,7 @@ func InitGitlabCache() error {
 	return nil
 }
 
-// GetGitlabCache 获取缓存
-func GetGitlabCache() map[uint]dto.GitlabCacheItem {
-	gitlabCacheLock.RLock()
-	defer gitlabCacheLock.RUnlock()
-	return gitlabCache
-}
-
-// FindTokenByProjectID 根据项目ID查找对应的Token和配置
-func FindTokenByProjectID(projectID string, gitlabCache map[uint]dto.GitlabCacheItem) (string, dto.GitlabCacheItem, bool) {
-	gitlabCacheLock.RLock()
-	defer gitlabCacheLock.RUnlock()
-
-	for _, item := range gitlabCache {
-		for _, pid := range item.ProjectIDs {
-			if pid == projectID {
-				return item.Token, item, true
-			}
-		}
-	}
-	return "", dto.GitlabCacheItem{}, false
-}
-
-// RefreshGitlabCache 刷新 GitLab 缓存
+// RefreshGitlabCache 刷新缓存
 func RefreshGitlabCache() error {
 	return InitGitlabCache()
 }
@@ -123,4 +100,26 @@ func DeleteGitlabCacheItem(id uint) {
 	gitlabCacheLock.Lock()
 	defer gitlabCacheLock.Unlock()
 	delete(gitlabCache, id)
+}
+
+// GetGitlabCache 获取缓存
+func GetGitlabCache() map[uint]dto.GitlabCacheItem {
+	gitlabCacheLock.RLock()
+	defer gitlabCacheLock.RUnlock()
+	return gitlabCache
+}
+
+// FindTokenByProjectID 根据项目ID查找对应的Token和配置
+func FindTokenByProjectID(projectID string, gitlabCache map[uint]dto.GitlabCacheItem) (string, dto.GitlabCacheItem, bool) {
+	gitlabCacheLock.RLock()
+	defer gitlabCacheLock.RUnlock()
+
+	for _, item := range gitlabCache {
+		for _, pid := range item.ProjectIDs {
+			if pid == projectID {
+				return item.Token, item, true
+			}
+		}
+	}
+	return "", dto.GitlabCacheItem{}, false
 }

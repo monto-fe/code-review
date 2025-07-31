@@ -2,7 +2,7 @@ package service
 
 import (
 	"code-review-go/internal/cache"
-	dto "code-review-go/internal/dto"
+	"code-review-go/internal/dto"
 	"code-review-go/internal/model"
 	"code-review-go/internal/pkg/utils"
 	"encoding/json"
@@ -109,6 +109,12 @@ func (s *GitlabService) CreateGitlabToken(data model.GitlabInfoCreate) (*model.G
 		return nil, err
 	}
 
+	// 刷新缓存
+	if err := cache.RefreshGitlabCache(); err != nil {
+		// 记录错误但不影响主流程
+		fmt.Printf("刷新缓存失败: %v\n", err)
+	}
+
 	// 异步获取项目列表
 	go func() {
 		var projectIDsStr string
@@ -134,8 +140,10 @@ func (s *GitlabService) CreateGitlabToken(data model.GitlabInfoCreate) (*model.G
 			s.db.Model(&model.GitlabInfo{}).Where("id = ?", gitlabInfo.ID).Update("project_ids_synced", ProjectIdsSyncedFailed)
 		}
 
-		// 刷新缓存
-		_ = cache.RefreshGitlabCache()
+		// 项目列表更新后再次刷新缓存
+		if err := cache.RefreshGitlabCache(); err != nil {
+			fmt.Printf("异步更新项目列表后刷新缓存失败: %v\n", err)
+		}
 	}()
 
 	return gitlabInfo, nil
@@ -209,6 +217,12 @@ func (s *GitlabService) UpdateGitlabInfo(data model.GitlabInfoUpdate) (*model.Gi
 		return nil, err
 	}
 
+	// 刷新缓存
+	if err := cache.RefreshGitlabCache(); err != nil {
+		// 记录错误但不影响主流程
+		fmt.Printf("更新后刷新缓存失败: %v\n", err)
+	}
+
 	// 如果更新了 token，异步获取新的项目列表
 	if data.Token != "" {
 		go func() {
@@ -228,8 +242,10 @@ func (s *GitlabService) UpdateGitlabInfo(data model.GitlabInfoUpdate) (*model.Gi
 				s.db.Model(&model.GitlabInfo{}).Where("id = ?", data.ID).Update("project_ids_synced", ProjectIdsSyncedFailed)
 			}
 
-			// 刷新缓存
-			_ = cache.RefreshGitlabCache()
+			// 项目列表更新后再次刷新缓存
+			if err := cache.RefreshGitlabCache(); err != nil {
+				fmt.Printf("异步更新项目列表后刷新缓存失败: %v\n", err)
+			}
 		}()
 	}
 
@@ -260,7 +276,10 @@ func (s *GitlabService) DeleteGitlabToken(id uint) error {
 	}
 
 	// 刷新缓存
-	_ = cache.RefreshGitlabCache()
+	if err := cache.RefreshGitlabCache(); err != nil {
+		// 记录错误但不影响主流程
+		fmt.Printf("删除后刷新缓存失败: %v\n", err)
+	}
 
 	return nil
 }
