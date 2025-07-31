@@ -17,6 +17,9 @@ ENV PYTHONUNBUFFERED=1 \
 ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple/
 ENV PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn
 
+# 安装 curl 用于健康检查
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 # 复制依赖文件
 COPY pyproject.toml ./
 
@@ -35,6 +38,7 @@ RUN python -m pip install faiss-cpu --no-cache-dir --disable-pip-version-check -
 RUN python -m pip install torch==2.1.2 --no-cache-dir --disable-pip-version-check --quiet
 RUN python -m pip install torchvision==0.16.2 --no-cache-dir --disable-pip-version-check --quiet
 RUN python -m pip install pydantic --no-cache-dir --disable-pip-version-check --quiet
+RUN python -m pip install huggingface-hub --no-cache-dir --disable-pip-version-check --quiet
 
 # 复制应用代码
 COPY . .

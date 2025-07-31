@@ -1,9 +1,8 @@
 import os
 from typing import List, Optional, Dict
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import FAISS
-# from langchain.embeddings import HuggingFaceEmbeddings  # 老写法，已弃用
-from langchain_huggingface import HuggingFaceEmbeddings  # 新写法
+from langchain_community.vectorstores import FAISS
+from langchain_community.embeddings import HuggingFaceEmbeddings
 # from langchain.chains import LLMChain
 # from langchain.prompts import PromptTemplate
 # from langchain.llms import OpenAI

@@ -12,7 +12,7 @@ fastapi = "^0.104.1"
 uvicorn = {extras = ["standard"], version = "^0.24.0"}
 python-dotenv = "^1.0.0"
 gitpython = "^3.1.40"
-langchain = "^0.0.350"
+langchain = "^0.1.0"
 langchain-community = "^0.0.10"
 sentence-transformers = "^2.2.2"
 faiss-cpu = "^1.7.4"
