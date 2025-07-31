@@ -1,6 +1,7 @@
 package service
 
 import (
+	"code-review-go/internal/cache"
 	dto "code-review-go/internal/dto"
 	"code-review-go/internal/model"
 	"code-review-go/internal/pkg/utils"
@@ -132,6 +133,9 @@ func (s *GitlabService) CreateGitlabToken(data model.GitlabInfoCreate) (*model.G
 		if dbErr := s.db.Model(&model.GitlabInfo{}).Where("id = ?", gitlabInfo.ID).Updates(updateMap).Error; dbErr != nil {
 			s.db.Model(&model.GitlabInfo{}).Where("id = ?", gitlabInfo.ID).Update("project_ids_synced", ProjectIdsSyncedFailed)
 		}
+
+		// 刷新缓存
+		_ = cache.RefreshGitlabCache()
 	}()
 
 	return gitlabInfo, nil
@@ -223,6 +227,9 @@ func (s *GitlabService) UpdateGitlabInfo(data model.GitlabInfoUpdate) (*model.Gi
 			if dbErr := s.db.Model(&model.GitlabInfo{}).Where("id = ?", data.ID).Updates(updateMap).Error; dbErr != nil {
 				s.db.Model(&model.GitlabInfo{}).Where("id = ?", data.ID).Update("project_ids_synced", ProjectIdsSyncedFailed)
 			}
+
+			// 刷新缓存
+			_ = cache.RefreshGitlabCache()
 		}()
 	}
 
@@ -248,7 +255,14 @@ func (s *GitlabService) DeleteGitlabToken(id uint) error {
 	}
 
 	// 删除记录
-	return s.db.Delete(&existing).Error
+	if err := s.db.Delete(&existing).Error; err != nil {
+		return err
+	}
+
+	// 刷新缓存
+	_ = cache.RefreshGitlabCache()
+
+	return nil
 }
 
 // GetProjectLanguages 获取项目语言

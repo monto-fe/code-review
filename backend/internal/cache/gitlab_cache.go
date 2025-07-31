@@ -38,11 +38,12 @@ func InitGitlabCache() error {
 					Update("project_ids", projectIDsStr).Error
 				// 更新缓存（加锁）
 				gitlabCacheLock.Lock()
-				item := gitlabCache[info.ID]
-				item.ProjectIDs = ids
-				item.Config.ProjectIds = projectIDsStr
-				item.CommentType = info.CommentType
-				gitlabCache[info.ID] = item
+				if item, exists := gitlabCache[info.ID]; exists {
+					item.ProjectIDs = ids
+					item.Config.ProjectIds = projectIDsStr
+					item.CommentType = info.CommentType
+					gitlabCache[info.ID] = item
+				}
 				gitlabCacheLock.Unlock()
 			}(info)
 			projectIDs = []string{}
@@ -88,4 +89,38 @@ func FindTokenByProjectID(projectID string, gitlabCache map[uint]dto.GitlabCache
 		}
 	}
 	return "", dto.GitlabCacheItem{}, false
+}
+
+// RefreshGitlabCache 刷新 GitLab 缓存
+func RefreshGitlabCache() error {
+	return InitGitlabCache()
+}
+
+// UpdateGitlabCacheItem 更新单个缓存项
+func UpdateGitlabCacheItem(id uint, info model.GitlabInfo) {
+	gitlabCacheLock.Lock()
+	defer gitlabCacheLock.Unlock()
+
+	var projectIDs []string
+	if info.ProjectIds != "" {
+		projectIDs = strings.Split(info.ProjectIds, ",")
+	}
+
+	gitlabCache[id] = dto.GitlabCacheItem{
+		Token:           info.Token,
+		Config:          info,
+		ProjectIDs:      projectIDs,
+		Prompt:          info.Prompt,
+		WebhookURL:      info.WebhookURL,
+		WebhookStatus:   info.WebhookStatus,
+		RuleCheckStatus: info.RuleCheckStatus,
+		CommentType:     info.CommentType,
+	}
+}
+
+// DeleteGitlabCacheItem 删除单个缓存项
+func DeleteGitlabCacheItem(id uint) {
+	gitlabCacheLock.Lock()
+	defer gitlabCacheLock.Unlock()
+	delete(gitlabCache, id)
 }

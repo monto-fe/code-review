@@ -10,5 +10,6 @@ func RegisterRoutes(r *gin.RouterGroup) {
 		gitlab.PUT("", UpdateGitlabToken)
 		gitlab.DELETE("", DeleteGitlabToken)
 		gitlab.GET("/token", GetGitlabTokenDetail)
+		gitlab.POST("/refresh", RefreshGitlabToken)
 	}
 }
