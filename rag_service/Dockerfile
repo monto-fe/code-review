@@ -17,8 +17,8 @@ ENV PYTHONUNBUFFERED=1 \
 ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple/
 ENV PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn
 
-# 安装 curl 用于健康检查
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# 安装系统依赖：curl 用于健康检查，git 用于 GitPython
+RUN apt-get update && apt-get install -y curl git && rm -rf /var/lib/apt/lists/*
 
 # 复制依赖文件
 COPY pyproject.toml ./
@@ -26,22 +26,32 @@ COPY pyproject.toml ./
 # 使用最保守的方式安装依赖
 RUN python -m pip install --upgrade "pip<24.0" --no-cache-dir --disable-pip-version-check --quiet
 
-# 逐个安装依赖，允许依赖解析
-RUN python -m pip install fastapi --no-cache-dir --disable-pip-version-check --quiet
-RUN python -m pip install uvicorn --no-cache-dir --disable-pip-version-check --quiet
-RUN python -m pip install python-dotenv --no-cache-dir --disable-pip-version-check --quiet
+# 安装基础依赖
+RUN python -m pip install fastapi uvicorn python-dotenv pydantic requests numpy --no-cache-dir --disable-pip-version-check --quiet
+
+# 安装 GitPython
 RUN python -m pip install gitpython --no-cache-dir --disable-pip-version-check --quiet
-RUN python -m pip install langchain --no-cache-dir --disable-pip-version-check --quiet
-RUN python -m pip install langchain-community --no-cache-dir --disable-pip-version-check --quiet
+
+# 安装 HuggingFace 相关依赖
+RUN python -m pip install huggingface-hub transformers --no-cache-dir --disable-pip-version-check --quiet
+
+# 安装 PyTorch
+RUN python -m pip install torch==2.1.2 torchvision==0.16.2 --no-cache-dir --disable-pip-version-check --quiet
+
+# 安装 sentence-transformers
 RUN python -m pip install sentence-transformers --no-cache-dir --disable-pip-version-check --quiet
+
+# 安装 FAISS
 RUN python -m pip install faiss-cpu --no-cache-dir --disable-pip-version-check --quiet
-RUN python -m pip install torch==2.1.2 --no-cache-dir --disable-pip-version-check --quiet
-RUN python -m pip install torchvision==0.16.2 --no-cache-dir --disable-pip-version-check --quiet
-RUN python -m pip install pydantic --no-cache-dir --disable-pip-version-check --quiet
-RUN python -m pip install huggingface-hub --no-cache-dir --disable-pip-version-check --quiet
+
+# 安装 LangChain 相关依赖
+RUN python -m pip install langchain==0.0.350 langchain-community==0.0.10 --no-cache-dir --disable-pip-version-check --quiet
 
 # 复制应用代码
 COPY . .
+
+# 创建必要的目录
+RUN mkdir -p /app/data /tmp/git_repos
 
 # 设置上海时区
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
