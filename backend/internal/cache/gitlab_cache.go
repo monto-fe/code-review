@@ -68,6 +68,40 @@ func InitGitlabCache() error {
 	return nil
 }
 
+// RefreshGitlabCache 刷新缓存
+func RefreshGitlabCache() error {
+	return InitGitlabCache()
+}
+
+// UpdateGitlabCacheItem 更新单个缓存项
+func UpdateGitlabCacheItem(id uint, info model.GitlabInfo) {
+	gitlabCacheLock.Lock()
+	defer gitlabCacheLock.Unlock()
+
+	var projectIDs []string
+	if info.ProjectIds != "" {
+		projectIDs = strings.Split(info.ProjectIds, ",")
+	}
+
+	gitlabCache[id] = dto.GitlabCacheItem{
+		Token:           info.Token,
+		Config:          info,
+		ProjectIDs:      projectIDs,
+		Prompt:          info.Prompt,
+		WebhookURL:      info.WebhookURL,
+		WebhookStatus:   info.WebhookStatus,
+		RuleCheckStatus: info.RuleCheckStatus,
+		CommentType:     info.CommentType,
+	}
+}
+
+// DeleteGitlabCacheItem 删除单个缓存项
+func DeleteGitlabCacheItem(id uint) {
+	gitlabCacheLock.Lock()
+	defer gitlabCacheLock.Unlock()
+	delete(gitlabCache, id)
+}
+
 // GetGitlabCache 获取缓存
 func GetGitlabCache() map[uint]dto.GitlabCacheItem {
 	gitlabCacheLock.RLock()

@@ -1,9 +1,8 @@
 import os
 from typing import List, Optional, Dict
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import FAISS
-# from langchain.embeddings import HuggingFaceEmbeddings  # 老写法，已弃用
-from langchain_huggingface import HuggingFaceEmbeddings  # 新写法
+from langchain_community.vectorstores import FAISS
+from langchain_community.embeddings import HuggingFaceEmbeddings
 # from langchain.chains import LLMChain
 # from langchain.prompts import PromptTemplate
 # from langchain.llms import OpenAI
@@ -163,9 +162,20 @@ def extract_files_from_diff(diff_content: str) -> List[str]:
             # 提取文件路径
             parts = line.split()
             if len(parts) >= 3:
+                # 从 "a/file.js b/file.js" 格式中提取文件路径
                 file_path = parts[2].replace('b/', '')
                 files.append(file_path)
-    return files
+        elif line.startswith('---') or line.startswith('+++'):
+            # 从 "--- a/file.js" 或 "+++ b/file.js" 格式中提取文件路径
+            if 'a/' in line:
+                file_path = line.split('a/')[-1].strip()
+                if file_path not in files:
+                    files.append(file_path)
+            elif 'b/' in line:
+                file_path = line.split('b/')[-1].strip()
+                if file_path not in files:
+                    files.append(file_path)
+    return list(set(files))  # 去重
 
 def extract_query_from_diff(diff_content: str) -> str:
     """
@@ -391,13 +401,26 @@ def analyze_gitlab_code(git_url: str, branch: str, diff_content: str, query: Opt
         if changed_files:
             for file_path in changed_files:
                 try:
-                    full_path = os.path.join(temp_dir, file_path)
-                    if os.path.exists(full_path):
-                        with open(full_path, 'r', encoding='utf-8') as f:
-                            branch_files[file_path] = f.read()
-                        print(f"读取文件: {file_path}")
-                    else:
-                        print(f"文件不存在: {file_path}")
+                    # 尝试多种可能的路径
+                    possible_paths = [
+                        os.path.join(temp_dir, file_path),
+                        os.path.join(temp_dir, file_path.replace('a/', '')),
+                        os.path.join(temp_dir, file_path.replace('b/', '')),
+                        os.path.join(temp_dir, os.path.basename(file_path))
+                    ]
+                    
+                    file_found = False
+                    for full_path in possible_paths:
+                        if os.path.exists(full_path):
+                            with open(full_path, 'r', encoding='utf-8') as f:
+                                branch_files[file_path] = f.read()
+                            print(f"读取文件: {file_path} (路径: {full_path})")
+                            file_found = True
+                            break
+                    
+                    if not file_found:
+                        print(f"文件不存在，尝试的路径: {possible_paths}")
+                        
                 except Exception as e:
                     print(f"读取文件 {file_path} 失败: {str(e)}")
                     continue
@@ -461,11 +484,19 @@ def analyze_gitlab_code(git_url: str, branch: str, diff_content: str, query: Opt
             
             # 尝试加载现有的向量存储，如果不存在则创建新的
             try:
-                vectorstore = FAISS.load_local(
-                    vector_store_path,
-                    embeddings,
-                    allow_dangerous_deserialization=True
-                )
+                # 尝试不同的加载方式
+                try:
+                    vectorstore = FAISS.load_local(
+                        vector_store_path,
+                        embeddings
+                    )
+                except TypeError:
+                    # 如果新版本不支持 allow_dangerous_deserialization 参数，尝试旧方式
+                    vectorstore = FAISS.load_local(
+                        vector_store_path,
+                        embeddings,
+                        allow_dangerous_deserialization=True
+                    )
                 print(f"从 {vector_store_path} 加载向量存储")
             except Exception as e:
                 print(f"加载向量存储失败: {str(e)}")

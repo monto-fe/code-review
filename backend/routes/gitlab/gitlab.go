@@ -1,6 +1,7 @@
 package gitlab
 
 import (
+	"code-review-go/internal/cache"
 	"code-review-go/internal/database"
 	"code-review-go/internal/dto"
 	"code-review-go/internal/model"
@@ -129,7 +130,7 @@ func DeleteGitlabToken(c *gin.Context) {
 
 // RefreshGitlabToken 刷新 Gitlab Token
 // @Summary 刷新 Gitlab Token
-// @Description 刷新所有 Gitlab Token
+// @Description 刷新所有 Gitlab Token 缓存
 // @Tags Gitlab
 // @Accept json
 // @Produce json
@@ -137,7 +138,13 @@ func DeleteGitlabToken(c *gin.Context) {
 // @Success 200 {object} response.Response
 // @Router /v1/gitlab/token/refresh [post]
 func RefreshGitlabToken(c *gin.Context) {
-	// TODO: 实现刷新 Gitlab Token 逻辑
+	// 刷新缓存
+	if err := cache.RefreshGitlabCache(); err != nil {
+		response.Error(c, err, "刷新缓存失败", 500)
+		return
+	}
+
+	response.Success(c, nil, "缓存刷新成功", 0)
 }
 
 // GetGitlabTokenDetail 获取 Gitlab Token 详情
