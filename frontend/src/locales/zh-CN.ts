@@ -35,7 +35,7 @@ export default {
   'page.user.login.form-item-username.required': '请输入用户名',
   'page.user.login.form-item-password': '密码: 12345678',
   'page.user.login.form-item-password.required': '请输入密码',
-  'page.user.login.form.title': '账户登录',
+  'page.user.login.form.title': 'Gitlab AI Code Review',
   'page.user.login.form.btn-submit': '登录',
   'page.user.login.form.btn-jump': '还没有账户？现在注册！',
   'page.user.login.form.login-error': '用户名或密码错误！',

@@ -53,7 +53,12 @@ const errorHandler = (error: any) => {
     const { url, baseURL } = config;
     const reqUrl = url.split('?')[0].replace(baseURL, '');
     const noVerifyBool = settings.ajaxResponseNoVerifyUrl.includes(reqUrl);
-    if (!noVerifyBool) {
+    
+    // 检查是否是获取用户信息的请求且没有token的情况
+    const hasToken = localStorage.getItem(settings.siteTokenKey);
+    const isUserInfoRequest = reqUrl === '/user/info' || reqUrl === '/userInfo';
+    
+    if (!noVerifyBool && !(isUserInfoRequest && !hasToken)) {
       if (!needLoginCodes.includes(data.ret_code)) {
         notification.error({
           message: `提示 (Tips)`,

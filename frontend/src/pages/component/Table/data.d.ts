@@ -29,6 +29,7 @@ export interface ITable<T> {
   filterFormItems?: ITableFilterItem[];
   scroll?: { x?: number; y?: number };
   reload?: Function;
+  rightToolsSlot?: React.ReactNode;
 }
 
 export interface ITableFilter {

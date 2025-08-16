@@ -26,6 +26,7 @@ function CommonTable<T extends AnyObject>(props: ITable<T>, ref: Ref<unknown> | 
     fuzzySearchPlaceholder,
     filterFormItems,
     scroll,
+    rightToolsSlot,
   } = props;
   const context = useContext(BasicContext) as any;
   const { i18nLocale } = context.storeContext;
@@ -85,6 +86,7 @@ function CommonTable<T extends AnyObject>(props: ITable<T>, ref: Ref<unknown> | 
 
   const rightTools = (
     <Space size='middle'>
+      {rightToolsSlot}
       <Tooltip title={<span>{t('app.form.refresh')}</span>}>
         <ReloadOutlined onClick={reload} />
       </Tooltip>
