@@ -6,10 +6,10 @@ import (
 	"code-review-go/internal/database"
 	"code-review-go/internal/dto"
 	"code-review-go/internal/model"
+	"code-review-go/internal/pkg/constants"
+	"code-review-go/internal/pkg/response"
 	"code-review-go/internal/pkg/utils"
 	"code-review-go/internal/service"
-
-	"code-review-go/internal/pkg/response"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,14 +26,14 @@ import (
 func Login(c *gin.Context) {
 	var loginReq dto.UserLoginRequest
 	if err := c.ShouldBindJSON(&loginReq); err != nil {
-		response.Error(c, err, "Invalid request parameters", 10001)
+		response.Error(c, err, "Invalid request parameters", int(constants.RetCodeInvalidParams))
 		return
 	}
 	userService := service.NewUserService(database.DB)
 	findData, err := userService.FindUserByUsername(loginReq.User, loginReq.Namespace)
 	hashedPassword := utils.HashPassword(loginReq.Password)
 	if err != nil || findData.Password != hashedPassword {
-		response.Error(c, err, "Invalid username or password", 10002)
+		response.Error(c, err, "Invalid username or password", int(constants.RetCodeInvalidCredentials))
 		return
 	}
 
@@ -45,7 +45,7 @@ func Login(c *gin.Context) {
 	jwtToken, err := userService.Login(loginParams)
 
 	if err != nil || jwtToken["jwtToken"] == "" {
-		response.Error(c, err, "Login failed", 10003)
+		response.Error(c, err, "Login failed", int(constants.RetCodeLoginFailed))
 		return
 	}
 
@@ -53,7 +53,7 @@ func Login(c *gin.Context) {
 	response.Success(c, gin.H{
 		"jwt_token": jwtToken["jwtToken"],
 		"user":      loginReq.User,
-	}, "Login successful", 0)
+	}, "Login successful", int(constants.RetCodeSuccess))
 }
 
 // GetUserList 获取用户列表
@@ -67,7 +67,7 @@ func Login(c *gin.Context) {
 func GetUserList(c *gin.Context) {
 	namespace := c.Query("namespace")
 	if namespace == "" {
-		response.Error(c, nil, "Namespace is required", 10001)
+		response.Error(c, nil, "Namespace is required", int(constants.RetCodeInvalidParams))
 		return
 	}
 
@@ -79,14 +79,14 @@ func GetUserList(c *gin.Context) {
 	}
 	userList, total, err := userService.GetUserList(query)
 	if err != nil {
-		response.Error(c, err, "Failed to get user list", 10004)
+		response.Error(c, err, "Failed to get user list", int(constants.RetCodeGetUserListFailed))
 		return
 	}
 
 	response.Success(c, gin.H{
 		"data":  userList,
 		"count": total,
-	}, "Success", 0)
+	}, "Success", int(constants.RetCodeSuccess))
 }
 
 // GetUserInfo 获取用户信息
@@ -108,25 +108,25 @@ func GetUserInfo(c *gin.Context) {
 	// 从请求头获取用户ID
 	userId := c.GetHeader("userId")
 	if userId == "" {
-		response.Error(c, nil, "User ID not found in request header", 10006)
+		response.Error(c, nil, "User ID not found in request header", int(constants.RetCodeOperatorMissing))
 		return
 	}
 
 	// 转换用户ID为uint
 	userIdUint, err := strconv.ParseUint(userId, 10, 32)
 	if err != nil {
-		response.Error(c, err, "Invalid user ID format", 10007)
+		response.Error(c, err, "Invalid user ID format", int(constants.RetCodeInvalidUserID))
 		return
 	}
 
 	// 获取用户信息和角色列表
 	result, err := userService.FindUserAndRoleByID(uint(userIdUint))
 	if err != nil {
-		response.Error(c, err, "Failed to get user info", 10005)
+		response.Error(c, err, "Failed to get user info", int(constants.RetCodeGetUserInfoFailed))
 		return
 	}
 
-	response.Success(c, result, "Success", 0)
+	response.Success(c, result, "Success", int(constants.RetCodeSuccess))
 }
 
 // CreateInnerUser 创建内部用户
@@ -145,13 +145,13 @@ func GetUserInfo(c *gin.Context) {
 func CreateInnerUser(c *gin.Context) {
 	var req dto.CreateInnerUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, err, "Invalid request parameters", 10001)
+		response.Error(c, err, "Invalid request parameters", int(constants.RetCodeInvalidParams))
 		return
 	}
 
 	operator := c.GetHeader("remoteUser")
 	if operator == "" {
-		response.Error(c, nil, "Operator not found in request header", 10006)
+		response.Error(c, nil, "Operator not found in request header", int(constants.RetCodeOperatorMissing))
 		return
 	}
 
@@ -160,11 +160,11 @@ func CreateInnerUser(c *gin.Context) {
 	// 检查用户是否已存在
 	exists, err := userService.CheckUsernameExists(req.Namespace, req.User)
 	if err != nil {
-		response.Error(c, err, "Failed to check user existence", 10009)
+		response.Error(c, err, "Failed to check user existence", int(constants.RetCodeCheckUserExistenceFailed))
 		return
 	}
 	if exists {
-		response.Error(c, nil, "User already exists", 10010)
+		response.Error(c, nil, "User already exists", int(constants.RetCodeUserAlreadyExists))
 		return
 	}
 
@@ -183,11 +183,11 @@ func CreateInnerUser(c *gin.Context) {
 
 	result, err := userService.CreateInnerUser(createParams)
 	if err != nil {
-		response.Error(c, err, "Failed to create user", 10011)
+		response.Error(c, err, "Failed to create user", int(constants.RetCodeUserOperationFailed))
 		return
 	}
 
-	response.Success(c, result, "User created successfully", 0)
+	response.Success(c, result, "User created successfully", int(constants.RetCodeSuccess))
 }
 
 // UpdateInnerUser 更新内部用户
@@ -206,13 +206,13 @@ func CreateInnerUser(c *gin.Context) {
 func UpdateInnerUser(c *gin.Context) {
 	var req dto.UpdateInnerUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, err, "Invalid request parameters", 10001)
+		response.Error(c, err, "Invalid request parameters", int(constants.RetCodeInvalidParams))
 		return
 	}
 
 	operator := c.GetHeader("remoteUser")
 	if operator == "" {
-		response.Error(c, nil, "Operator not found in request header", 10006)
+		response.Error(c, nil, "Operator not found in request header", int(constants.RetCodeOperatorMissing))
 		return
 	}
 
@@ -221,11 +221,11 @@ func UpdateInnerUser(c *gin.Context) {
 	// 检查用户是否存在
 	exists, err := userService.CheckUsernameExists(req.Namespace, req.User)
 	if err != nil {
-		response.Error(c, err, "Failed to check user existence", 10009)
+		response.Error(c, err, "Failed to check user existence", int(constants.RetCodeCheckUserExistenceFailed))
 		return
 	}
 	if !exists {
-		response.Error(c, nil, "User not found", 10010)
+		response.Error(c, nil, "User not found", int(constants.RetCodeUserAlreadyExists))
 		return
 	}
 
@@ -244,11 +244,11 @@ func UpdateInnerUser(c *gin.Context) {
 	}
 
 	if err := userService.UpdateInnerUser(updateReq); err != nil {
-		response.Error(c, err, "Failed to update user", 10011)
+		response.Error(c, err, "Failed to update user", int(constants.RetCodeUserOperationFailed))
 		return
 	}
 
-	response.Success(c, nil, "User updated successfully", 0)
+	response.Success(c, nil, "User updated successfully", int(constants.RetCodeSuccess))
 }
 
 // DeleteUser 删除用户
@@ -267,15 +267,15 @@ func UpdateInnerUser(c *gin.Context) {
 func DeleteUser(c *gin.Context) {
 	var req dto.DeleteUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, err, "参数错误", 400)
+		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
 		return
 	}
 
 	userService := service.NewUserService(database.DB)
 	if err := userService.DeleteUser(req.ID, req.Namespace, req.User); err != nil {
-		response.Error(c, err, "Failed to delete user", 10013)
+		response.Error(c, err, "Failed to delete user", int(constants.RetCodeDeleteUserFailed))
 		return
 	}
 
-	response.Success(c, nil, "User deleted successfully", 0)
+	response.Success(c, nil, "User deleted successfully", int(constants.RetCodeSuccess))
 }

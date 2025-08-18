@@ -731,3 +731,26 @@ func (s *GitlabService) GetGitlabTokenDetail(id uint) (*model.GitlabInfo, error)
 	gitlabInfo.Token = ""
 	return &gitlabInfo, nil
 }
+
+// GetGitlabTokenProjects 获取Gitlab Token项目信息列表
+// 只返回ID、Name和ProjectIds字段，全量拉取不分页
+func (s *GitlabService) GetGitlabTokenProjects() ([]dto.GitlabTokenProjectResponse, error) {
+	var gitlabList []model.GitlabInfo
+
+	// 只查询需要的字段，提高性能
+	if err := s.db.Select("id, name, project_ids").Find(&gitlabList).Error; err != nil {
+		return nil, err
+	}
+
+	// 转换为响应模型
+	responseList := make([]dto.GitlabTokenProjectResponse, len(gitlabList))
+	for i, info := range gitlabList {
+		responseList[i] = dto.GitlabTokenProjectResponse{
+			ID:         info.ID,
+			Name:       info.Name,
+			ProjectIds: info.ProjectIds,
+		}
+	}
+
+	return responseList, nil
+}

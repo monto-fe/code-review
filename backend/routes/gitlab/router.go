@@ -11,5 +11,6 @@ func RegisterRoutes(r *gin.RouterGroup) {
 		gitlab.DELETE("", DeleteGitlabToken)
 		gitlab.GET("/token", GetGitlabTokenDetail)
 		gitlab.POST("/token/refresh", RefreshGitlabToken)
+		gitlab.GET("/token/projects", GetGitlabTokenProjects) // 新增：获取Token项目信息列表
 	}
 }

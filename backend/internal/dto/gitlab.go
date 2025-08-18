@@ -46,3 +46,15 @@ type GitlabCacheItem struct {
 	// 评论类型：0-普通评论，1-行级评论
 	CommentType int8
 }
+
+// GitlabTokenProjectResponse Gitlab Token项目信息响应
+type GitlabTokenProjectResponse struct {
+	ID         uint   `json:"id"`          // Token ID
+	Name       string `json:"name"`        // Token名称
+	ProjectIds string `json:"project_ids"` // 项目ID列表
+}
+
+// GitlabTokenProjectListResponse Gitlab Token项目信息列表响应
+type GitlabTokenProjectListResponse struct {
+	Data []GitlabTokenProjectResponse `json:"data"` // Token项目信息列表
+}

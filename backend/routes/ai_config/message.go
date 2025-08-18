@@ -4,6 +4,7 @@ import (
 	"code-review-go/internal/database"
 	"code-review-go/internal/dto"
 	"code-review-go/internal/model"
+	"code-review-go/internal/pkg/constants"
 	"code-review-go/internal/pkg/response"
 	"code-review-go/internal/service"
 	"strconv"
@@ -18,43 +19,47 @@ func getAIMessageService() *service.AIMessageService {
 
 // GetAIMessage 获取AI Code Review列表
 // @Summary 获取AI Code Review列表
-// @Description 获取AI代码审查记录列表
+// @Description 获取AI代码审查记录列表，支持多种筛选条件
 // @Tags AI Code Review
 // @Accept json
 // @Produce json
 // @Param jwt_token header string true "JWT认证Token"
-// @Param project_id query int false "项目ID"
-// @Param id query int false "审查记录ID"
-// @Param current query int false "当前页码" default(1)
-// @Param page_size query int false "每页数量" default(10)
+// @Param request body dto.AIMessageListRequest true "查询参数" example:"{\"current\":1,\"page_size\":20,\"start_date\":\"1703001600\",\"end_date\":\"1705680000\",\"project_ids\":[1,2,3],\"human_ratings\":[1,2],\"project_namespaces\":[\"frontend\",\"backend\"]}"
 // @Success 200 {object} response.Response{data=dto.AIMessageListResponse}
-// @Router /v1/ai/message [get]
+// @Router /v1/ai/message/list [post]
 func GetAIMessage(c *gin.Context) {
 	var req dto.AIMessageListRequest
-	if err := c.ShouldBindQuery(&req); err != nil {
-		response.Error(c, err, "参数错误", 400)
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
 		return
 	}
 
 	// 转换参数
 	params := make(map[string]interface{})
-	if req.ProjectID > 0 {
-		params["projectId"] = req.ProjectID
-	}
+
+	// 基础筛选参数
 	if req.ID > 0 {
 		params["id"] = req.ID
 	}
-	if req.ProjectNamespace != "" {
-		params["projectNamespace"] = req.ProjectNamespace
-	}
-	if req.ProjectName != "" {
-		params["projectName"] = req.ProjectName
-	}
-	if req.CreateTime > 0 {
-		params["createTime"] = req.CreateTime
-	}
 	if req.Passed != 0 {
 		params["passed"] = req.Passed
+	}
+
+	// 新增筛选参数
+	if req.StartDate != "" {
+		params["startDate"] = req.StartDate
+	}
+	if req.EndDate != "" {
+		params["endDate"] = req.EndDate
+	}
+	if len(req.ProjectIDs) > 0 {
+		params["projectIDs"] = req.ProjectIDs
+	}
+	if len(req.HumanRatings) > 0 {
+		params["humanRatings"] = req.HumanRatings
+	}
+	if len(req.ProjectNamespaces) > 0 {
+		params["projectNamespaces"] = req.ProjectNamespaces
 	}
 
 	// 计算分页参数
@@ -70,14 +75,14 @@ func GetAIMessage(c *gin.Context) {
 	// 获取服务实例并查询数据
 	rows, total, err := getAIMessageService().GetAIMessage(params)
 	if err != nil {
-		response.Error(c, err, "获取AI消息列表失败", 500)
+		response.Error(c, err, "获取AI消息列表失败", int(constants.RetCodeInternalError))
 		return
 	}
 
 	response.Success(c, dto.AIMessageListResponse{
 		Data:  rows,
 		Count: total,
-	}, "获取成功", 0)
+	}, "获取成功", int(constants.RetCodeSuccess))
 }
 
 // CreateAIMessage 创建AI Code Review记录
@@ -93,7 +98,7 @@ func GetAIMessage(c *gin.Context) {
 func CreateAIMessage(c *gin.Context) {
 	var req dto.AIMessageCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, err, "参数错误", 400)
+		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
 		return
 	}
 
@@ -112,14 +117,14 @@ func CreateAIMessage(c *gin.Context) {
 	// 获取服务实例并创建数据
 	id, err := getAIMessageService().CreateAIMessage(aiMessage)
 	if err != nil {
-		response.Error(c, err, "创建AI消息失败", 500)
+		response.Error(c, err, "创建AI消息失败", int(constants.RetCodeInternalError))
 		return
 	}
 
 	response.Success(c, dto.AIMessageCreateResponse{
 		ID:       id,
 		Comments: req.Result,
-	}, "创建成功", 0)
+	}, "创建成功", int(constants.RetCodeSuccess))
 }
 
 // UpdateAIMessage 更新AI Code Review记录
@@ -135,7 +140,7 @@ func CreateAIMessage(c *gin.Context) {
 func UpdateAIMessage(c *gin.Context) {
 	var req dto.AIMessageUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, err, "参数错误", 400)
+		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
 		return
 	}
 
@@ -146,11 +151,11 @@ func UpdateAIMessage(c *gin.Context) {
 		Remark:      req.Remark,
 	})
 	if err != nil {
-		response.Error(c, err, "更新AI消息失败", 500)
+		response.Error(c, err, "更新AI消息失败", int(constants.RetCodeInternalError))
 		return
 	}
 
-	response.Success(c, nil, "更新成功", 0)
+	response.Success(c, nil, "更新成功", int(constants.RetCodeSuccess))
 }
 
 // GetCheckCount 获取检查数量
@@ -172,7 +177,7 @@ func GetCheckCount(c *gin.Context) {
 	// 检查t_message表中，passed为false的记录，统计每个项目的数量，查询最近30天的数据
 	var req dto.CheckCountRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.Error(c, err, "参数错误", 400)
+		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
 		return
 	}
 	// 检查开始时间和结束时间是否存在，查询对应的范围
@@ -185,13 +190,13 @@ func GetCheckCount(c *gin.Context) {
 
 	total, err := getAIMessageService().GetCheckCount(req)
 	if err != nil {
-		response.Error(c, err, "获取失败", 500)
+		response.Error(c, err, "获取失败", int(constants.RetCodeInternalError))
 		return
 	}
 
 	response.Success(c, dto.CheckCountResponse{
 		Count: int(total),
-	}, "获取成功", 0)
+	}, "获取成功", int(constants.RetCodeSuccess))
 }
 
 // GetProblemChart 获取问题图表
@@ -213,7 +218,7 @@ func GetProblemChart(c *gin.Context) {
 	// 检查t_message表中，passed为false的记录，统计每个项目的数量，查询最近30天的数据
 	var req dto.AIProblemCountRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.Error(c, err, "参数错误", 400)
+		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
 		return
 	}
 	// 检查开始时间和结束时间是否存在，查询对应的范围
@@ -226,9 +231,65 @@ func GetProblemChart(c *gin.Context) {
 	// 拉取最近30天的数据
 	rows, err := getAIMessageService().GetProblemChart(req)
 	if err != nil {
-		response.Error(c, err, "获取失败", 500)
+		response.Error(c, err, "获取失败", int(constants.RetCodeInternalError))
 		return
 	}
 
-	response.Success(c, rows, "获取成功", 0)
+	response.Success(c, rows, "获取成功", int(constants.RetCodeSuccess))
+}
+
+// GetProjectNamespaceList 获取项目命名空间列表
+// @Summary 获取项目命名空间列表
+// @Description 获取所有AI消息中的项目命名空间列表（去重），支持时间段筛选，最大允许查询31天的数据
+// @Tags AI Code Review
+// @Accept json
+// @Produce json
+// @Param jwt_token header string true "JWT认证Token"
+// @Param start_time query int false "开始时间戳"
+// @Param end_time query int false "结束时间戳"
+// @Success 200 {object} response.Response{data=dto.ProjectNamespaceListResponse}
+// @Router /v1/ai/project-namespaces [get]
+func GetProjectNamespaceList(c *gin.Context) {
+	var req dto.ProjectNamespaceListRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
+		return
+	}
+
+	// 验证时间段参数
+	now := time.Now().Unix()
+
+	// 如果没有指定开始时间，默认查询最近31天
+	if req.StartTime == 0 {
+		req.StartTime = now - 31*24*3600 // 31天前
+	}
+
+	// 如果没有指定结束时间，默认使用当前时间
+	if req.EndTime == 0 {
+		req.EndTime = now
+	}
+
+	// 验证时间范围，最大允许查询31天
+	maxDuration := int64(31 * 24 * 3600) // 31天的秒数
+	if req.EndTime-req.StartTime > maxDuration {
+		response.Error(c, nil, "查询时间范围不能超过31天", int(constants.RetCodeBadRequest))
+		return
+	}
+
+	// 验证时间逻辑
+	if req.StartTime >= req.EndTime {
+		response.Error(c, nil, "开始时间必须小于结束时间", int(constants.RetCodeBadRequest))
+		return
+	}
+
+	// 获取服务实例并查询数据
+	projectNamespaces, err := getAIMessageService().GetProjectNamespaceList(req.StartTime, req.EndTime)
+	if err != nil {
+		response.Error(c, err, "获取项目命名空间列表失败", int(constants.RetCodeInternalError))
+		return
+	}
+
+	response.Success(c, dto.ProjectNamespaceListResponse{
+		Data: projectNamespaces,
+	}, "获取成功", int(constants.RetCodeSuccess))
 }

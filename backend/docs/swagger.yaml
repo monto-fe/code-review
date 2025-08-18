@@ -98,6 +98,8 @@ definitions:
         description: 更新时间
         type: integer
     type: object
+  dto.AIMessageListRequest:
+    type: object
   dto.AIMessageListResponse:
     properties:
       count:
@@ -185,6 +187,26 @@ definitions:
     required:
     - id
     type: object
+  dto.GitlabTokenProjectListResponse:
+    properties:
+      data:
+        description: Token项目信息列表
+        items:
+          $ref: '#/definitions/dto.GitlabTokenProjectResponse'
+        type: array
+    type: object
+  dto.GitlabTokenProjectResponse:
+    properties:
+      id:
+        description: Token ID
+        type: integer
+      name:
+        description: Token名称
+        type: string
+      project_ids:
+        description: 项目ID列表
+        type: string
+    type: object
   dto.HumanRatingStat:
     properties:
       count:
@@ -234,6 +256,23 @@ definitions:
         type: string
       path_with_namespace:
         type: string
+    type: object
+  dto.ProjectNamespaceItem:
+    properties:
+      project_id:
+        description: 项目ID
+        type: integer
+      project_namespace:
+        description: 项目命名空间
+        type: string
+    type: object
+  dto.ProjectNamespaceListResponse:
+    properties:
+      data:
+        description: 项目命名空间列表
+        items:
+          $ref: '#/definitions/dto.ProjectNamespaceItem'
+        type: array
     type: object
   dto.Resource:
     properties:
@@ -411,7 +450,7 @@ definitions:
       api:
         type: string
       comment_type:
-        description: '0: 普通评论, 1: 行级评论'
+        description: '1: 普通评论, 2: 行级评论'
         type: integer
       create_time:
         type: integer
@@ -458,7 +497,7 @@ definitions:
       api:
         type: string
       comment_type:
-        description: '0: 普通评论, 1: 行级评论'
+        description: '1: 普通评论, 2: 行级评论'
         type: integer
       expired:
         type: integer
@@ -757,49 +796,6 @@ paths:
       tags:
       - AI Code Review
   /v1/ai/message:
-    get:
-      consumes:
-      - application/json
-      description: 获取AI代码审查记录列表
-      parameters:
-      - description: JWT认证Token
-        in: header
-        name: jwt_token
-        required: true
-        type: string
-      - description: 项目ID
-        in: query
-        name: project_id
-        type: integer
-      - description: 审查记录ID
-        in: query
-        name: id
-        type: integer
-      - default: 1
-        description: 当前页码
-        in: query
-        name: current
-        type: integer
-      - default: 10
-        description: 每页数量
-        in: query
-        name: page_size
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/dto.AIMessageListResponse'
-              type: object
-      summary: 获取AI Code Review列表
-      tags:
-      - AI Code Review
     post:
       consumes:
       - application/json
@@ -855,6 +851,72 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
       summary: 更新AI Code Review记录
+      tags:
+      - AI Code Review
+  /v1/ai/message/list:
+    post:
+      consumes:
+      - application/json
+      description: 获取AI代码审查记录列表，支持多种筛选条件
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 查询参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AIMessageListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AIMessageListResponse'
+              type: object
+      summary: 获取AI Code Review列表
+      tags:
+      - AI Code Review
+  /v1/ai/project-namespaces:
+    get:
+      consumes:
+      - application/json
+      description: 获取所有AI消息中的项目命名空间列表（去重），支持时间段筛选，最大允许查询31天的数据
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 开始时间戳
+        in: query
+        name: start_time
+        type: integer
+      - description: 结束时间戳
+        in: query
+        name: end_time
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ProjectNamespaceListResponse'
+              type: object
+      summary: 获取项目命名空间列表
       tags:
       - AI Code Review
   /v1/gitlab:
@@ -982,11 +1044,37 @@ paths:
       summary: 获取 Gitlab Token 详情
       tags:
       - Gitlab
+  /v1/gitlab/token/projects:
+    get:
+      consumes:
+      - application/json
+      description: 获取所有Gitlab Token的名称和对应的ProjectIds，全量拉取不分页
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.GitlabTokenProjectListResponse'
+              type: object
+      summary: 获取Gitlab Token项目信息列表
+      tags:
+      - Gitlab管理
   /v1/gitlab/token/refresh:
     post:
       consumes:
       - application/json
-      description: 刷新所有 Gitlab Token
+      description: 刷新所有 Gitlab Token 缓存
       parameters:
       - description: JWT认证Token
         in: header

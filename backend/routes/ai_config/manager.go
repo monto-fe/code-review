@@ -2,6 +2,7 @@ package ai_config
 
 import (
 	"code-review-go/internal/database"
+	"code-review-go/internal/pkg/constants"
 	"code-review-go/internal/pkg/response"
 	"code-review-go/internal/service"
 
@@ -21,8 +22,8 @@ func GetAIManagerList(c *gin.Context) {
 	managerService := service.NewAIManagerService(database.DB)
 	managers, err := managerService.GetManagerList()
 	if err != nil {
-		response.Error(c, err, "获取AI管理器列表失败", 500)
+		response.Error(c, err, "获取AI管理器列表失败", int(constants.RetCodeInternalError))
 		return
 	}
-	response.Success(c, managers, "获取成功", 0)
+	response.Success(c, managers, "获取成功", int(constants.RetCodeSuccess))
 }

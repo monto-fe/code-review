@@ -4,6 +4,7 @@ import (
 	"code-review-go/internal/database"
 	"code-review-go/internal/dto"
 	"code-review-go/internal/model"
+	"code-review-go/internal/pkg/constants"
 	"code-review-go/internal/pkg/response"
 	"code-review-go/internal/service"
 
@@ -22,19 +23,19 @@ import (
 func GetResourceList(c *gin.Context) {
 	var req model.ResourceQuery
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.Error(c, err, "参数错误", 400)
+		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
 		return
 	}
 	resourceService := service.NewResourceService(database.GetDB())
 	resources, total, err := resourceService.GetResourceList(req)
 	if err != nil {
-		response.Error(c, err, "获取资源列表失败", 500)
+		response.Error(c, err, "获取资源列表失败", int(constants.RetCodeInternalError))
 		return
 	}
 	response.Success(c, map[string]interface{}{
 		"data":  resources,
 		"total": total,
-	}, "获取成功", 0)
+	}, "获取成功", int(constants.RetCodeSuccess))
 }
 
 // CreateResource 创建资源
@@ -50,16 +51,16 @@ func GetResourceList(c *gin.Context) {
 func CreateResource(c *gin.Context) {
 	var req model.ResourceReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, err, "参数错误", 400)
+		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
 		return
 	}
 	resourceService := service.NewResourceService(database.GetDB())
 	resource, err := resourceService.Create(&req)
 	if err != nil {
-		response.Error(c, err, "创建资源失败", 500)
+		response.Error(c, err, "创建资源失败", int(constants.RetCodeInternalError))
 		return
 	}
-	response.Success(c, resource, "创建成功", 0)
+	response.Success(c, resource, "创建成功", int(constants.RetCodeSuccess))
 }
 
 // UpdateResource 更新资源
@@ -75,15 +76,15 @@ func CreateResource(c *gin.Context) {
 func UpdateResource(c *gin.Context) {
 	var resource dto.UpdateResourceReq
 	if err := c.ShouldBindJSON(&resource); err != nil {
-		response.Error(c, err, "参数错误", 400)
+		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
 		return
 	}
 	resourceService := service.NewResourceService(database.GetDB())
 	if err := resourceService.Update(&resource); err != nil {
-		response.Error(c, err, "更新资源失败", 500)
+		response.Error(c, err, "更新资源失败", int(constants.RetCodeInternalError))
 		return
 	}
-	response.Success(c, resource, "更新成功", 0)
+	response.Success(c, resource, "更新成功", int(constants.RetCodeSuccess))
 }
 
 // DeleteResource 删除资源
@@ -100,13 +101,13 @@ func DeleteResource(c *gin.Context) {
 		ID uint `json:"id" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil || req.ID == 0 {
-		response.Error(c, err, "参数错误", 400)
+		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
 		return
 	}
 	resourceService := service.NewResourceService(database.GetDB())
 	if err := resourceService.DeleteSelf(req.ID); err != nil {
-		response.Error(c, err, "删除资源失败", 500)
+		response.Error(c, err, "删除资源失败", int(constants.RetCodeInternalError))
 		return
 	}
-	response.Success(c, nil, "删除成功", 0)
+	response.Success(c, nil, "删除成功", int(constants.RetCodeSuccess))
 }

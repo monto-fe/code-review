@@ -33,24 +33,43 @@ func (s *AIMessageService) GetAIMessage(params map[string]interface{}) ([]dto.AI
 
 	query := s.db.Model(&model.AImessage{})
 
-	// 添加查询条件
-	if projectID, ok := params["projectId"].(uint); ok && projectID > 0 {
-		query = query.Where("project_id = ?", projectID)
-	}
+	// 基础筛选条件
 	if id, ok := params["id"].(uint); ok && id > 0 {
 		query = query.Where("id = ?", id)
 	}
-	if projectNamespace, ok := params["projectNamespace"].(string); ok && projectNamespace != "" {
-		query = query.Where("project_namespace = ?", projectNamespace)
-	}
-	if projectName, ok := params["projectName"].(string); ok && projectName != "" {
-		query = query.Where("project_name = ?", projectName)
-	}
-	if createTime, ok := params["createTime"].(int64); ok && createTime > 0 {
-		query = query.Where("create_time >= ?", createTime)
-	}
 	if passed, ok := params["passed"].(int); ok {
 		query = query.Where("passed = ?", passed)
+	}
+
+	// 时间范围筛选（精确到年月日）
+	if startDate, ok := params["startDate"].(string); ok && startDate != "" {
+		// 将日期转换为时间戳，设置为当天开始时间 (00:00:00)
+		if startTime, err := time.Parse("2006-01-02", startDate); err == nil {
+			startTimestamp := startTime.Unix()
+			query = query.Where("create_time >= ?", startTimestamp)
+		}
+	}
+	if endDate, ok := params["endDate"].(string); ok && endDate != "" {
+		// 将日期转换为时间戳，设置为当天结束时间 (23:59:59)
+		if endTime, err := time.Parse("2006-01-02", endDate); err == nil {
+			endTimestamp := endTime.Add(24*time.Hour - time.Second).Unix()
+			query = query.Where("create_time <= ?", endTimestamp)
+		}
+	}
+
+	// 项目ID多选筛选
+	if projectIDs, ok := params["projectIDs"].([]uint); ok && len(projectIDs) > 0 {
+		query = query.Where("project_id IN ?", projectIDs)
+	}
+
+	// 人工评分多选筛选
+	if humanRatings, ok := params["humanRatings"].([]int8); ok && len(humanRatings) > 0 {
+		query = query.Where("human_rating IN ?", humanRatings)
+	}
+
+	// 项目命名空间多选筛选
+	if projectNamespaces, ok := params["projectNamespaces"].([]string); ok && len(projectNamespaces) > 0 {
+		query = query.Where("project_namespace IN ?", projectNamespaces)
 	}
 
 	// 获取总数
@@ -230,4 +249,44 @@ func (s *AIMessageService) GetProblemChart(req dto.AIProblemCountRequest) ([]dto
 	}
 
 	return resp, nil
+}
+
+// GetProjectNamespaceList 获取项目命名空间列表（去重）
+// 使用DISTINCT查询优化性能，避免全表扫描
+// 支持时间段筛选，最大允许查询31天的数据
+func (s *AIMessageService) GetProjectNamespaceList(startTime, endTime int64) ([]dto.ProjectNamespaceItem, error) {
+	var results []struct {
+		ProjectID        uint   `json:"project_id"`
+		ProjectNamespace string `json:"project_namespace"`
+	}
+
+	query := s.db.Model(&model.AImessage{})
+
+	// 添加时间段筛选条件
+	if startTime > 0 {
+		query = query.Where("create_time >= ?", startTime)
+	}
+	if endTime > 0 {
+		query = query.Where("create_time <= ?", endTime)
+	}
+
+	// 使用DISTINCT查询，只选择需要的字段，提高查询效率
+	err := query.Select("DISTINCT project_id, project_namespace").
+		Order("project_id ASC, project_namespace ASC").
+		Scan(&results).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	// 转换为响应模型
+	responseList := make([]dto.ProjectNamespaceItem, len(results))
+	for i, result := range results {
+		responseList[i] = dto.ProjectNamespaceItem{
+			ProjectID:        result.ProjectID,
+			ProjectNamespace: result.ProjectNamespace,
+		}
+	}
+
+	return responseList, nil
 }

@@ -35,14 +35,20 @@ type AIMessageCreateResponse struct {
 
 // AIMessageListRequest AI消息列表请求
 type AIMessageListRequest struct {
-	ProjectNamespace string `form:"project_namespace"` // 项目组
-	ProjectName      string `form:"project_name"`      // 项目名称
-	Passed           int    `form:"passed"`            // 是否通过 -1未通过 1通过
-	CreateTime       int64  `form:"create_time"`       // 创建时间
-	ProjectID        uint   `form:"project_id"`        // 项目ID
-	ID               uint   `form:"id"`                // 消息ID
-	Current          int    `form:"current"`           // 当前页码
-	PageSize         int    `form:"page_size"`         // 每页数量
+	// 基础参数
+	Current  int `json:"current" example:"1"`    // 当前页码
+	PageSize int `json:"page_size" example:"20"` // 每页数量
+
+	// 筛选参数
+	ID     uint `json:"id" example:"0"`     // 审查记录ID筛选
+	Passed int  `json:"passed" example:"0"` // 是否通过 -1未通过 1通过
+
+	// 新增筛选参数
+	StartDate         string   `json:"start_date" example:"1703001600"`                         // 开始日期 (时间戳，秒级别)
+	EndDate           string   `json:"end_date" example:"1705680000"`                           // 结束日期 (时间戳，秒级别)
+	ProjectIDs        []uint   `json:"project_ids" example:"[1,2,3]"`                           // 项目ID列表，支持多选
+	HumanRatings      []int8   `json:"human_ratings" example:"[1,2]"`                           // 人工评分列表，支持多选
+	ProjectNamespaces []string `json:"project_namespaces" example:"[\"frontend\",\"backend\"]"` // 项目命名空间列表，支持多选
 }
 
 // AIMessageListResponse AI消息列表响应
@@ -109,6 +115,23 @@ type HumanRatingStat struct {
 type AIProblemCountResponse struct {
 	Data   []HumanRatingStat `json:"data"`
 	Period string            `json:"period"`
+}
+
+// ProjectNamespaceItem 项目命名空间项
+type ProjectNamespaceItem struct {
+	ProjectID        uint   `json:"project_id"`        // 项目ID
+	ProjectNamespace string `json:"project_namespace"` // 项目命名空间
+}
+
+// ProjectNamespaceListRequest 项目命名空间列表请求
+type ProjectNamespaceListRequest struct {
+	StartTime int64 `form:"start_time"` // 开始时间戳
+	EndTime   int64 `form:"end_time"`   // 结束时间戳
+}
+
+// ProjectNamespaceListResponse 项目命名空间列表响应
+type ProjectNamespaceListResponse struct {
+	Data []ProjectNamespaceItem `json:"data"` // 项目命名空间列表
 }
 
 type AIMessageWrite struct {

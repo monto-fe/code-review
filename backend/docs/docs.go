@@ -408,74 +408,6 @@ const docTemplate = `{
             }
         },
         "/v1/ai/message": {
-            "get": {
-                "description": "获取AI代码审查记录列表",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "AI Code Review"
-                ],
-                "summary": "获取AI Code Review列表",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "JWT认证Token",
-                        "name": "jwt_token",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "项目ID",
-                        "name": "project_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "审查记录ID",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "当前页码",
-                        "name": "current",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "每页数量",
-                        "name": "page_size",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/dto.AIMessageListResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
             "put": {
                 "description": "更新AI代码审查记录的人工评分和备注",
                 "consumes": [
@@ -558,6 +490,115 @@ const docTemplate = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/dto.AIMessageCreateResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/ai/message/list": {
+            "post": {
+                "description": "获取AI代码审查记录列表，支持多种筛选条件",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI Code Review"
+                ],
+                "summary": "获取AI Code Review列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "查询参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AIMessageListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.AIMessageListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/ai/project-namespaces": {
+            "get": {
+                "description": "获取所有AI消息中的项目命名空间列表（去重），支持时间段筛选，最大允许查询31天的数据",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI Code Review"
+                ],
+                "summary": "获取项目命名空间列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "开始时间戳",
+                        "name": "start_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "结束时间戳",
+                        "name": "end_time",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.ProjectNamespaceListResponse"
                                         }
                                     }
                                 }
@@ -716,9 +757,53 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/gitlab/token/projects": {
+            "get": {
+                "description": "获取所有Gitlab Token的名称和对应的ProjectIds，全量拉取不分页",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gitlab管理"
+                ],
+                "summary": "获取Gitlab Token项目信息列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.GitlabTokenProjectListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/v1/gitlab/token/refresh": {
             "post": {
-                "description": "刷新所有 Gitlab Token",
+                "description": "刷新所有 Gitlab Token 缓存",
                 "consumes": [
                     "application/json"
                 ],
@@ -1404,6 +1489,9 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.AIMessageListRequest": {
+            "type": "object"
+        },
         "dto.AIMessageListResponse": {
             "type": "object",
             "properties": {
@@ -1533,6 +1621,35 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.GitlabTokenProjectListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "Token项目信息列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.GitlabTokenProjectResponse"
+                    }
+                }
+            }
+        },
+        "dto.GitlabTokenProjectResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "Token ID",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "Token名称",
+                    "type": "string"
+                },
+                "project_ids": {
+                    "description": "项目ID列表",
+                    "type": "string"
+                }
+            }
+        },
         "dto.HumanRatingStat": {
             "type": "object",
             "properties": {
@@ -1607,6 +1724,31 @@ const docTemplate = `{
                 },
                 "path_with_namespace": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.ProjectNamespaceItem": {
+            "type": "object",
+            "properties": {
+                "project_id": {
+                    "description": "项目ID",
+                    "type": "integer"
+                },
+                "project_namespace": {
+                    "description": "项目命名空间",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ProjectNamespaceListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "项目命名空间列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ProjectNamespaceItem"
+                    }
                 }
             }
         },
@@ -1871,7 +2013,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "comment_type": {
-                    "description": "0: 普通评论, 1: 行级评论",
+                    "description": "1: 普通评论, 2: 行级评论",
                     "type": "integer"
                 },
                 "create_time": {
@@ -1946,7 +2088,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "comment_type": {
-                    "description": "0: 普通评论, 1: 行级评论",
+                    "description": "1: 普通评论, 2: 行级评论",
                     "type": "integer"
                 },
                 "expired": {
