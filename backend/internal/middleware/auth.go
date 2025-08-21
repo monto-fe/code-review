@@ -7,7 +7,6 @@ import (
 	"code-review-go/internal/pkg/constants"
 	"code-review-go/internal/pkg/response"
 	"code-review-go/internal/pkg/utils"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -39,40 +38,42 @@ func AuthenticateJWT() gin.HandlerFunc {
 		}
 
 		// 检查Token是否存在
-		token := c.GetHeader("Authorization")
+		token := c.GetHeader("jwt_token")
 		if token == "" {
 			response.Error(c, nil, "Token is required", int(constants.RetCodeTokenMissing))
 			c.Abort()
 			return
 		}
 
-		// 验证Token格式
-		if !strings.HasPrefix(token, "Bearer ") {
-			response.Error(c, nil, "Invalid token", int(constants.RetCodeInvalidToken))
-			c.Abort()
-			return
-		}
-
-		// 提取Token值
-		tokenValue := strings.TrimPrefix(token, "Bearer ")
-
 		// 验证Token
-		claims, err := utils.CheckSignToken(tokenValue, utils.TokenSecretKey)
+		tokenClaims, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			return TokenSecretKey, nil
+		})
+
 		if err != nil {
 			response.Error(c, err, "Invalid token", int(constants.RetCodeInvalidToken))
 			c.Abort()
 			return
 		}
 
-		// 检查Token是否过期
-		claimsMap, ok := claims.(map[string]interface{})
+		if !tokenClaims.Valid {
+			response.Error(c, nil, "Invalid token", int(constants.RetCodeInvalidToken))
+			c.Abort()
+			return
+		}
+
+		claims, ok := tokenClaims.Claims.(jwt.MapClaims)
 		if !ok {
 			response.Error(c, nil, "Invalid token format", int(constants.RetCodeInvalidToken))
 			c.Abort()
 			return
 		}
 
-		exp, ok := claimsMap["exp"].(float64)
+		// 检查Token是否过期
+		exp, ok := claims["exp"].(float64)
 		if !ok {
 			response.Error(c, nil, "Invalid token expiration", int(constants.RetCodeInvalidToken))
 			c.Abort()
@@ -91,9 +92,9 @@ func AuthenticateJWT() gin.HandlerFunc {
 		// }
 
 		// 设置用户信息到请求头
-		c.Request.Header.Set("remoteUser", claimsMap["user"].(string))
-		c.Request.Header.Set("userId", fmt.Sprintf("%v", claimsMap["id"]))
-		c.Request.Header.Set("namespace", claimsMap["namespace"].(string))
+		c.Request.Header.Set("remoteUser", claims["user"].(string))
+		c.Request.Header.Set("userId", fmt.Sprintf("%v", claims["id"]))
+		c.Request.Header.Set("namespace", claims["namespace"].(string))
 
 		c.Next()
 	}
