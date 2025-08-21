@@ -267,6 +267,120 @@ definitions:
       level:
         type: integer
     type: object
+  dto.ManualCheckHistoryItem:
+    properties:
+      create_time:
+        description: 创建时间
+        type: integer
+      id:
+        description: 任务ID
+        type: integer
+      merge_id:
+        description: 合并请求ID
+        type: integer
+      merge_title:
+        description: 合并请求标题
+        type: string
+      project_id:
+        description: 项目ID
+        type: integer
+      project_name:
+        description: 项目名称
+        type: string
+      status:
+        description: 状态
+        type: integer
+      status_text:
+        description: 状态文本
+        type: string
+      update_time:
+        description: 更新时间
+        type: integer
+    type: object
+  dto.ManualCheckHistoryResponse:
+    properties:
+      list:
+        description: 任务列表
+        items:
+          $ref: '#/definitions/dto.ManualCheckHistoryItem'
+        type: array
+      total:
+        description: 总数
+        type: integer
+    type: object
+  dto.ManualCheckRequest:
+    properties:
+      ai_model:
+        description: AI模型，可选
+        example: gpt-4
+        type: string
+      merge_id:
+        description: 合并请求ID
+        example: 456
+        type: integer
+      project_id:
+        description: 项目ID
+        example: 123
+        type: integer
+      rule_id:
+        description: 规则ID，可选
+        example: 1
+        type: integer
+    required:
+    - merge_id
+    - project_id
+    type: object
+  dto.ManualCheckResponse:
+    properties:
+      estimated_time:
+        description: 预估完成时间（秒）
+        type: integer
+      status:
+        description: 任务状态
+        type: string
+      task_id:
+        description: 任务ID
+        type: integer
+    type: object
+  dto.ManualCheckResultResponse:
+    properties:
+      ai_model:
+        description: AI模型
+        type: string
+      create_time:
+        description: 创建时间
+        type: integer
+      id:
+        description: 任务ID
+        type: integer
+      merge_id:
+        description: 合并请求ID
+        type: integer
+      merge_title:
+        description: 合并请求标题
+        type: string
+      merge_url:
+        description: 合并请求URL
+        type: string
+      project_id:
+        description: 项目ID
+        type: integer
+      project_name:
+        description: 项目名称
+        type: string
+      result:
+        description: 审核结果
+        type: string
+      rule_name:
+        description: 规则名称
+        type: string
+      status:
+        description: 状态
+        type: integer
+      update_time:
+        description: 更新时间
+        type: integer
+    type: object
   dto.MergeRequest:
     properties:
       state:
@@ -476,7 +590,7 @@ definitions:
       name:
         type: string
       type:
-        description: UCloud, DeepSeek, OpenAI
+        description: UCloud, DeepSeek, OpenAI, Qwen
         type: string
     required:
     - id
@@ -603,6 +717,120 @@ info:
   title: Code Review API
   version: "1.0"
 paths:
+  /v1/ai/check/history:
+    get:
+      consumes:
+      - application/json
+      description: 查询手动触发的审核历史记录
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - default: 1
+        description: 当前页码
+        in: query
+        name: current
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - default: 0
+        description: 状态筛选：0-全部，1-进行中，2-完成，3-失败
+        in: query
+        name: status
+        type: integer
+      - description: 开始日期
+        example: "1703001600"
+        in: query
+        name: start_date
+        type: string
+      - description: 结束日期
+        example: "1705680000"
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ManualCheckHistoryResponse'
+              type: object
+      summary: 获取手动审核历史
+      tags:
+      - 手动代码审核
+  /v1/ai/check/manual:
+    post:
+      consumes:
+      - application/json
+      description: 用户输入projectId和mergeId，手动触发代码审核
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 审核请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ManualCheckRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ManualCheckResponse'
+              type: object
+      summary: 手动触发代码审核
+      tags:
+      - 手动代码审核
+  /v1/ai/check/result/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 获取特定审核任务的详细结果
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 任务ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ManualCheckResultResponse'
+              type: object
+      summary: 获取手动审核结果详情
+      tags:
+      - 手动代码审核
   /v1/ai/config:
     delete:
       consumes:
