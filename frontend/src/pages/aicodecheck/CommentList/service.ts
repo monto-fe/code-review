@@ -10,9 +10,9 @@ const namespace = 'acl';
 export async function queryList(params?: TableQueryParam): Promise<any> {
   return request({
     ...config,
-    url: `/ai/message?namespace=${namespace}`,
-    method: 'get',
-    params,
+    url: `/ai/message/list`,
+    method: 'post',
+    data: params,
   });
 }
 

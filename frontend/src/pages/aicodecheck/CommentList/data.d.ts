@@ -1,7 +1,9 @@
 export interface TableQueryParam {
   id?: number;
   current?: number;
-  pageSize?: number;
+  page_size?: number;
+  start_date?: number;
+  end_date?: number;
 }
 
 export interface TableListItem {
