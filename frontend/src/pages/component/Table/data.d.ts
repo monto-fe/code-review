@@ -3,7 +3,7 @@ import { FormType } from "@/@types/enum";
 export interface PaginationConfig {
   total: number;
   current: number;
-  pageSize: number;
+  page_size: number;
   showSizeChanger: boolean;
   showQuickJumper: boolean;
 }

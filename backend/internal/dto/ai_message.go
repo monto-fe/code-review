@@ -44,8 +44,8 @@ type AIMessageListRequest struct {
 	Passed int  `json:"passed" example:"0"` // 是否通过 -1未通过 1通过
 
 	// 新增筛选参数
-	StartDate         string   `json:"start_date" example:"1703001600"`               // 开始日期 (时间戳，秒级别)
-	EndDate           string   `json:"end_date" example:"1705680000"`                 // 结束日期 (时间戳，秒级别)
+	StartDate         int64    `json:"start_date" example:"1703001600"`               // 开始日期 (时间戳，秒级别)
+	EndDate           int64    `json:"end_date" example:"1705680000"`                 // 结束日期 (时间戳，秒级别)
 	ProjectIDs        []uint   `json:"project_ids" example:"1,2,3"`                   // 项目ID列表，支持多选
 	HumanRatings      []int8   `json:"human_ratings" example:"1,2"`                   // 人工评分列表，支持多选
 	ProjectNamespaces []string `json:"project_namespaces" example:"frontend,backend"` // 项目命名空间列表，支持多选

@@ -46,10 +46,10 @@ func GetAIMessage(c *gin.Context) {
 	}
 
 	// 新增筛选参数
-	if req.StartDate != "" {
+	if req.StartDate != 0 {
 		params["startDate"] = req.StartDate
 	}
-	if req.EndDate != "" {
+	if req.EndDate != 0 {
 		params["endDate"] = req.EndDate
 	}
 	if len(req.ProjectIDs) > 0 {
