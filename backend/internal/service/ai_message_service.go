@@ -28,10 +28,10 @@ func NewAIMessageService(db *gorm.DB) *AIMessageService {
 
 // GetAIMessage 获取AI消息列表
 func (s *AIMessageService) GetAIMessage(params map[string]interface{}) ([]dto.AIMessageItem, int64, error) {
-	var messages []model.AImessage
+	var messages []model.AIMessage
 	var total int64
 
-	query := s.db.Model(&model.AImessage{})
+	query := s.db.Model(&model.AIMessage{})
 
 	// 基础筛选条件
 	if id, ok := params["id"].(uint); ok && id > 0 {
@@ -142,7 +142,7 @@ func parseUint(s string) uint64 {
 }
 
 // CreateAIMessage 创建AI消息
-func (s *AIMessageService) CreateAIMessage(data *model.AImessage) (uint, error) {
+func (s *AIMessageService) CreateAIMessage(data *model.AIMessage) (uint, error) {
 	if err := s.db.Create(data).Error; err != nil {
 		return 0, err
 	}
@@ -181,7 +181,7 @@ func SendMarkdownToWechatBot(webhookURL, markdownContent string) error {
 }
 
 func (s *AIMessageService) GetCheckCount(req dto.CheckCountRequest) (int64, error) {
-	query := s.db.Model(&model.AImessage{})
+	query := s.db.Model(&model.AIMessage{})
 
 	// 只有传入时才加条件
 	if req.Passed != 0 {
@@ -210,7 +210,7 @@ func (s *AIMessageService) GetCheckCount(req dto.CheckCountRequest) (int64, erro
 }
 
 func (s *AIMessageService) GetProblemChart(req dto.AIProblemCountRequest) ([]dto.HumanRatingStat, error) {
-	query := s.db.Model(&model.AImessage{})
+	query := s.db.Model(&model.AIMessage{})
 
 	query = query.Where("create_time >= ?", req.StartTime)
 	query = query.Where("create_time <= ?", req.EndTime)
@@ -260,7 +260,7 @@ func (s *AIMessageService) GetProjectNamespaceList(startTime, endTime int64) ([]
 		ProjectNamespace string `json:"project_namespace"`
 	}
 
-	query := s.db.Model(&model.AImessage{})
+	query := s.db.Model(&model.AIMessage{})
 
 	// 添加时间段筛选条件
 	if startTime > 0 {

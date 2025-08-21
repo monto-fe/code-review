@@ -103,7 +103,7 @@ func CreateAIMessage(c *gin.Context) {
 	}
 
 	// 创建AI消息
-	aiMessage := &model.AImessage{
+	aiMessage := &model.AIMessage{
 		ProjectID:  req.ProjectID,
 		MergeURL:   req.MergeURL,
 		MergeID:    strconv.FormatUint(uint64(req.MergeID), 10),

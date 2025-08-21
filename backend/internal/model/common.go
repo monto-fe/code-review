@@ -2,19 +2,20 @@ package model
 
 // TableName 表名常量
 const (
-	TableUser           = "t_user"
-	TableRole           = "t_role"
-	TableToken          = "t_login_token"
-	TableUserRole       = "t_user_role"
-	TableRolePermission = "t_role_permission"
-	TableResource       = "t_resource"
-	TableGitlab         = "t_gitlab_info"
-	TableAIMessage      = "t_ai_message"
-	TableAIConfig       = "t_ai_config"
-	TableCommonRule     = "t_common_rule"
-	TableNamespace      = "t_namespace"
-	TableCustomRule     = "t_custom_rule"
-	TableAIManager      = "t_ai_manager"
+	TableUser            = "t_user"
+	TableRole            = "t_role"
+	TableToken           = "t_login_token"
+	TableUserRole        = "t_user_role"
+	TableRolePermission  = "t_role_permission"
+	TableResource        = "t_resource"
+	TableGitlab          = "t_gitlab_info"
+	TableAIMessage       = "t_ai_message"
+	TableAIConfig        = "t_ai_config"
+	TableCommonRule      = "t_common_rule"
+	TableNamespace       = "t_namespace"
+	TableCustomRule      = "t_custom_rule"
+	TableAIManager       = "t_ai_manager"
+	TableManualCheckTask = "t_manual_check_task"
 )
 
 // PageModel 分页模型

@@ -17,7 +17,7 @@ require (
 
 require github.com/golang-jwt/jwt/v4 v4.5.2
 
-require github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
+require github.com/hashicorp/golang-lru/v2 v2.0.7
 
 require (
 	github.com/bytedance/sonic/loader v0.1.1 // indirect

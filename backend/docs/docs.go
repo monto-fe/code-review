@@ -15,6 +15,189 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/v1/ai/check/history": {
+            "get": {
+                "description": "查询手动触发的审核历史记录",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "手动代码审核"
+                ],
+                "summary": "获取手动审核历史",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "当前页码",
+                        "name": "current",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "每页数量",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "状态筛选：0-全部，1-进行中，2-完成，3-失败",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "1703001600",
+                        "description": "开始日期",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "1705680000",
+                        "description": "结束日期",
+                        "name": "end_date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.ManualCheckHistoryResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/ai/check/manual": {
+            "post": {
+                "description": "用户输入projectId和mergeId，手动触发代码审核",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "手动代码审核"
+                ],
+                "summary": "手动触发代码审核",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "审核请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ManualCheckRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.ManualCheckResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/ai/check/result/{id}": {
+            "get": {
+                "description": "获取特定审核任务的详细结果",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "手动代码审核"
+                ],
+                "summary": "获取手动审核结果详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "任务ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.ManualCheckResultResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/v1/ai/config": {
             "get": {
                 "description": "获取 AI 配置信息",
@@ -1731,6 +1914,162 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ManualCheckHistoryItem": {
+            "type": "object",
+            "properties": {
+                "create_time": {
+                    "description": "创建时间",
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "任务ID",
+                    "type": "integer"
+                },
+                "merge_id": {
+                    "description": "合并请求ID",
+                    "type": "integer"
+                },
+                "merge_title": {
+                    "description": "合并请求标题",
+                    "type": "string"
+                },
+                "project_id": {
+                    "description": "项目ID",
+                    "type": "integer"
+                },
+                "project_name": {
+                    "description": "项目名称",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "状态",
+                    "type": "integer"
+                },
+                "status_text": {
+                    "description": "状态文本",
+                    "type": "string"
+                },
+                "update_time": {
+                    "description": "更新时间",
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.ManualCheckHistoryResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "description": "任务列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ManualCheckHistoryItem"
+                    }
+                },
+                "total": {
+                    "description": "总数",
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.ManualCheckRequest": {
+            "type": "object",
+            "required": [
+                "merge_id",
+                "project_id"
+            ],
+            "properties": {
+                "ai_model": {
+                    "description": "AI模型，可选",
+                    "type": "string",
+                    "example": "gpt-4"
+                },
+                "merge_id": {
+                    "description": "合并请求ID",
+                    "type": "integer",
+                    "example": 456
+                },
+                "project_id": {
+                    "description": "项目ID",
+                    "type": "integer",
+                    "example": 123
+                },
+                "rule_id": {
+                    "description": "规则ID，可选",
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "dto.ManualCheckResponse": {
+            "type": "object",
+            "properties": {
+                "estimated_time": {
+                    "description": "预估完成时间（秒）",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "任务状态",
+                    "type": "string"
+                },
+                "task_id": {
+                    "description": "任务ID",
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.ManualCheckResultResponse": {
+            "type": "object",
+            "properties": {
+                "ai_model": {
+                    "description": "AI模型",
+                    "type": "string"
+                },
+                "create_time": {
+                    "description": "创建时间",
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "任务ID",
+                    "type": "integer"
+                },
+                "merge_id": {
+                    "description": "合并请求ID",
+                    "type": "integer"
+                },
+                "merge_title": {
+                    "description": "合并请求标题",
+                    "type": "string"
+                },
+                "merge_url": {
+                    "description": "合并请求URL",
+                    "type": "string"
+                },
+                "project_id": {
+                    "description": "项目ID",
+                    "type": "integer"
+                },
+                "project_name": {
+                    "description": "项目名称",
+                    "type": "string"
+                },
+                "result": {
+                    "description": "审核结果",
+                    "type": "string"
+                },
+                "rule_name": {
+                    "description": "规则名称",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "状态",
+                    "type": "integer"
+                },
+                "update_time": {
+                    "description": "更新时间",
+                    "type": "integer"
+                }
+            }
+        },
         "dto.MergeRequest": {
             "type": "object",
             "properties": {
@@ -2045,7 +2384,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
-                    "description": "UCloud, DeepSeek, OpenAI",
+                    "description": "UCloud, DeepSeek, OpenAI, Qwen",
                     "type": "string"
                 }
             }

@@ -1,26 +1,5 @@
 package model
 
-// AIMessage AI消息模型
-type AIMessage struct {
-	ID          uint   `gorm:"primarykey" json:"id"`
-	HumanRating int    `gorm:"column:human_rating" json:"human_rating"`
-	Remark      string `gorm:"type:text" json:"remark"`
-	CreateTime  int64  `gorm:"not null" json:"create_time"`
-	UpdateTime  int64  `gorm:"not null" json:"update_time"`
-}
-
-// TableName 指定表名
-func (AIMessage) TableName() string {
-	return TableAIMessage
-}
-
-// AIMessageUpdate AI消息更新请求
-type AIMessageUpdate struct {
-	ID          uint   `json:"id" binding:"required"`
-	HumanRating int    `json:"human_rating" binding:"required"`
-	Remark      string `json:"remark" binding:"required"`
-}
-
 // HumanRating 人工评分枚举
 type HumanRating int
 
@@ -39,8 +18,15 @@ const (
 	RuleTypeCustom RuleType = 2 // 自定义规则
 )
 
-// AImessage AI 消息模型
-type AImessage struct {
+// AIMessageUpdate AI消息更新请求
+type AIMessageUpdate struct {
+	ID          uint   `json:"id" binding:"required"`
+	HumanRating int    `json:"human_rating" binding:"required"`
+	Remark      string `json:"remark" binding:"required"`
+}
+
+// AIMessage AI 消息模型
+type AIMessage struct {
 	ID               uint        `gorm:"primarykey" json:"id"`
 	ProjectID        uint        `gorm:"not null" json:"project_id"`
 	ProjectName      string      `gorm:"type:varchar(200);not null" json:"project_name"`
@@ -60,6 +46,6 @@ type AImessage struct {
 }
 
 // TableName 指定表名
-func (AImessage) TableName() string {
+func (AIMessage) TableName() string {
 	return TableAIMessage
 }

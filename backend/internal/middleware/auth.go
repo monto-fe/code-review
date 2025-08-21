@@ -54,7 +54,7 @@ func AuthenticateJWT() gin.HandlerFunc {
 		})
 
 		if err != nil {
-			response.Error(c, err, "Invalid token", int(constants.RetCodeInvalidToken))
+			response.Error(c, err, err.Error(), int(constants.RetCodeInvalidToken))
 			c.Abort()
 			return
 		}
@@ -90,7 +90,7 @@ func AuthenticateJWT() gin.HandlerFunc {
 		// if int64(exp)-time.Now().Unix() < 5*60*60 {
 		// 	// TODO: 实现token刷新逻辑
 		// }
-
+		fmt.Println("claims", claims)
 		// 设置用户信息到请求头
 		c.Request.Header.Set("remoteUser", claims["user"].(string))
 		c.Request.Header.Set("userId", fmt.Sprintf("%v", claims["id"]))
