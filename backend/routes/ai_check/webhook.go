@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"code-review-go/internal/dto"
+	"code-review-go/internal/pkg/constants"
 	"code-review-go/internal/pkg/response"
 	"code-review-go/internal/pkg/utils"
 	"code-review-go/internal/service"
@@ -47,7 +48,7 @@ func AICheck(c *gin.Context) {
 		"mergeRequestId": body.ObjectAttributes.IID,
 		"optimized":      true,
 		"timestamp":      time.Now().Unix(),
-	}, "AI检查已启动，请稍候查看结果", 0)
+	}, "AI检查已启动，请稍候查看结果", int(constants.RetCodeSuccess))
 
 	// 3. 异步处理优化的RAG检查
 	go handleOptimizedAICheck(body)

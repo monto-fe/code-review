@@ -28,6 +28,10 @@ func NewAIProviderFactory() *AIProviderFactory {
 	factory.RegisterProvider("UCloud", func(config *model.AIConfig) AIProvider {
 		return NewUCAIProvider(config)
 	})
+	// 注册通义千问提供者
+	factory.RegisterProvider("Qwen", func(config *model.AIConfig) AIProvider {
+		return NewQwenProvider(config)
+	})
 	return factory
 }
 

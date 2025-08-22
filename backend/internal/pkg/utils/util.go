@@ -50,8 +50,6 @@ const (
 	TokenSecretKey      = "a8cL!9@#2$FzQwErTyUiOp1234567890zxcvbnmASDFGHJKLQWERTYUIOP!@#$%^&*()_+-="
 	TokenExpired        = "8h"
 	RefreshTokenExpired = "3d"
-	RetCodeSuccess      = 0
-	RetCodeNotLogIn     = 10000
 )
 
 // GenerateSignToken generates a JWT token

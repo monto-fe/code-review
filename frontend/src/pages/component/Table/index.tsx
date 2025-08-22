@@ -25,6 +25,7 @@ function CommonTable<T extends AnyObject>(props: ITable<T>, ref: Ref<unknown> | 
     fuzzySearchKey,
     fuzzySearchPlaceholder,
     filterFormItems,
+    expandable,
     scroll,
     rightToolsSlot,
   } = props;
@@ -39,7 +40,7 @@ function CommonTable<T extends AnyObject>(props: ITable<T>, ref: Ref<unknown> | 
   const [pagination, setPagination] = useState<PaginationConfig>({
     total: 0,
     current: defaultCurrent,
-    pageSize: defaultPageSize,
+    page_size: defaultPageSize,
     showSizeChanger: true,
     showQuickJumper: true,
   });
@@ -50,7 +51,7 @@ function CommonTable<T extends AnyObject>(props: ITable<T>, ref: Ref<unknown> | 
     setLoading(true);
     const params = {
       current,
-      pageSize: pageSize || defaultPageSize,
+      page_size: pageSize || defaultPageSize,
       ...filter,
       ...externalFilter,
     };
@@ -62,12 +63,11 @@ function CommonTable<T extends AnyObject>(props: ITable<T>, ref: Ref<unknown> | 
     queryList(params)
       .then((response: ResponseData<T[]>) => {
         if (response) {
-          console.log("response.data", response.data)
           setList(Array.isArray(response.data.data) ? response.data.data : []);
           setPagination({
             ...pagination,
             current,
-            pageSize,
+            page_size: pageSize,
             total: response.data.count || 0,
           });
           setFilter(filter);
@@ -81,7 +81,7 @@ function CommonTable<T extends AnyObject>(props: ITable<T>, ref: Ref<unknown> | 
   };
 
   const reload = () => {
-    getList(pagination.current, pagination.pageSize, filter, externalFilter);
+    getList(pagination.current, pagination.page_size, filter, externalFilter);
   };
 
   const rightTools = (
@@ -136,15 +136,15 @@ function CommonTable<T extends AnyObject>(props: ITable<T>, ref: Ref<unknown> | 
 
   const handleSearch = (values: any) => {
     setExternalFilter(values);
-    getList(pagination.current, pagination.pageSize, filter, values);
+    getList(pagination.current, pagination.page_size, filter, values);
   };
 
   const handleFuzzySearch = () => {
-    getList(pagination.current, pagination.pageSize, filter, externalFilter);
+    getList(pagination.current, pagination.page_size, filter, externalFilter);
   };
 
   useEffect(() => {
-    getList(pagination.current, pagination.pageSize);
+    getList(pagination.current, pagination.page_size);
   }, []);
 
   useImperativeHandle(ref, () => ({
@@ -182,6 +182,8 @@ function CommonTable<T extends AnyObject>(props: ITable<T>, ref: Ref<unknown> | 
           loading={loading}
           scroll={scroll}
           size={size}
+          sticky
+          expandable={expandable}
           pagination={{
             ...pagination
           }}

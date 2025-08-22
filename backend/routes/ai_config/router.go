@@ -9,11 +9,12 @@ func RegisterRoutes(r *gin.RouterGroup) {
 		aiConfig.POST("/config", CreateAIConfig)
 		aiConfig.PUT("/config", UpdateAIConfig)
 		aiConfig.DELETE("/config", DeleteAIConfig)
-		aiConfig.GET("/message", GetAIMessage)
-		aiConfig.POST("/message", CreateAIMessage)
+		aiConfig.POST("/message/list", GetAIMessage) // 获取AI消息列表
+		aiConfig.POST("/message", CreateAIMessage)   // 创建AI消息
 		aiConfig.PUT("/message", UpdateAIMessage)
 		aiConfig.GET("/manager", GetAIManagerList)
 		aiConfig.GET("/merge/check-count", GetCheckCount)
 		aiConfig.GET("/merge/problem-chart", GetProblemChart)
+		aiConfig.GET("/project-namespaces", GetProjectNamespaceList) // 新增：获取项目命名空间列表
 	}
 }

@@ -1,6 +1,6 @@
 import { memo, useContext, useRef, useState } from 'react';
 import { Button, message, Popconfirm, PopconfirmProps, Space, Switch } from 'antd';
-import { ColumnsType } from 'antd/lib/table';
+import type { TableColumnsType } from 'antd';
 import { observer } from 'mobx-react-lite';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
@@ -126,7 +126,7 @@ function App() {
     }
   };
 
-  const columns: ColumnsType<TableListItem> = [
+  const columns: TableColumnsType<TableListItem> = [
     {
       title: 'ID',
       dataIndex: 'id',

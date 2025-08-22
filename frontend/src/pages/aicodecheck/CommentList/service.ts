@@ -10,7 +10,7 @@ export async function queryList(params?: TableQueryParam): Promise<any> {
     ...config,
     url: `/ai/message/list`,
     method: 'post',
-    params,
+    data: params,
   });
 }
 
@@ -28,6 +28,15 @@ export async function updateRating(id: number, human_rating: number, remark?: st
 }
 
 export async function queryProjectNamespaceList(params?: TableQueryParam): Promise<any> {
+  return request({
+    ...config,
+    url: `/ai/project-namespaces`,
+    method: 'get',
+    params,
+  });
+}
+
+export async function queryProjectList(params?: TableQueryParam): Promise<any> {
   return request({
     ...config,
     url: `/ai/project-namespaces`,

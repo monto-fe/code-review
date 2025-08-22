@@ -65,3 +65,11 @@ export async function getDetail(id: number): Promise<any> {
   });
   return res.data as unknown as any;
 }
+
+export async function queryTokenList(): Promise<any> {
+  return request({
+    ...config,
+    url: `/gitlab/token/projects`,
+    method: 'get',
+  });
+}

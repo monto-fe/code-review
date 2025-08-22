@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
-
+	"code-review-go/internal/pkg/constants"
 	"code-review-go/internal/pkg/response"
 	"code-review-go/internal/pkg/utils"
+
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 var (
@@ -36,32 +37,51 @@ func AuthenticateJWT() gin.HandlerFunc {
 			}
 		}
 
-		// 获取JWT token
+		// 检查Token是否存在
 		token := c.GetHeader("jwt_token")
 		if token == "" {
-			response.Error(c, nil, "Token is required", 10012)
+			response.Error(c, nil, "Token is required", int(constants.RetCodeTokenMissing))
 			c.Abort()
 			return
 		}
 
-		// 验证token
-		claims, err := ValidateToken(token)
+		// 验证Token
+		tokenClaims, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			return TokenSecretKey, nil
+		})
+
 		if err != nil {
-			response.Error(c, err, "Invalid token", 10014)
+			response.Error(c, err, err.Error(), int(constants.RetCodeInvalidToken))
 			c.Abort()
 			return
 		}
 
-		// 检查token是否过期
+		if !tokenClaims.Valid {
+			response.Error(c, nil, "Invalid token", int(constants.RetCodeInvalidToken))
+			c.Abort()
+			return
+		}
+
+		claims, ok := tokenClaims.Claims.(jwt.MapClaims)
+		if !ok {
+			response.Error(c, nil, "Invalid token format", int(constants.RetCodeInvalidToken))
+			c.Abort()
+			return
+		}
+
+		// 检查Token是否过期
 		exp, ok := claims["exp"].(float64)
 		if !ok {
-			response.Error(c, nil, "Invalid token expiration", 10016)
+			response.Error(c, nil, "Invalid token expiration", int(constants.RetCodeInvalidToken))
 			c.Abort()
 			return
 		}
 
 		if time.Now().Unix() > int64(exp) {
-			response.Error(c, nil, "Token expired", 10016)
+			response.Error(c, nil, "Token expired", int(constants.RetCodeTokenExpired))
 			c.Abort()
 			return
 		}
@@ -70,7 +90,7 @@ func AuthenticateJWT() gin.HandlerFunc {
 		// if int64(exp)-time.Now().Unix() < 5*60*60 {
 		// 	// TODO: 实现token刷新逻辑
 		// }
-
+		fmt.Println("claims", claims)
 		// 设置用户信息到请求头
 		c.Request.Header.Set("remoteUser", claims["user"].(string))
 		c.Request.Header.Set("userId", fmt.Sprintf("%v", claims["id"]))
