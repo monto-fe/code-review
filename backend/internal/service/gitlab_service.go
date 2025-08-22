@@ -75,7 +75,7 @@ func (s *GitlabService) GetGitlabInfo() ([]dto.GitlabInfoResponse, error) {
 }
 
 // CreateGitlabToken 创建Gitlab Token
-func (s *GitlabService) CreateGitlabToken(data model.GitlabInfoCreate) (*model.GitlabInfo, error) {
+func (s *GitlabService) CreateGitlabToken(data model.GitlabInfoCreate) (*dto.GitlabCreateUpdateResponse, error) {
 	if data.API == "" || data.Token == "" {
 		return nil, ErrParamsInvalid
 	}
@@ -109,11 +109,8 @@ func (s *GitlabService) CreateGitlabToken(data model.GitlabInfoCreate) (*model.G
 		return nil, err
 	}
 
-	// 刷新缓存
-	if err := cache.RefreshGitlabCache(); err != nil {
-		// 记录错误但不影响主流程
-		fmt.Printf("刷新缓存失败: %v\n", err)
-	}
+	// 创建新记录后，直接添加到缓存中，避免全量刷新
+	cache.UpdateGitlabCacheItem(gitlabInfo.ID, *gitlabInfo)
 
 	// 异步获取项目列表
 	go func() {
@@ -146,11 +143,32 @@ func (s *GitlabService) CreateGitlabToken(data model.GitlabInfoCreate) (*model.G
 		}
 	}()
 
-	return gitlabInfo, nil
+	// 返回不包含敏感信息的响应
+	return &dto.GitlabCreateUpdateResponse{
+		ID:               gitlabInfo.ID,
+		Name:             gitlabInfo.Name,
+		API:              utils.MaskString(gitlabInfo.API),
+		WebhookURL:       utils.MaskString(gitlabInfo.WebhookURL),
+		WebhookName:      gitlabInfo.WebhookName,
+		Status:           gitlabInfo.Status,
+		GitlabVersion:    gitlabInfo.GitlabVersion,
+		Expired:          gitlabInfo.Expired,
+		GitlabURL:        gitlabInfo.GitlabURL,
+		SourceBranch:     gitlabInfo.SourceBranch,
+		TargetBranch:     gitlabInfo.TargetBranch,
+		Prompt:           gitlabInfo.Prompt,
+		WebhookStatus:    gitlabInfo.WebhookStatus,
+		ProjectIds:       gitlabInfo.ProjectIds,
+		ProjectIdsSynced: gitlabInfo.ProjectIdsSynced,
+		RuleCheckStatus:  gitlabInfo.RuleCheckStatus,
+		CommentType:      gitlabInfo.CommentType,
+		CreateTime:       gitlabInfo.CreateTime,
+		UpdateTime:       gitlabInfo.UpdateTime,
+	}, nil
 }
 
 // UpdateGitlabInfo 更新Gitlab信息
-func (s *GitlabService) UpdateGitlabInfo(data model.GitlabInfoUpdate) (*model.GitlabInfo, error) {
+func (s *GitlabService) UpdateGitlabInfo(data model.GitlabInfoUpdate) (*dto.GitlabCreateUpdateResponse, error) {
 	if data.ID == 0 {
 		return nil, ErrParamsInvalid
 	}
@@ -217,10 +235,28 @@ func (s *GitlabService) UpdateGitlabInfo(data model.GitlabInfoUpdate) (*model.Gi
 		return nil, err
 	}
 
-	// 刷新缓存
-	if err := cache.RefreshGitlabCache(); err != nil {
-		// 记录错误但不影响主流程
-		fmt.Printf("更新后刷新缓存失败: %v\n", err)
+	// 获取更新后的记录用于缓存更新
+	var updated model.GitlabInfo
+	if err := s.db.First(&updated, data.ID).Error; err != nil {
+		return nil, err
+	}
+
+	// 智能缓存刷新：根据更新的字段决定刷新策略
+	needFullRefresh := false
+	if data.Token != "" || data.API != "" || data.Status != 0 {
+		// 关键字段更新，需要全量刷新缓存
+		needFullRefresh = true
+	} else {
+		// 其他字段更新，只更新单个缓存项
+		cache.UpdateGitlabCacheItem(data.ID, updated)
+	}
+
+	// 如果需要全量刷新，则刷新整个缓存
+	if needFullRefresh {
+		if err := cache.RefreshGitlabCache(); err != nil {
+			// 记录错误但不影响主流程
+			fmt.Printf("更新后刷新缓存失败: %v\n", err)
+		}
 	}
 
 	// 如果更新了 token，异步获取新的项目列表
@@ -249,13 +285,28 @@ func (s *GitlabService) UpdateGitlabInfo(data model.GitlabInfoUpdate) (*model.Gi
 		}()
 	}
 
-	// 获取更新后的记录
-	var updated model.GitlabInfo
-	if err := s.db.First(&updated, data.ID).Error; err != nil {
-		return nil, err
-	}
-
-	return &updated, nil
+	// 返回不包含敏感信息的响应
+	return &dto.GitlabCreateUpdateResponse{
+		ID:               updated.ID,
+		Name:             updated.Name,
+		API:              utils.MaskString(updated.API),
+		WebhookURL:       utils.MaskString(updated.WebhookURL),
+		WebhookName:      updated.WebhookName,
+		Status:           updated.Status,
+		GitlabVersion:    updated.GitlabVersion,
+		Expired:          updated.Expired,
+		GitlabURL:        updated.GitlabURL,
+		SourceBranch:     updated.SourceBranch,
+		TargetBranch:     updated.TargetBranch,
+		Prompt:           updated.Prompt,
+		WebhookStatus:    updated.WebhookStatus,
+		ProjectIds:       updated.ProjectIds,
+		ProjectIdsSynced: updated.ProjectIdsSynced,
+		RuleCheckStatus:  updated.RuleCheckStatus,
+		CommentType:      updated.CommentType,
+		CreateTime:       updated.CreateTime,
+		UpdateTime:       updated.UpdateTime,
+	}, nil
 }
 
 // DeleteGitlabToken 删除Gitlab Token
@@ -275,11 +326,8 @@ func (s *GitlabService) DeleteGitlabToken(id uint) error {
 		return err
 	}
 
-	// 刷新缓存
-	if err := cache.RefreshGitlabCache(); err != nil {
-		// 记录错误但不影响主流程
-		fmt.Printf("删除后刷新缓存失败: %v\n", err)
-	}
+	// 删除记录后，直接从缓存中移除，避免全量刷新
+	cache.DeleteGitlabCacheItem(id)
 
 	return nil
 }
