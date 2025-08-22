@@ -27,7 +27,7 @@ const customCodeMessage: { [key: number]: string } = {
   10005: '该用户还未登陆',
   10006: '验证码错误', // 注册时
   10008: '未知错误',
-  10009: '登录失效，请重新登录',
+  10014: '登录失效，请重新登录',
 };
 
 const serverCodeMessage: { [key: number]: string } = {

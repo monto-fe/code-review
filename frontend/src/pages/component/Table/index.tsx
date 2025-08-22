@@ -151,8 +151,6 @@ function CommonTable<T extends AnyObject>(props: ITable<T>, ref: Ref<unknown> | 
     reload,
   }));
 
-  console.log('pagination', pagination);
-
   return (
     <>
       {filterFormItems ? (
