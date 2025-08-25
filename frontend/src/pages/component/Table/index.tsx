@@ -25,6 +25,7 @@ function CommonTable<T extends AnyObject>(props: ITable<T>, ref: Ref<unknown> | 
     fuzzySearchKey,
     fuzzySearchPlaceholder,
     filterFormItems,
+    expandable,
     scroll,
     rightToolsSlot,
   } = props;
@@ -62,7 +63,6 @@ function CommonTable<T extends AnyObject>(props: ITable<T>, ref: Ref<unknown> | 
     queryList(params)
       .then((response: ResponseData<T[]>) => {
         if (response) {
-          console.log("response.data", response.data)
           setList(Array.isArray(response.data.data) ? response.data.data : []);
           setPagination({
             ...pagination,
@@ -151,8 +151,6 @@ function CommonTable<T extends AnyObject>(props: ITable<T>, ref: Ref<unknown> | 
     reload,
   }));
 
-  console.log('pagination', pagination);
-
   return (
     <>
       {filterFormItems ? (
@@ -184,6 +182,8 @@ function CommonTable<T extends AnyObject>(props: ITable<T>, ref: Ref<unknown> | 
           loading={loading}
           scroll={scroll}
           size={size}
+          sticky
+          expandable={expandable}
           pagination={{
             ...pagination
           }}

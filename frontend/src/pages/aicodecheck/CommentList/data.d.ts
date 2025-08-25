@@ -16,6 +16,8 @@ export interface TableListItem {
   result: string;
   passed: boolean;
   description: string;
+  human_rating?: number;
+  remark?: string;
   create_time?: number;
   update_time?: number;
 }

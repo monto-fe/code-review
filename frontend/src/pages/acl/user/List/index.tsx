@@ -1,6 +1,6 @@
 import { memo, useContext, useEffect, useRef, useState } from 'react';
 import { Button, FormInstance, message, Popconfirm, PopconfirmProps, Popover, Space } from 'antd';
-import { ColumnsType } from 'antd/lib/table';
+import type { TableColumnsType } from 'antd';
 import { observer } from 'mobx-react-lite';
 
 import { BasicContext } from '@/store/context';
@@ -107,7 +107,7 @@ function App() {
     setPreviewVisible(true);
   };
 
-  const columns: ColumnsType<TableListItem> = [
+  const columns: TableColumnsType<TableListItem> = [
     {
       title: 'Id',
       dataIndex: 'id',

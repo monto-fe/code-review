@@ -1,3 +1,4 @@
+import type { TableColumnsType } from 'antd';
 import { FormType } from "@/@types/enum";
 
 export interface PaginationConfig {
@@ -23,6 +24,7 @@ export interface ITable<T> {
   columns: ColumnsType<T>;
   title?: React.ReactElement | string;
   rowKey?: string;
+  expandable?: TableColumnsType.ExpandableConfig;
   useTools?: boolean;
   fuzzySearchKey?: string;
   fuzzySearchPlaceholder?: string;

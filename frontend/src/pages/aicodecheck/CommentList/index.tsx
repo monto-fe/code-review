@@ -1,33 +1,41 @@
-import { memo, useContext, useRef, useState } from 'react';
-import { Typography, message, Tag } from 'antd';
-import { ColumnsType } from 'antd/lib/table';
+import { memo, useContext, useEffect, useRef, useState } from 'react';
+import { Typography, message, Tag, Flex } from 'antd';
+import type { TableColumnsType } from 'antd';
 import { observer } from 'mobx-react-lite';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useSearchParams } from 'react-router-dom';
 import 'github-markdown-css';
 
+import { FormType } from '@/@types/enum';
 import CommonTable from '@/pages/component/Table';
 import { ITable } from '@/pages/component/Table/data';
 import { BasicContext } from '@/store/context';
 // import { FormType } from '@/@types/enum';
 import { useI18n } from '@/store/i18n';
 import ExcelExport from '@/components/ExcelExport';
-import type { ExcelExportConfig } from '@/components/ExcelExport';
-import Rate from './rate';
-import { queryList, updateRating } from './service';
-import { TableListItem } from './data.d';
 import { renderDateFromTimestamp, timeFormatType } from '@/utils/timeformat';
+import type { ExcelExportConfig } from '@/components/ExcelExport';
+
+import { queryList, updateRating, queryProjectNamespaceList } from './service';
+import { queryTokenList } from '@/pages/aicodecheck/GitlabToken/service';
+
+import Rate from './rate';
 import Editable from './editable';
+import { TableListItem } from './data.d';
 
 function App() {
   const tableRef = useRef<ITable<TableListItem>>();
   const context = useContext(BasicContext) as any;
   const { i18nLocale } = context.storeContext;
   const t = useI18n(i18nLocale);
+  
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id');
   const [tableData, setTableData] = useState<TableListItem[]>([]);
+  const [projectNamespaceOptions, setProjectNamespaceOptions] = useState<string[]>([]);
+  const [tokenOptions, setTokenOptions] = useState<string[]>([]);
+  const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
 
   const updateRemark = (record: any, val: string) => {
     updateRating(record.id, record.human_rating, val).then(() => {
@@ -35,7 +43,7 @@ function App() {
     });
   }
 
-  const columns: ColumnsType<TableListItem> = [
+  const columns: TableColumnsType<TableListItem> = [
     {
       title: 'id',
       dataIndex: 'id',
@@ -59,20 +67,22 @@ function App() {
       title: 'MergeUrl',
       dataIndex: 'merge_url',
       key: 'merge_url',
+      width: 80,
       render: (text: string) => (
         <a href={text} target='_blank' rel="noreferrer">查看</a>
       )
     },
-    {
-      title: '评论信息',
-      dataIndex: 'result',
-      key: 'result',
-      render: (text: string) => (
-        <Typography className='w-650 markdown-body'>
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
-        </Typography>
-      )
-    },
+    // {
+    //   title: '评论信息',
+    //   dataIndex: 'result',
+    //   key: 'result',
+    //   // width: 500,
+    //   render: (text: string) => (
+    //     <Typography className='w-650 markdown-body'>
+    //       <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+    //     </Typography>
+    //   )
+    // },
     // {
     //   title: t('page.aicodecheck.comment.human_rating'),
     //   dataIndex: 'human_rating',
@@ -81,25 +91,25 @@ function App() {
     //   render: (_, record:any) => <Rate id={record.id} initialValue={record.human_rating} />
     // },
     {
-      title: t('page.aicodecheck.comment.improve_suggestion'),
-      dataIndex: 'remark',
-      key: 'remark',
-      width: 200,
-      render: (_, record:any) => {
-        return <>
-        <div style={{marginBottom: 10}}><Rate id={record.id} initialValue={record.human_rating} /></div>
-        <Editable value={record.remark} onChange={(val) => {updateRemark(record, val)}} />
-        </>
-        
-      }
-    },
-    {
       title: t('page.aicodecheck.comment.createtime'),
       dataIndex: 'create_time',
       key: 'create_time',
       width: 160,
       render: (text: number) => renderDateFromTimestamp(text, timeFormatType.time),
-    }
+    },
+    {
+      title: t('page.aicodecheck.comment.improve_suggestion'),
+      dataIndex: 'remark',
+      key: 'remark',
+      width: 120, 
+      fixed: 'right',
+      render: (_, record:any) => {
+        return <>
+          <div style={{marginBottom: 10}}><Rate id={record.id} initialValue={record.human_rating} /></div>
+          <Editable value={record.remark} onChange={(val) => {updateRemark(record, val)}} />
+        </>
+      }
+    },
     // {
     //   title: t('page.aicodecheck.comment.status'),
     //   fixed: 'right',
@@ -112,12 +122,14 @@ function App() {
   const handleQueryList = async (params?: any) => {
     const result = await queryList({
       ...params,
+      project_ids: params.project_ids && typeof params.project_ids === 'string' ? params.project_ids.split(',').map(Number) : void 0,
       id: id ? parseInt(id) : undefined
     });
     
     // 更新表格数据用于导出
     if (result.data?.data) {
       setTableData(result.data.data);
+      setExpandedRowKeys(result.data.data.map((item: TableListItem) => item.id));
     }
     
     return result;
@@ -134,27 +146,106 @@ function App() {
     }));
   };
 
-  // const formItems = [
-  //   {
-  //     label: t('page.resource.name'),
-  //     name: 'project_namespace',
-  //     type: FormType.Input,
-  //     span: 8,
-  //   },
-  //   {
-  //     label: t('page.resource.key'),
-  //     name: 'resource',
-  //     type: FormType.Input,
-  //     span: 8,
-  //   },
-  // ];
+  const formItems = [
+    {
+      label: '创建时间',
+      name: 'date',
+      type: FormType.DateRange,
+      span: 8,
+    },
+    {
+      label: '状态',
+      name: 'passed',
+      type: FormType.Select,
+      options: [
+        {
+          label: '成功',
+          value: 1,
+        },
+        {
+          label: '失败',
+          value: -1,
+        },
+      ],
+      span: 8,
+    },
+    {
+      label: '评分',
+      name: 'human_ratings',
+      type: FormType.SelectMultiple,
+      options: [
+        {
+          label: '1星',
+          value: 1,
+        },
+        {
+          label: '2星',
+          value: 2,
+        },
+        {
+          label: '3星',
+          value: 3,
+        },
+        {
+          label: '4星',
+          value: 4,
+        },
+        {
+          label: '5星',
+          value: 5,
+        },
+      ],
+      span: 8,
+    },
+    {
+      label: '项目命名空间',
+      name: 'project_namespaces',
+      type: FormType.SelectMultiple,
+      options: projectNamespaceOptions,
+      span: 8,
+    },
+    {
+      label: 'Token Projects',
+      name: 'project_ids',
+      type: FormType.Select,
+      options: tokenOptions,
+      span: 8,
+    },
+  ];
+
+  useEffect(() => {
+    queryProjectNamespaceList().then((res) => {
+      setProjectNamespaceOptions((res.data?.data || []).map((item: any) => ({
+        label: item.project_namespace,
+        value: item.project_namespace,
+      })));
+    });
+
+    queryTokenList().then((res) => {
+      setTokenOptions((res.data?.data || []).map((item: any) => ({
+        label: item.name,
+        value: item.project_ids,
+      })));
+    });
+  }, []);
 
   return (
     <div className='layout-main-conent'>
       <CommonTable
         ref={tableRef}
+        expandable={{
+          expandedRowRender: (record: TableListItem) => (
+            <Flex align='center' justify='center' className='mx-24'>
+            <Typography className='w-full markdown-body'>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{record.result}</ReactMarkdown>
+            </Typography>
+            </Flex>
+          ),
+          rowExpandable: (record: TableListItem) => true,
+          expandedRowKeys,
+        }}
         columns={columns}
-        // filterFormItems={formItems}
+        filterFormItems={formItems}
         queryList={handleQueryList}
         useTools
         scroll={{ x: 1200 }}
