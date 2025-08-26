@@ -62,7 +62,7 @@
     "vite-plugin-svg-icons": "^2.0.1"
   },
   "engines": {
-    "node": ">= 14.18.0"
+    "node": ">= 20.19.0"
   },
   "keywords": [
     "monto",
