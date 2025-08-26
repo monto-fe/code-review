@@ -1686,8 +1686,8 @@ const docTemplate = `{
                 },
                 "end_date": {
                     "description": "结束日期 (时间戳，秒级别)",
-                    "type": "string",
-                    "example": "1705680000"
+                    "type": "integer",
+                    "example": 1705680000
                 },
                 "human_ratings": {
                     "description": "人工评分列表，支持多选",
@@ -1740,8 +1740,8 @@ const docTemplate = `{
                 },
                 "start_date": {
                     "description": "新增筛选参数",
-                    "type": "string",
-                    "example": "1703001600"
+                    "type": "integer",
+                    "example": 1703001600
                 }
             }
         },
