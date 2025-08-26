@@ -41,35 +41,37 @@ func (s *AIMessageService) GetAIMessage(params map[string]interface{}) ([]dto.AI
 		query = query.Where("passed = ?", passed)
 	}
 
-	// 时间范围筛选（精确到年月日）
-	if startDate, ok := params["startDate"].(string); ok && startDate != "" {
-		// 将日期转换为时间戳，设置为当天开始时间 (00:00:00)
-		if startTime, err := time.Parse("2006-01-02", startDate); err == nil {
-			startTimestamp := startTime.Unix()
-			query = query.Where("create_time >= ?", startTimestamp)
+	// 时间范围筛选（时间戳格式）
+	if startDateVal, exists := params["start_date"]; exists && startDateVal != nil {
+		if startDate, ok := startDateVal.(int64); ok && startDate > 0 {
+			query = query.Where("create_time >= ?", startDate)
 		}
 	}
-	if endDate, ok := params["endDate"].(string); ok && endDate != "" {
-		// 将日期转换为时间戳，设置为当天结束时间 (23:59:59)
-		if endTime, err := time.Parse("2006-01-02", endDate); err == nil {
-			endTimestamp := endTime.Add(24*time.Hour - time.Second).Unix()
-			query = query.Where("create_time <= ?", endTimestamp)
+	if endDateVal, exists := params["end_date"]; exists && endDateVal != nil {
+		if endDate, ok := endDateVal.(int64); ok && endDate > 0 {
+			query = query.Where("create_time <= ?", endDate)
 		}
 	}
 
 	// 项目ID多选筛选
-	if projectIDs, ok := params["projectIDs"].([]uint); ok && len(projectIDs) > 0 {
-		query = query.Where("project_id IN ?", projectIDs)
+	if projectIDsVal, exists := params["project_ids"]; exists && projectIDsVal != nil {
+		if projectIDs, ok := projectIDsVal.([]uint); ok && len(projectIDs) > 0 {
+			query = query.Where("project_id IN ?", projectIDs)
+		}
 	}
 
 	// 人工评分多选筛选
-	if humanRatings, ok := params["humanRatings"].([]int8); ok && len(humanRatings) > 0 {
-		query = query.Where("human_rating IN ?", humanRatings)
+	if humanRatingsVal, exists := params["human_ratings"]; exists && humanRatingsVal != nil {
+		if humanRatings, ok := humanRatingsVal.([]int8); ok && len(humanRatings) > 0 {
+			query = query.Where("human_rating IN ?", humanRatings)
+		}
 	}
 
 	// 项目命名空间多选筛选
-	if projectNamespaces, ok := params["projectNamespaces"].([]string); ok && len(projectNamespaces) > 0 {
-		query = query.Where("project_namespace IN ?", projectNamespaces)
+	if projectNamespacesVal, exists := params["project_namespaces"]; exists && projectNamespacesVal != nil {
+		if projectNamespaces, ok := projectNamespacesVal.([]string); ok && len(projectNamespaces) > 0 {
+			query = query.Where("project_namespace IN ?", projectNamespaces)
+		}
 	}
 
 	// 获取总数

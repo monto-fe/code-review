@@ -1,10 +1,13 @@
 import { memo, useContext, useEffect, useRef, useState } from 'react';
-import { Typography, message, Tag, Flex } from 'antd';
-import type { TableColumnsType } from 'antd';
+import { Typography, message, Tag, Flex, Space, Tooltip } from 'antd';
+import type { GetProps, DatePicker, TableColumnsType } from 'antd';
 import { observer } from 'mobx-react-lite';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useSearchParams } from 'react-router-dom';
+import dayjs from 'dayjs';
+import { NodeExpandOutlined, NodeCollapseOutlined } from '@ant-design/icons';
+
 import 'github-markdown-css';
 
 import { FormType } from '@/@types/enum';
@@ -22,20 +25,29 @@ import { queryTokenList } from '@/pages/aicodecheck/GitlabToken/service';
 
 import Rate from './rate';
 import Editable from './editable';
-import { TableListItem } from './data.d';
+import { TableListItem, TableQueryParam } from './data.d';
+
+type RangePickerProps = GetProps<typeof DatePicker.RangePicker>;
+
+const disabledDate: RangePickerProps['disabledDate'] = (current) => {
+  // Can not select days before today and today
+  return current && current > dayjs().add(1, 'd').endOf('d');
+};
 
 function App() {
   const tableRef = useRef<ITable<TableListItem>>();
   const context = useContext(BasicContext) as any;
   const { i18nLocale } = context.storeContext;
   const t = useI18n(i18nLocale);
-  
+
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id');
+
   const [tableData, setTableData] = useState<TableListItem[]>([]);
+  const [filters, setFilters] = useState<TableQueryParam>();
   const [projectNamespaceOptions, setProjectNamespaceOptions] = useState<string[]>([]);
   const [tokenOptions, setTokenOptions] = useState<string[]>([]);
-  const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
+  const [expandedRowKeys, setExpandedRowKeys] = useState<number[]>([]);
 
   const updateRemark = (record: any, val: string) => {
     updateRating(record.id, record.human_rating, val).then(() => {
@@ -45,7 +57,7 @@ function App() {
 
   const columns: TableColumnsType<TableListItem> = [
     {
-      title: 'id',
+      title: 'ID',
       dataIndex: 'id',
       key: 'id',
       width: 60,
@@ -72,24 +84,16 @@ function App() {
         <a href={text} target='_blank' rel="noreferrer">查看</a>
       )
     },
-    // {
-    //   title: '评论信息',
-    //   dataIndex: 'result',
-    //   key: 'result',
-    //   // width: 500,
-    //   render: (text: string) => (
-    //     <Typography className='w-650 markdown-body'>
-    //       <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
-    //     </Typography>
-    //   )
-    // },
-    // {
-    //   title: t('page.aicodecheck.comment.human_rating'),
-    //   dataIndex: 'human_rating',
-    //   key: 'human_rating',
-    //   width: 200,
-    //   render: (_, record:any) => <Rate id={record.id} initialValue={record.human_rating} />
-    // },
+    {
+      title: '评论信息',
+      dataIndex: 'result',
+      key: 'result',
+      render: (text: string) => (
+        <Typography className='w-650 markdown-body'>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+        </Typography>
+      )
+    },
     {
       title: t('page.aicodecheck.comment.createtime'),
       dataIndex: 'create_time',
@@ -101,38 +105,46 @@ function App() {
       title: t('page.aicodecheck.comment.improve_suggestion'),
       dataIndex: 'remark',
       key: 'remark',
-      width: 120, 
+      width: 120,
       fixed: 'right',
-      render: (_, record:any) => {
+      render: (_, record: any) => {
         return <>
-          <div style={{marginBottom: 10}}><Rate id={record.id} initialValue={record.human_rating} /></div>
-          <Editable value={record.remark} onChange={(val) => {updateRemark(record, val)}} />
+          <div style={{ marginBottom: 10 }}><Rate id={record.id} initialValue={record.human_rating} /></div>
+          <Editable value={record.remark} onChange={(val) => { updateRemark(record, val) }} />
         </>
       }
     },
-    // {
-    //   title: t('page.aicodecheck.comment.status'),
-    //   fixed: 'right',
-    //   dataIndex: 'passed',
-    //   key: 'passed',
-    //   render: (text: boolean) => text ? <Tag color='success' >{t('page.aicodecheck.comment.status.pass')}</Tag> : <Tag color='error'>{t('page.aicodecheck.comment.status.fail')}</Tag>,
-    // },
   ];
 
-  const handleQueryList = async (params?: any) => {
-    const result = await queryList({
-      ...params,
-      project_ids: params.project_ids && typeof params.project_ids === 'string' ? params.project_ids.split(',').map(Number) : void 0,
+  const handleQueryList = async (params?: TableQueryParam) => {
+    const data: any = {
+      passed: params?.passed,
+      page_size: params?.page_size,
+      current: params?.current,
+      human_ratings: params?.human_ratings,
+      project_namespaces: params?.project_namespaces,
+      project_ids: params?.project_ids && typeof params.project_ids === 'string' ? params.project_ids.split(',').map(Number) : void 0,
       id: id ? parseInt(id) : undefined
-    });
-    
+    }
+    if (Array.isArray(params?.date)) {
+      data.start_date = dayjs(params?.date[0]).startOf('d').unix();
+      data.end_date = dayjs(params?.date[1]).endOf('d').unix();
+    }
+
+    setFilters(data);
+    const result = await queryList(data);
+
     // 更新表格数据用于导出
     if (result.data?.data) {
       setTableData(result.data.data);
       setExpandedRowKeys(result.data.data.map((item: TableListItem) => item.id));
     }
-    
+
     return result;
+  };
+
+  const handleDownloadList = async () => {
+    return await queryList({ ...filters, page_size: 99999, current: 1 }).then(res => res.data?.data || []);
   };
 
   // 自定义数据处理器，处理特殊列的数据
@@ -142,7 +154,8 @@ function App() {
       // 处理评论信息，移除Markdown格式
       result: item.result ? item.result.replace(/[#*`]/g, '').replace(/\n/g, ' ') : '',
       // 处理状态显示
-      passed: item.passed ? '成功' : '失败'
+      passed: item.passed ? '成功' : '失败',
+      create_time: renderDateFromTimestamp(item.create_time as number, timeFormatType.time),
     }));
   };
 
@@ -151,6 +164,9 @@ function App() {
       label: '创建时间',
       name: 'date',
       type: FormType.DateRange,
+      option: {
+        disabledDate
+      },
       span: 8,
     },
     {
@@ -236,37 +252,46 @@ function App() {
         expandable={{
           expandedRowRender: (record: TableListItem) => (
             <Flex align='center' justify='center' className='mx-24'>
-            <Typography className='w-full markdown-body'>
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{record.result}</ReactMarkdown>
-            </Typography>
+              <Typography className='w-full markdown-body'>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{record.result}</ReactMarkdown>
+              </Typography>
             </Flex>
           ),
           rowExpandable: (record: TableListItem) => true,
           expandedRowKeys,
+          onExpandedRowsChange: (keys: number[]) => setExpandedRowKeys(keys)
         }}
-        columns={columns}
+        columns={columns.filter(column => column.key !== 'result')}
         filterFormItems={formItems}
         queryList={handleQueryList}
         useTools
         scroll={{ x: 1200 }}
         rightToolsSlot={
-          <ExcelExport
-            data={tableData}
-            columns={columns}
-            config={{
-              filename: 'comment_list',
-              sheetName: '评论列表',
-              selectedColumns: ['id', 'project_namespace', 'passed', 'merge_url', 'result', 'human_rating', 'remark', 'create_time']
-            }}
-            buttonText="导出Excel"
-            buttonType="primary"
-            buttonSize="small"
-            showSettings={false}
-            onBeforeExport={handleBeforeExport}
-            onExport={(config: ExcelExportConfig) => {
-              console.log('导出配置:', config);
-            }}
-          />
+          <Space size='middle'>
+            <Tooltip title="展开全部">
+              <NodeExpandOutlined onClick={() => setExpandedRowKeys(tableData.map((item: TableListItem) => item.id))} />
+            </Tooltip>
+            <Tooltip title="折叠全部">
+              <NodeCollapseOutlined onClick={() => setExpandedRowKeys([])} />
+            </Tooltip>
+            <ExcelExport
+              query={handleDownloadList}
+              columns={columns}
+              config={{
+                filename: 'comment_list',
+                sheetName: '评论列表',
+                selectedColumns: ['id', 'project_namespace', 'passed', 'merge_url', 'result', 'human_rating', 'remark', 'create_time']
+              }}
+              buttonText="导出Excel"
+              buttonType="primary"
+              buttonSize="small"
+              showSettings={false}
+              onBeforeExport={handleBeforeExport}
+              onExport={(config: ExcelExportConfig) => {
+                console.log('导出配置:', config);
+              }}
+            />
+          </Space>
         }
       />
     </div>

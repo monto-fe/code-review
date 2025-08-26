@@ -9,7 +9,7 @@ export interface ExcelExportConfig {
 }
 
 export interface ExcelExportProps<T = any> {
-  data: T[];
+  query: () => Promise<any>;
   columns: ColumnsType<T>;
   config?: ExcelExportConfig;
   buttonText?: string;

@@ -2,16 +2,11 @@ import React, { useRef, useState } from 'react';
 import { Button, message, Modal, Form, Select, Checkbox, Space, Input, Tooltip } from 'antd';
 import { DownloadOutlined, SettingOutlined } from '@ant-design/icons';
 import ExcelJS from 'exceljs';
-import type { ColumnsType } from 'antd/lib/table';
 import { processTableData } from './utils';
 import type { ExcelExportConfig, ExcelExportProps } from './types';
 
-const { Option } = Select;
-
-
-
 function ExcelExport<T = any>({
-  data,
+  query,
   columns,
   config = {},
   buttonText = '导出Excel',
@@ -26,7 +21,7 @@ function ExcelExport<T = any>({
   const [settingsVisible, setSettingsVisible] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
   const [form] = Form.useForm();
-  
+
   const defaultConfig: ExcelExportConfig = {
     filename: 'export_data',
     sheetName: 'Sheet1',
@@ -39,48 +34,43 @@ function ExcelExport<T = any>({
   const handleExport = async (exportConfig?: ExcelExportConfig) => {
     try {
       setExportLoading(true);
-      
+
       const finalConfig = { ...defaultConfig, ...exportConfig };
-      
+
       // 处理数据
-      let exportData = data;
+      let exportData = await query();
       if (onBeforeExport) {
-        exportData = await onBeforeExport(data, finalConfig);
+        exportData = await onBeforeExport(exportData, finalConfig);
       }
-      
       // 使用工具函数处理数据
       const processedData = processTableData(
-        exportData, 
-        columns, 
+        exportData,
+        columns,
         finalConfig.selectedColumns || []
       );
-      console.log("processedData", processedData);
-      
+
       // 转换为ExcelJS需要的格式
       const excelData = processedData.map(item => Object.values(item));
-      
+
       // 使用ExcelJS导出Excel
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet(finalConfig.sheetName || 'Sheet1');
-      
+
       // 获取表头
-      const headers = finalConfig.includeHeaders && processedData.length > 0 
-        ? Object.keys(processedData[0]) 
+      const headers = finalConfig.includeHeaders && processedData.length > 0
+        ? Object.keys(processedData[0])
         : [];
-      
-      console.log('headers:', headers);
-      
+
       // 直接添加表头行
       if (finalConfig.includeHeaders && headers.length > 0) {
         worksheet.addRow(headers);
       }
-      
+
       // 直接添加数据行（数组格式）
       excelData.forEach((row, index) => {
-        console.log(`row ${index}:`, row);
         worksheet.addRow(row);
       });
-      
+
       // 自动调整列宽
       if (finalConfig.autoWidth && headers.length > 0) {
         worksheet.columns = headers.map((header, index) => ({
@@ -89,24 +79,24 @@ function ExcelExport<T = any>({
           width: 20
         }));
       }
-      
+
       // 生成并下载文件
       const buffer = await workbook.xlsx.writeBuffer();
-      
-      const blob = new Blob([buffer], { 
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       });
-      
+
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `${finalConfig.filename}.xlsx`;
       link.click();
       URL.revokeObjectURL(url);
-      
+
       message.success('导出成功');
       onExport?.(finalConfig);
-      
+
     } catch (error) {
       console.error('导出失败:', error);
       message.error('导出失败，请重试');
@@ -125,7 +115,7 @@ function ExcelExport<T = any>({
         autoWidth: values.autoWidth,
         selectedColumns: values.selectedColumns
       };
-      
+
       await handleExport(exportConfig);
       setSettingsVisible(false);
     } catch (error) {
@@ -146,29 +136,30 @@ function ExcelExport<T = any>({
 
   return (
     <>
-      <Tooltip title={buttonText}>
-        <DownloadOutlined 
-          onClick={() => handleExport()}
-          style={{ 
-            cursor: disabled || exportLoading ? 'not-allowed' : 'pointer',
-            color: disabled || exportLoading ? '#d9d9d9' : undefined,
-            fontSize: '16px'
-          }}
-        />
-      </Tooltip>
-      
-      {showSettings && (
-        <Button
-          type="default"
-          size={buttonSize}
-          icon={<SettingOutlined />}
-          onClick={openSettings}
-          disabled={disabled}
-        >
-          导出设置
-        </Button>
-      )}
+      <Space>
+        <Tooltip title={buttonText}>
+          <DownloadOutlined
+            onClick={() => handleExport()}
+            style={{
+              cursor: disabled || exportLoading ? 'not-allowed' : 'pointer',
+              color: disabled || exportLoading ? '#d9d9d9' : undefined,
+              fontSize: '16px'
+            }}
+          />
+        </Tooltip>
 
+        {showSettings && (
+          <Button
+            type="default"
+            size={buttonSize}
+            icon={<SettingOutlined />}
+            onClick={openSettings}
+            disabled={disabled}
+          >
+            导出设置
+          </Button>
+        )}
+      </Space>
       <Modal
         title="导出设置"
         open={settingsVisible}
@@ -199,7 +190,7 @@ function ExcelExport<T = any>({
               ]}
             />
           </Form.Item>
-          
+
           <Form.Item
             label="工作表名称"
             name="sheetName"
@@ -217,7 +208,7 @@ function ExcelExport<T = any>({
               ]}
             />
           </Form.Item>
-          
+
           <Form.Item
             label="导出列"
             name="selectedColumns"
@@ -234,11 +225,11 @@ function ExcelExport<T = any>({
                 }))}
             />
           </Form.Item>
-          
+
           <Form.Item name="includeHeaders" valuePropName="checked">
             <Checkbox>包含表头</Checkbox>
           </Form.Item>
-          
+
           <Form.Item name="autoWidth" valuePropName="checked">
             <Checkbox>自动调整列宽</Checkbox>
           </Form.Item>

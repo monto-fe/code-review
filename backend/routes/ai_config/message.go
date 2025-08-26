@@ -47,19 +47,19 @@ func GetAIMessage(c *gin.Context) {
 
 	// 新增筛选参数
 	if req.StartDate != 0 {
-		params["startDate"] = req.StartDate
+		params["start_date"] = req.StartDate
 	}
 	if req.EndDate != 0 {
-		params["endDate"] = req.EndDate
+		params["end_date"] = req.EndDate
 	}
 	if len(req.ProjectIDs) > 0 {
-		params["projectIDs"] = req.ProjectIDs
+		params["project_ids"] = req.ProjectIDs
 	}
 	if len(req.HumanRatings) > 0 {
-		params["humanRatings"] = req.HumanRatings
+		params["human_ratings"] = req.HumanRatings
 	}
 	if len(req.ProjectNamespaces) > 0 {
-		params["projectNamespaces"] = req.ProjectNamespaces
+		params["project_namespaces"] = req.ProjectNamespaces
 	}
 
 	// 计算分页参数
