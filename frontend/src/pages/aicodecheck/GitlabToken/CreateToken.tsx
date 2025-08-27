@@ -107,11 +107,20 @@ const AIConfigPage: React.FC<AIConfigPageProps> = ({
     setCreateSubmitLoading(true);
     const request = updateData.id ? updateDataService : createData;
     request({ ...values, id: updateData.id as number })
-      .then(() => {
+      .then((response) => {
         // form.resetFields();
         message.success(values.id ? t('app.global.tip.update.success') : t('app.global.tip.create.success'));
-        // 跳转到GitlabToken列表页
-        navigate('/aicodecheck/GitlabToken');
+        
+        // 获取创建的 token ID，用于轮询
+        const tokenId = response.data?.id || updateData.id;
+        
+        // 跳转到GitlabToken列表页，带上轮询参数
+        if (tokenId) {
+          navigate(`/aicodecheck/GitlabToken?pollingTokenId=${tokenId}`);
+        } else {
+          navigate('/aicodecheck/GitlabToken');
+        }
+        
         setCreateSubmitLoading(false);
       })
       .catch(() => {
@@ -141,6 +150,7 @@ const AIConfigPage: React.FC<AIConfigPageProps> = ({
             <Form.Item
               label="API"
               name="api"
+              tooltip="Gitlab API地址，如：https://gitlab.com/api"
               rules={isEdit ? [] : [{ required: true, message: 'API为必填项' }]}
             >
               <Input placeholder="请输入API地址" />
@@ -148,6 +158,7 @@ const AIConfigPage: React.FC<AIConfigPageProps> = ({
             <Form.Item
               label="Token"
               name="token"
+              tooltip="Gitlab Token，可以是系统Token、项目Token、组Token"
               rules={isEdit ? [] : [{ required: true, message: 'Token为必填项' }]}
             >
               <Input placeholder="请输入Token" />
@@ -155,6 +166,7 @@ const AIConfigPage: React.FC<AIConfigPageProps> = ({
             <Form.Item
               label="有效期"
               name="expired"
+              tooltip="Gitlab Token有效期"
               rules={[
                 ...(isEdit ? [] : [{ required: true, message: '有效期为必填项' }]),
                 {

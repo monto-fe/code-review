@@ -41,6 +41,16 @@ func (s *AIMessageService) GetAIMessage(params map[string]interface{}) ([]dto.AI
 		query = query.Where("passed = ?", passed)
 	}
 
+	// 项目ID筛选
+	if projectID, ok := params["project_id"].(uint); ok && projectID > 0 {
+		query = query.Where("project_id = ?", projectID)
+	}
+
+	// 项目命名空间筛选
+	if projectNamespace, ok := params["project_namespace"].(string); ok && projectNamespace != "" {
+		query = query.Where("project_namespace = ?", projectNamespace)
+	}
+
 	// 时间范围筛选（时间戳格式）
 	if startDateVal, exists := params["start_date"]; exists && startDateVal != nil {
 		if startDate, ok := startDateVal.(int64); ok && startDate > 0 {

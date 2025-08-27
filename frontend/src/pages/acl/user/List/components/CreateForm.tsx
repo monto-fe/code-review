@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import { FormInstance } from 'antd/lib/form';
 import { Form } from 'antd';
 
@@ -30,6 +30,16 @@ function CreateForm(props: ICreateFormProps) {
 
   const [form] = Form.useForm();
 
+  // 处理编辑时的初始值，排除密码字段
+  const getFormInitialValues = () => {
+    if (initialValues?.id) {
+      // 编辑时排除密码字段
+      const { password, ...valuesWithoutPassword } = initialValues;
+      return valuesWithoutPassword;
+    }
+    return initialValues;
+  };
+
   const addFormItems: IFormItem[] = [
     {
       label: t('page.user.enname'),
@@ -46,8 +56,9 @@ function CreateForm(props: ICreateFormProps) {
     {
       label: t('page.user.password'),
       name: 'password',
+      required: !initialValues?.id, // 编辑时密码不是必填
       option: {
-        placeholder: 'default: 12345678',
+        placeholder: initialValues?.id ? '不修改请留空' : 'default: 12345678',
       },
       type: FormType.Input,
     },
@@ -78,7 +89,13 @@ function CreateForm(props: ICreateFormProps) {
   ];
 
   const onFinish = async (values: TableListItem) => {
-    onSubmit({ ...values }, form);
+    // 编辑时如果密码为空，则从提交数据中移除密码字段
+    if (initialValues?.id && !values.password) {
+      const { password, ...valuesWithoutPassword } = values;
+      onSubmit(valuesWithoutPassword, form);
+    } else {
+      onSubmit({ ...values }, form);
+    }
   };
 
   return (
@@ -87,7 +104,7 @@ function CreateForm(props: ICreateFormProps) {
         visible={visible}
         setVisible={setVisible}
         confirmLoading={onSubmitLoading}
-        initialValues={initialValues}
+        initialValues={getFormInitialValues()}
         title={initialValues?.id ? t('app.global.edit') : t('page.user.add')}
         ItemOptions={addFormItems}
         onFinish={onFinish}

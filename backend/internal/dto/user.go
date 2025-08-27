@@ -69,7 +69,7 @@ type UpdateInnerUserRequest struct {
 	Namespace   string  `json:"namespace" binding:"required"`
 	Name        string  `json:"name"`
 	Job         string  `json:"job"`
-	Password    string  `json:"password"`
+	Password    *string `json:"password,omitempty"`
 	Email       *string `json:"email,omitempty"`
 	PhoneNumber *string `json:"phone_number,omitempty"`
 	RoleIDs     []uint  `json:"role_ids"`

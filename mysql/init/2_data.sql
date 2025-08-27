@@ -23,6 +23,8 @@ INSERT INTO `ucode_review`.`t_user_role` (`id`, `namespace`, `user`, `role_id`, 
 INSERT INTO `ucode_review`.`t_ai_manager` (`type`, `model`, `api_url`, `status`, `create_time`, `update_time`)
 VALUES 
   ('UCloud', 'deepseek-ai/DeepSeek-V3-0324', 'https://deepseek.modelverse.cn/v1/chat/completions', 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
-  ('DeepSeek', 'deepseek-chat', 'https://api.deepseek.com/chat/completions', 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP());
+  ('DeepSeek', 'deepseek-chat', 'https://api.deepseek.com/chat/completions', 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
+  ('UCloud', 'Qwen/Qwen3-Coder', 'https://deepseek.modelverse.cn/v1/chat/completions', 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP()),
+  ('UCloud', 'moonshotai/Kimi-K2-Instruct', 'https://deepseek.modelverse.cn/v1/chat/completions', 1, UNIX_TIMESTAMP(), UNIX_TIMESTAMP());
 
 
