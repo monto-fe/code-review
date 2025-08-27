@@ -149,6 +149,12 @@ func CreateInnerUser(c *gin.Context) {
 		return
 	}
 
+	// 参数格式校验
+	if err := validateCreateInnerUserRequest(&req); err != nil {
+		response.Error(c, err, "参数格式校验失败", int(constants.RetCodeInvalidParams))
+		return
+	}
+
 	operator := c.GetHeader("remoteUser")
 	if operator == "" {
 		response.Error(c, nil, "Operator not found in request header", int(constants.RetCodeOperatorMissing))
@@ -190,6 +196,108 @@ func CreateInnerUser(c *gin.Context) {
 	response.Success(c, result, "User created successfully", int(constants.RetCodeSuccess))
 }
 
+// validateCreateInnerUserRequest 验证创建内部用户请求参数
+func validateCreateInnerUserRequest(req *dto.CreateInnerUserRequest) error {
+	// 验证命名空间格式
+	if err := utils.ValidateNamespace(req.Namespace); err != nil {
+		return err
+	}
+
+	// 验证用户名格式
+	if err := utils.ValidateUsername(req.User); err != nil {
+		return err
+	}
+
+	// 验证姓名格式
+	if err := utils.ValidateName(req.Name); err != nil {
+		return err
+	}
+
+	// 验证职位格式
+	if err := utils.ValidateJob(req.Job); err != nil {
+		return err
+	}
+
+	// 验证密码强度
+	if err := utils.ValidatePassword(req.Password); err != nil {
+		return err
+	}
+
+	// 验证邮箱格式
+	if err := utils.ValidateEmail(req.Email); err != nil {
+		return err
+	}
+
+	// 验证手机号格式
+	if err := utils.ValidatePhone(req.PhoneNumber); err != nil {
+		return err
+	}
+
+	// 验证角色ID数组
+	if err := utils.ValidateRoleIDs(req.RoleIDs); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateUpdateInnerUserRequest 验证更新内部用户请求参数
+func validateUpdateInnerUserRequest(req *dto.UpdateInnerUserRequest) error {
+	// 验证命名空间格式
+	if err := utils.ValidateNamespace(req.Namespace); err != nil {
+		return err
+	}
+
+	// 验证用户名格式（如果提供）
+	if req.User != "" {
+		if err := utils.ValidateUsername(req.User); err != nil {
+			return err
+		}
+	}
+
+	// 验证姓名格式（如果提供）
+	if req.Name != "" {
+		if err := utils.ValidateName(req.Name); err != nil {
+			return err
+		}
+	}
+
+	// 验证职位格式（如果提供）
+	if req.Job != "" {
+		if err := utils.ValidateJob(req.Job); err != nil {
+			return err
+		}
+	}
+
+	// 验证密码强度（如果提供）
+	if req.Password != nil && *req.Password != "" {
+		if err := utils.ValidatePassword(*req.Password); err != nil {
+			return err
+		}
+	}
+
+	// 验证邮箱格式（如果提供）
+	if req.Email != nil && *req.Email != "" {
+		if err := utils.ValidateEmail(*req.Email); err != nil {
+			return err
+		}
+	}
+
+	// 验证手机号格式（如果提供）
+	if req.PhoneNumber != nil && *req.PhoneNumber != "" {
+		if err := utils.ValidatePhone(*req.PhoneNumber); err != nil {
+			return err
+		}
+	}
+
+	// 验证角色ID数组
+	if err := utils.ValidateRoleIDs(req.RoleIDs); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // UpdateInnerUser 更新内部用户
 // @Summary 更新内部用户
 // @Description 更新内部用户信息
@@ -207,6 +315,12 @@ func UpdateInnerUser(c *gin.Context) {
 	var req dto.UpdateInnerUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.Error(c, err, "Invalid request parameters", int(constants.RetCodeInvalidParams))
+		return
+	}
+
+	// 参数格式校验
+	if err := validateUpdateInnerUserRequest(&req); err != nil {
+		response.Error(c, err, "参数格式校验失败", int(constants.RetCodeInvalidParams))
 		return
 	}
 
@@ -236,11 +350,16 @@ func UpdateInnerUser(c *gin.Context) {
 		Namespace:   req.Namespace,
 		Name:        req.Name,
 		Job:         req.Job,
-		Password:    utils.HashPassword(req.Password),
 		Email:       req.Email,
 		PhoneNumber: req.PhoneNumber,
 		RoleIDs:     req.RoleIDs,
 		Operator:    operator,
+	}
+
+	// 只有当密码字段不为空时才更新密码
+	if req.Password != nil && *req.Password != "" {
+		hashedPassword := utils.HashPassword(*req.Password)
+		updateReq.Password = &hashedPassword
 	}
 
 	if err := userService.UpdateInnerUser(updateReq); err != nil {

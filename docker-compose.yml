@@ -33,9 +33,9 @@ services:
     ports:
       - "${API_PORT}:9000"
     restart: always
-    depends_on:
-      rag-service:
-        condition: service_healthy
+    # depends_on:
+      # rag-service:
+        # condition: service_healthy
     networks:
       - backend-network
 

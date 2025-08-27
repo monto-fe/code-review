@@ -85,7 +85,7 @@ type UpdateUserReq struct {
 	Namespace   string  `json:"namespace" binding:"required"`
 	Name        string  `json:"name" binding:"required"`
 	Job         string  `json:"job" binding:"required"`
-	Password    string  `json:"password" binding:"required"`
+	Password    *string `json:"password,omitempty"`
 	PhoneNumber *string `json:"phone_number,omitempty"`
 	Email       *string `json:"email,omitempty"`
 	RoleIDs     []uint  `json:"role_ids" binding:"required"`
