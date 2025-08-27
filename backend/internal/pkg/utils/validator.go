@@ -17,7 +17,7 @@ var (
 	usernameRegex = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]{2,19}$`)
 
 	// 密码强度验证（至少8位，包含字母和数字）
-	passwordRegex = regexp.MustCompile(`^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$`)
+	passwordRegex = regexp.MustCompile(`^[A-Za-z\d@$!%*?&]{8,}$`)
 
 	// 命名空间格式验证（字母开头，允许字母数字下划线连字符，长度2-50）
 	namespaceRegex = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_-]{1,49}$`)
@@ -81,7 +81,26 @@ func ValidatePassword(password string) error {
 	}
 
 	if !passwordRegex.MatchString(password) {
-		return fmt.Errorf("密码必须包含字母和数字")
+		return fmt.Errorf("密码只能包含字母、数字和特殊字符(@$!%*?&)")
+	}
+
+	// 手动检查是否包含字母和数字
+	hasLetter := false
+	hasDigit := false
+	for _, char := range password {
+		if char >= 'a' && char <= 'z' || char >= 'A' && char <= 'Z' {
+			hasLetter = true
+		} else if char >= '0' && char <= '9' {
+			hasDigit = true
+		}
+	}
+
+	if !hasLetter {
+		return fmt.Errorf("密码必须包含字母")
+	}
+
+	if !hasDigit {
+		return fmt.Errorf("密码必须包含数字")
 	}
 
 	return nil
