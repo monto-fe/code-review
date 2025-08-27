@@ -17,7 +17,7 @@ var (
 	usernameRegex = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]{2,19}$`)
 
 	// 密码强度验证（至少8位，包含字母和数字）
-	passwordRegex = regexp.MustCompile(`^[A-Za-z\d@$!%*?&]{8,}$`)
+	passwordRegex = regexp.MustCompile(`^[A-Za-z\d@$!%*?&._]{8,}$`)
 
 	// 命名空间格式验证（字母开头，允许字母数字下划线连字符，长度2-50）
 	namespaceRegex = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_-]{1,49}$`)
@@ -46,8 +46,21 @@ func ValidatePhone(phone string) error {
 		return nil // 允许空值
 	}
 
-	if !phoneRegex.MatchString(phone) {
-		return fmt.Errorf("手机号格式不正确，请输入11位中国大陆手机号")
+	// 如果包含非数字字符，则验证失败
+	for _, char := range phone {
+		if char < '0' || char > '9' {
+			return fmt.Errorf("手机号只能包含数字")
+		}
+	}
+
+	// 检查长度是否为11位
+	if len(phone) != 11 {
+		return fmt.Errorf("手机号长度必须为11位")
+	}
+
+	// 检查是否以1开头
+	if len(phone) > 0 && phone[0] != '1' {
+		return fmt.Errorf("手机号必须以1开头")
 	}
 
 	return nil
@@ -81,26 +94,20 @@ func ValidatePassword(password string) error {
 	}
 
 	if !passwordRegex.MatchString(password) {
-		return fmt.Errorf("密码只能包含字母、数字和特殊字符(@$!%*?&)")
+		return fmt.Errorf("密码只能包含字母、数字和特殊字符(@$!%*?&._)")
 	}
 
-	// 手动检查是否包含字母和数字
+	// 手动检查是否包含字母
 	hasLetter := false
-	hasDigit := false
 	for _, char := range password {
 		if char >= 'a' && char <= 'z' || char >= 'A' && char <= 'Z' {
 			hasLetter = true
-		} else if char >= '0' && char <= '9' {
-			hasDigit = true
+			break
 		}
 	}
 
 	if !hasLetter {
 		return fmt.Errorf("密码必须包含字母")
-	}
-
-	if !hasDigit {
-		return fmt.Errorf("密码必须包含数字")
 	}
 
 	return nil

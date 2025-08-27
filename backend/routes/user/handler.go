@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"strconv"
 
 	"code-review-go/internal/database"
@@ -245,54 +246,54 @@ func validateCreateInnerUserRequest(req *dto.CreateInnerUserRequest) error {
 func validateUpdateInnerUserRequest(req *dto.UpdateInnerUserRequest) error {
 	// 验证命名空间格式
 	if err := utils.ValidateNamespace(req.Namespace); err != nil {
-		return err
+		return fmt.Errorf("命名空间验证失败: %v", err)
 	}
 
 	// 验证用户名格式（如果提供）
 	if req.User != "" {
 		if err := utils.ValidateUsername(req.User); err != nil {
-			return err
+			return fmt.Errorf("用户名验证失败: %v", err)
 		}
 	}
 
 	// 验证姓名格式（如果提供）
 	if req.Name != "" {
 		if err := utils.ValidateName(req.Name); err != nil {
-			return err
+			return fmt.Errorf("姓名验证失败: %v", err)
 		}
 	}
 
 	// 验证职位格式（如果提供）
 	if req.Job != "" {
 		if err := utils.ValidateJob(req.Job); err != nil {
-			return err
+			return fmt.Errorf("职位验证失败: %v", err)
 		}
 	}
 
 	// 验证密码强度（如果提供）
 	if req.Password != nil && *req.Password != "" {
 		if err := utils.ValidatePassword(*req.Password); err != nil {
-			return err
+			return fmt.Errorf("密码验证失败: %v", err)
 		}
 	}
 
 	// 验证邮箱格式（如果提供）
 	if req.Email != nil && *req.Email != "" {
 		if err := utils.ValidateEmail(*req.Email); err != nil {
-			return err
+			return fmt.Errorf("邮箱验证失败: %v", err)
 		}
 	}
 
 	// 验证手机号格式（如果提供）
 	if req.PhoneNumber != nil && *req.PhoneNumber != "" {
 		if err := utils.ValidatePhone(*req.PhoneNumber); err != nil {
-			return err
+			return fmt.Errorf("手机号验证失败: %v", err)
 		}
 	}
 
 	// 验证角色ID数组
 	if err := utils.ValidateRoleIDs(req.RoleIDs); err != nil {
-		return err
+		return fmt.Errorf("角色ID验证失败: %v", err)
 	}
 
 	return nil
@@ -320,7 +321,7 @@ func UpdateInnerUser(c *gin.Context) {
 
 	// 参数格式校验
 	if err := validateUpdateInnerUserRequest(&req); err != nil {
-		response.Error(c, err, "参数格式校验失败", int(constants.RetCodeInvalidParams))
+		response.Error(c, err, err.Error(), int(constants.RetCodeInvalidParams))
 		return
 	}
 
