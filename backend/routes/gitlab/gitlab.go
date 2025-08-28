@@ -161,14 +161,19 @@ func RefreshGitlabToken(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param jwt_token header string true "JWT认证Token"
-// @Param id path string true "Gitlab Token ID"
+// @Param id query int true "Gitlab Token ID"
 // @Success 200 {object} response.Response
-// @Router /v1/gitlab/token/{id} [get]
+// @Router /v1/gitlab/token [get]
 func GetGitlabTokenDetail(c *gin.Context) {
-	idStr := c.Param("id")
+	idStr := c.Query("id")
+	if idStr == "" {
+		response.Error(c, nil, "id参数不能为空", int(constants.RetCodeBadRequest))
+		return
+	}
+
 	idInt, err := strconv.Atoi(idStr)
 	if err != nil {
-		response.Error(c, err, "id参数错误", int(constants.RetCodeBadRequest))
+		response.Error(c, err, "id参数格式错误", int(constants.RetCodeBadRequest))
 		return
 	}
 	gitlabService := service.NewGitlabService(database.DB)

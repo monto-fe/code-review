@@ -940,6 +940,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/gitlab/token": {
+            "get": {
+                "description": "获取指定的 Gitlab Token 详情",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Gitlab"
+                ],
+                "summary": "获取 Gitlab Token 详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Gitlab Token ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/gitlab/token/projects": {
             "get": {
                 "description": "获取所有Gitlab Token的名称和对应的ProjectIds，全量拉取不分页",
@@ -1003,45 +1042,6 @@ const docTemplate = `{
                         "description": "JWT认证Token",
                         "name": "jwt_token",
                         "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/gitlab/token/{id}": {
-            "get": {
-                "description": "获取指定的 Gitlab Token 详情",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Gitlab"
-                ],
-                "summary": "获取 Gitlab Token 详情",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "JWT认证Token",
-                        "name": "jwt_token",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Gitlab Token ID",
-                        "name": "id",
-                        "in": "path",
                         "required": true
                     }
                 ],
@@ -1686,8 +1686,8 @@ const docTemplate = `{
                 },
                 "end_date": {
                     "description": "结束日期 (时间戳，秒级别)",
-                    "type": "string",
-                    "example": "1705680000"
+                    "type": "integer",
+                    "example": 1705680000
                 },
                 "human_ratings": {
                     "description": "人工评分列表，支持多选",
@@ -1740,8 +1740,8 @@ const docTemplate = `{
                 },
                 "start_date": {
                     "description": "新增筛选参数",
-                    "type": "string",
-                    "example": "1703001600"
+                    "type": "integer",
+                    "example": 1703001600
                 }
             }
         },

@@ -258,10 +258,14 @@ func (s *UserService) UpdateInnerUser(req model.UpdateUserReq) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		// 更新用户信息
 		updates := map[string]interface{}{
-			"password":    req.Password,
 			"name":        req.Name,
 			"job":         req.Job,
 			"update_time": time.Now().Unix(),
+		}
+
+		// 只有当密码字段不为空时才更新密码
+		if req.Password != nil && *req.Password != "" {
+			updates["password"] = *req.Password
 		}
 		if req.Email != nil {
 			updates["email"] = *req.Email

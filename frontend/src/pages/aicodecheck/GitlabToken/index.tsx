@@ -1,9 +1,9 @@
-import { memo, useContext, useRef, useState } from 'react';
-import { Button, message, Popconfirm, PopconfirmProps, Space, Switch } from 'antd';
+import { memo, useContext, useRef, useState, useEffect } from 'react';
+import { Button, message, Popconfirm, PopconfirmProps, Space, Switch, Alert } from 'antd';
 import type { TableColumnsType } from 'antd';
 import { observer } from 'mobx-react-lite';
 import dayjs from 'dayjs';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import CommonTable from '@/pages/component/Table';
 import { ITable } from '@/pages/component/Table/data';
@@ -15,6 +15,7 @@ import { queryList, removeData, updateData as updateDataService } from './servic
 import { TableQueryParam, TableListItem } from './data';
 // import CreateForm from './CreateToken';
 import StatusTag from './components/StatusTag';
+import { usePolling } from './hooks/usePolling';
 
 function App() {
   const tableRef = useRef<ITable<TableListItem>>();
@@ -22,7 +23,54 @@ function App() {
   const { i18nLocale } = context.storeContext;
   const t = useI18n(i18nLocale);
   const navigate = useNavigate();
+  const location = useLocation();
   const reload = () => tableRef.current && tableRef.current.reload && tableRef.current.reload();
+
+  // 轮询状态管理
+  const [pollingTokenId, setPollingTokenId] = useState<number | null>(null);
+  
+  // 从 URL 参数中获取需要轮询的 token ID
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const tokenId = searchParams.get('pollingTokenId');
+    if (tokenId) {
+      const id = parseInt(tokenId, 10);
+      if (!isNaN(id)) {
+        setPollingTokenId(id);
+        // 清除 URL 参数
+        navigate(location.pathname, { replace: true });
+      }
+    }
+  }, [location.search, navigate, location.pathname]);
+
+  // 轮询 hook
+  const { startPolling, stopPolling, isPolling } = usePolling({
+    tokenId: pollingTokenId || 0,
+    onSuccess: () => {
+      message.success('项目ID同步成功');
+      setPollingTokenId(null);
+      reload();
+    },
+    onError: () => {
+      message.error('项目ID同步失败');
+      setPollingTokenId(null);
+      reload();
+    },
+    onTimeout: () => {
+      message.warning('项目ID同步超时，请稍后查看状态');
+      setPollingTokenId(null);
+      reload();
+    }
+  });
+
+  // 当有需要轮询的 token ID 时，启动轮询
+  useEffect(() => {
+    if (pollingTokenId) {
+      startPolling();
+    } else {
+      stopPolling();
+    }
+  }, [pollingTokenId, startPolling, stopPolling]);
 
   // 删除
   const [deleteOpen, setDeleteOpen] = useState<number | undefined>();
@@ -220,6 +268,12 @@ function App() {
       )
     },
     {
+      title: '创建时间',
+      dataIndex: 'create_time',
+      key: 'create_time',
+      render: (text: number) => text ? dayjs(text * 1000).format('YYYY-MM-DD HH:mm:ss') : '--',
+    },
+    {
       title: t('app.table.action'),
       dataIndex: 'action',
       key: 'action',
@@ -263,6 +317,16 @@ function App() {
 
   return (
     <div className='layout-main-conent'>
+      {/* 轮询状态提示 */}
+      {isPolling && (
+        <Alert
+          message="Token缓存同步中，预计1-5分钟，同步成功后Token生效"
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+        />
+      )}
+      
       <CommonTable
         ref={tableRef}
         columns={columns}

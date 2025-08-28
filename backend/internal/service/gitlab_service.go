@@ -43,7 +43,7 @@ func NewGitlabService(db *gorm.DB) *GitlabService {
 // GetGitlabInfo 获取Gitlab信息
 func (s *GitlabService) GetGitlabInfo() ([]dto.GitlabInfoResponse, error) {
 	var gitlabList []model.GitlabInfo
-	if err := s.db.Find(&gitlabList).Error; err != nil {
+	if err := s.db.Order("create_time DESC").Find(&gitlabList).Error; err != nil {
 		return nil, err
 	}
 

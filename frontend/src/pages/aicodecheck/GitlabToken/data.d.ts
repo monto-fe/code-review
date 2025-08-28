@@ -17,4 +17,7 @@ export interface TableListItem {
   rule_check_status?: number;
   status?: number;
   comment_type?: number;
+  project_ids_synced?: number; // 项目ID同步状态：1-失败，2-同步中，3-成功
+  create_time?: number;
+  update_time?: number;
 }
