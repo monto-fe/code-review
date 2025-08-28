@@ -1,4 +1,9 @@
 export default {
+  'app.404': '404',
+  'app.404.title': '404',
+  'app.404.description': '找不到页面',
+  'app.404.back': '返回首页',
+
   'app.empty': '空空如也',
   'app.global.menu.notfound': '没有数据',
   'app.global.form.validatefields.catch': '验证不通过，请检查输入',
@@ -88,10 +93,8 @@ export default {
   'universal-layout.menu.home.bookmark': '多彩书签',
   'universal-layout.menu.home.timestamp': '时间戳转换',
 
-  'universal-layout.menu.roles': '权限管理',
-  'universal-layout.menu.roles.user': '用户列表',
-  'universal-layout.menu.roles.role': '角色列表',
-  'universal-layout.menu.roles.resource': '资源列表',
+  'universal-layout.menu.user.title': '用户管理',
+  'universal-layout.menu.user': '用户列表',
 
   'universal-layout.menu.aicodecheck': 'AI代码检测',
   'universal-layout.menu.aicodecheck.commonrule': '通用规则',

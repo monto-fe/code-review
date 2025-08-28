@@ -71,7 +71,7 @@ function FormModal(props: IFormModal) {
         setVisible(false);
         form.resetFields();
       }}
-      destroyOnClose
+      destroyOnHidden
       maskClosable={false}
       onOk={onOk}
       width={width}
@@ -108,7 +108,7 @@ function FormModal(props: IFormModal) {
               >
                 {itemGenerator({ field: { ...item, onChange: item.onChange, value: item.value } })}
               </Form.Item>
-            )
+            );
           })}
         </Form>
       ) : null}

@@ -71,7 +71,7 @@ function FormDrawer(props: IFormModal) {
         setVisible(false);
         form.resetFields();
       }}
-      destroyOnClose
+      destroyOnHidden
       maskClosable={false}
       width={width}
     >
@@ -105,7 +105,7 @@ function FormDrawer(props: IFormModal) {
               >
                 {itemGenerator({ field: { ...item, onChange: item.onChange, value: item.value } })}
               </Form.Item>
-            )
+            );
           })}
         </Form>
       ) : null}

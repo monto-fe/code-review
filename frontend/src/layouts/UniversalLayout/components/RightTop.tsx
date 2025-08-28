@@ -39,12 +39,7 @@ export default memo(({ menuData, routeItem, userRoles = [], breadCrumbs = [] }: 
   return (
     <div className='universallayout-right-top'>
       <Flex className='universallayout-right-top-header'>
-        <Flex
-          className='universallayout-right-top-top'
-          align='center'
-          justify='space-between'
-          wrap="nowrap"
-        >
+        <Flex className='universallayout-right-top-top' align='center' justify='space-between' wrap='nowrap'>
           {globalConfig.navMode === 'inline' ? (
             <>
               <div className='universallayout-top-menu'>
@@ -70,8 +65,8 @@ export default memo(({ menuData, routeItem, userRoles = [], breadCrumbs = [] }: 
                 className='logo-url'
                 style={{ color: globalConfig.theme === 'light' ? colorTextBase : colorTextLightSolid }}
               >
-                <Flex align='center' gap={8}>
-                  <img alt='' src={globalConfig.theme === 'light' ? logoDark : logoWhite} width='130' />
+                <Flex align='center' gap={8} className='mr-12'>
+                  <img alt='' src={globalConfig.theme === 'light' ? logoDark : logoWhite} width='100' />
                 </Flex>
               </Link>
               <LeftSider

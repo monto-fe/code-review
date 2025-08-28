@@ -1,5 +1,5 @@
 export interface RegisterParamsType {
-  username: string;
+  user: string;
   password: string;
   confirm: string;
 }

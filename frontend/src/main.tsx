@@ -14,7 +14,7 @@ import { observerRoot } from '@/store';
 
 // 挂载
 ReactDOM.createRoot(document.getElementById('app') as HTMLElement).render(
-  <BrowserRouter>
+  <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
     <BasicContext.Provider value={{ storeContext: observerRoot }}>
       <App />
     </BasicContext.Provider>

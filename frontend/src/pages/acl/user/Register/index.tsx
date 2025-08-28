@@ -2,6 +2,7 @@ import { memo, useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Alert, Button, Form, Input, message } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
+import { observer } from 'mobx-react-lite';
 
 import { useI18n } from '@/store/i18n';
 
@@ -11,7 +12,7 @@ import { accountReg } from './service';
 import style from './index.module.less';
 import { BasicContext } from '@/store/context';
 
-export default memo(() => {
+function App() {
   const navigate = useNavigate();
 
   const context = useContext(BasicContext) as any;
@@ -20,7 +21,7 @@ export default memo(() => {
 
   const [loginStatus, setLoginStatus] = useState<string>('');
   const [submitLoading, setSubmitLoading] = useState<boolean>(false);
-  // 注册
+
   const handleSubmit = async (values: RegisterParamsType) => {
     setSubmitLoading(true);
     try {
@@ -111,4 +112,6 @@ export default memo(() => {
       </Form>
     </div>
   );
-});
+}
+
+export default memo(observer(App));

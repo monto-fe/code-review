@@ -11,13 +11,12 @@ import {
   InsuranceOutlined,
   UserOutlined,
   CodeOutlined,
-  OrderedListOutlined
+  OrderedListOutlined,
 } from '@ant-design/icons';
 
 import { IRouter } from '@/@types/router.d';
 
 // 这里是业务路由
-// 若要配置权限，请使用 meta.roles
 const universalLayoutRotes: IRouter[] = [
   {
     path: '/home',
@@ -37,54 +36,12 @@ const universalLayoutRotes: IRouter[] = [
       },
     ],
   },
-  // {
-  //   path: 'https://chromewebstore.google.com/detail/%E5%A4%9A%E5%BD%A9%E4%B9%A6%E7%AD%BE/ilcmekmgeldhckdembghkiohkdffihpe?hl=zh-CN&utm_source=ext_sidebar',
-  //   meta: {
-  //     icon: ToolOutlined,
-  //     title: 'universal-layout.menu.home.bookmark',
-  //     selectLeftMenu: '/home',
-  //   },
-  // },
-  // {
-  //   path: 'https://chromewebstore.google.com/detail/%E6%97%B6%E9%97%B4%E6%88%B3%E8%BD%AC%E6%8D%A2-%E6%97%B6%E5%8C%BA%E6%97%B6%E9%92%9F/pjcapgdifnhgkkojoggfdlijpelpohcf?hl=zh-CN&utm_source=ext_sidebar',
-  //   meta: {
-  //     icon: ToolOutlined,
-  //     title: 'universal-layout.menu.home.timestamp',
-  //     selectLeftMenu: '/home',
-  //   },
-  // },
-  // {
-  //   path: 'testMenuPermission',
-  //   meta: {
-  //     icon: QuestionCircleTwoTone,
-  //     title: 'test.menuacl',
-  //     roles: ['admin'],
-  //   },
-  //   component: lazy(() => import('@/pages/test/TestMenuPermission')),
-  // },
-  // {
-  //   path: 'testPagePermission',
-  //   meta: {
-  //     icon: QuestionCircleTwoTone,
-  //     title: 'test.pageacl',
-  //   },
-  //   component: lazy(() => import('@/pages/test/TestPagePermission')),
-  // },
-  // {
-  //   path: 'testAPIPermission',
-  //   meta: {
-  //     icon: QuestionCircleTwoTone,
-  //     title: 'test.apiacl',
-  //   },
-  //   component: lazy(() => import('@/pages/test/TestAPIPermission')),
-  // },
   {
     path: '/aicodecheck',
     redirect: '/aicodecheck/commentList',
     meta: {
       icon: CodeOutlined,
       title: 'universal-layout.menu.aicodecheck',
-      roles: ['admin'],
     },
     children: [
       {
@@ -152,34 +109,17 @@ const universalLayoutRotes: IRouter[] = [
     redirect: '/acl/user',
     meta: {
       icon: InsuranceOutlined,
-      title: 'universal-layout.menu.roles',
-      roles: ['admin'],
+      title: 'universal-layout.menu.user.title',
     },
     children: [
       {
         path: 'user',
         meta: {
           icon: UserOutlined,
-          title: 'universal-layout.menu.roles.user',
+          title: 'universal-layout.menu.user',
         },
         component: lazy(() => import('@/pages/acl/user/List')),
       },
-      // {
-      //   path: 'role',
-      //   meta: {
-      //     icon: TeamOutlined,
-      //     title: 'universal-layout.menu.roles.role',
-      //   },
-      //   component: lazy(() => import('@/pages/acl/role/List')),
-      // },
-      // {
-      //   path: 'resource',
-      //   meta: {
-      //     icon: KeyOutlined,
-      //     title: 'universal-layout.menu.roles.resource',
-      //   },
-      //   component: lazy(() => import('@/pages/acl/resource/List')),
-      // },
     ],
   },
 ];

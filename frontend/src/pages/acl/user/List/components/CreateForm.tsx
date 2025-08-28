@@ -2,7 +2,6 @@ import { useContext } from 'react';
 import { FormInstance } from 'antd/lib/form';
 import { Form } from 'antd';
 
-import { TableListItem as RoleTableListItem } from '@/pages/acl/role/data.d';
 import FormModal from '@/pages/component/Form/FormModal';
 import { BasicContext } from '@/store/context';
 import { useI18n } from '@/store/i18n';
@@ -15,14 +14,13 @@ interface ICreateFormProps {
   visible: boolean;
   setVisible: Function;
   initialValues?: Partial<TableQueryParam>;
-  roleList: RoleTableListItem[];
   onSubmitLoading: boolean;
   onSubmit: (values: TableListItem, form: FormInstance) => void;
   onCancel?: () => void;
 }
 
 function CreateForm(props: ICreateFormProps) {
-  const { visible, setVisible, roleList, initialValues, onSubmit, onSubmitLoading, onCancel } = props;
+  const { visible, setVisible, initialValues, onSubmit, onSubmitLoading, onCancel } = props;
 
   const context = useContext(BasicContext) as any;
   const { i18nLocale } = context.storeContext;
@@ -46,7 +44,9 @@ function CreateForm(props: ICreateFormProps) {
     {
       label: t('page.user.password'),
       name: 'password',
+      required: true,
       option: {
+        type: 'password',
         placeholder: 'default: 12345678',
       },
       type: FormType.Input,
@@ -65,15 +65,6 @@ function CreateForm(props: ICreateFormProps) {
       label: t('page.user.phone'),
       name: 'phone_number',
       type: FormType.Input,
-    },
-    {
-      label: t('page.user.role'),
-      name: 'role_ids',
-      type: FormType.SelectMultiple,
-      options: (roleList || []).map((role: RoleTableListItem) => ({
-        label: `${role.name} (${role.role})`,
-        value: role.id,
-      })),
     },
   ];
 

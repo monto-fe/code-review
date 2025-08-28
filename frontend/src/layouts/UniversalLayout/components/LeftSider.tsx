@@ -12,7 +12,6 @@ import { IRouter } from '@/@types/router';
 import { IRoleInfo } from '@/@types/permission';
 import ALink from '@/components/ALink';
 import { isExternal } from '@/utils/validate';
-import { hasPermissionRoles } from '@/utils/router';
 import { useI18n } from '@/store/i18n';
 import { BasicContext } from '@/store/context';
 
@@ -35,12 +34,6 @@ const createMenuItems = (
 
   for (let index = 0; index < routes.length; index++) {
     const item = routes[index];
-
-    // 验证权限
-    if (!hasPermissionRoles(userRoles, item.meta?.roles)) {
-      // eslint-disable-next-line no-continue
-      continue;
-    }
 
     const Icon = item.meta?.icon || undefined;
     const hidden = item.meta?.hidden || false;
@@ -127,7 +120,7 @@ export default memo(
             className='menu'
             items={createMenuItems(t, userRoles, menuData)}
           />
-        )
+        );
       }
 
       return (
@@ -138,12 +131,7 @@ export default memo(
                 {collapsed ? (
                   settings.siteAbbreviationTitle
                 ) : (
-                  <img
-                    alt=''
-                    src={theme === 'light' ? logoDark : logoWhite}
-                    height='100'
-                    className='mt-12'
-                  />
+                  <img alt='' src={theme === 'light' ? logoDark : logoWhite} className='mt-12' />
                 )}
               </Link>
             </Flex>

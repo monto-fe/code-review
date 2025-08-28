@@ -7,7 +7,16 @@ import { ICreateFormProps } from '@/@types/form';
 const { Option } = Select;
 
 const CreateForm: React.FC<ICreateFormProps> = (props) => {
-  const { visible, setVisible, initialValues, onSubmit, onSubmitLoading, onCancel, modelOptions=[], typeOptions=[] } = props;
+  const {
+    visible,
+    setVisible,
+    initialValues,
+    onSubmit,
+    onSubmitLoading,
+    onCancel,
+    modelOptions = [],
+    typeOptions = [],
+  } = props;
   const context = useContext(BasicContext) as any;
   const { i18nLocale } = context.storeContext;
   const t = useI18n(i18nLocale);
@@ -21,7 +30,7 @@ const CreateForm: React.FC<ICreateFormProps> = (props) => {
       .filter((item: any) => item.type === value)
       .map((item: any) => ({
         label: item.model,
-        value: item.model
+        value: item.model,
       }));
     setModelSelectOptions(filteredModels);
     form.setFieldsValue({ model: undefined });
@@ -32,7 +41,9 @@ const CreateForm: React.FC<ICreateFormProps> = (props) => {
     try {
       const values = await form.validateFields();
       onSubmit({ ...values }, form);
-    } catch (e) {}
+    } catch (e) {
+      /* empty */
+    }
   };
 
   // cancel handler
@@ -55,8 +66,6 @@ const CreateForm: React.FC<ICreateFormProps> = (props) => {
     // eslint-disable-next-line
   }, [visible]);
 
-  console.log("selected", modelSelectOptions);
-
   return (
     <Modal
       open={visible}
@@ -64,28 +73,24 @@ const CreateForm: React.FC<ICreateFormProps> = (props) => {
       onOk={handleOk}
       confirmLoading={onSubmitLoading}
       onCancel={handleCancel}
-      destroyOnClose
+      destroyOnHidden
       maskClosable={false}
       okText={t('app.global.confirm')}
       cancelText={t('app.global.close')}
     >
       <Form
         form={form}
-        layout="horizontal"
+        layout='horizontal'
         labelCol={{ span: 5 }}
         wrapperCol={{ span: 18 }}
         initialValues={initialValues}
       >
         <Form.Item
           label={t('page.aicodecheck.aimodel.resource')}
-          name="type"
+          name='type'
           rules={[{ required: true, message: t('app.form.required') }]}
         >
-          <Select
-            placeholder={t('page.aicodecheck.aimodel.resource')}
-            onChange={handleTypeChange}
-            allowClear
-          >
+          <Select placeholder={t('page.aicodecheck.aimodel.resource')} onChange={handleTypeChange} allowClear>
             {typeOptions.map((item: any) => (
               <Option key={item.value} value={item.value}>
                 {item.label}
@@ -95,7 +100,7 @@ const CreateForm: React.FC<ICreateFormProps> = (props) => {
         </Form.Item>
         <Form.Item
           label={t('page.aicodecheck.aimodel.model')}
-          name="model"
+          name='model'
           rules={[{ required: true, message: t('app.form.required') }]}
         >
           <Select
@@ -112,8 +117,19 @@ const CreateForm: React.FC<ICreateFormProps> = (props) => {
         </Form.Item>
         <Form.Item
           label={t('page.aicodecheck.aimodel.api_key')}
-          name="api_key"
-          tooltip={<div>获取方法: <a href="https://github.com/monto-fe/code-review/wiki/AI-Model%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E" target="_blank" rel="noopener noreferrer">https://github.com/monto-fe/code-review/wiki/AI-Model%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E</a></div>}
+          name='api_key'
+          tooltip={
+            <div>
+              获取方法:{' '}
+              <a
+                href='https://github.com/monto-fe/code-review/wiki/AI-Model%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E'
+                target='_blank'
+                rel='noopener noreferrer'
+              >
+                https://github.com/monto-fe/code-review/wiki/AI-Model%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E
+              </a>
+            </div>
+          }
           rules={[{ required: true, message: t('app.form.required') }]}
         >
           <Input placeholder={t('page.aicodecheck.aimodel.api_key')} />

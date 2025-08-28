@@ -96,7 +96,7 @@ export default memo(
               fixed: globalConfig.headFixed,
               collapsed: globalConfig.collapsed,
               horizontal: globalConfig.navMode === 'horizontal',
-              'p-0': true
+              'p-0': true,
             })}
           >
             <Flex className='header-layout'>
@@ -125,16 +125,12 @@ export default memo(
             className={classnames({
               headerfixed: globalConfig.headFixed,
               horizontal: globalConfig.navMode === 'horizontal',
-              'main-layout': true
+              'main-layout': true,
             })}
           >
-            <Permission role={routeItem?.meta?.roles}>
-              {globalConfig.tabNavEnable ? (
-                <RightTopNavTabs currentRouter={routeItem} breadCrumbs={breadCrumbs} />
-              ) : null}
-              {/* 路由的插槽 */}
-              {children}
-            </Permission>
+            {globalConfig.tabNavEnable ? <RightTopNavTabs currentRouter={routeItem} breadCrumbs={breadCrumbs} /> : null}
+            {/* 路由的插槽 */}
+            {children}
           </Content>
           <Footer className='text-center'>
             <RightFooter />

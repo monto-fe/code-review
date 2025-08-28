@@ -1,4 +1,4 @@
-import { FormType } from "./enum";
+import { FormType } from './enum';
 
 interface IFormItem {
   option?: any;

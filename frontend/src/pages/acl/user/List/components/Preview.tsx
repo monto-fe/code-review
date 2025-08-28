@@ -1,6 +1,5 @@
 import { useContext } from 'react';
 import { Button, Descriptions, Modal } from 'antd';
-import { TableListItem as RoleTableListItem } from '@/pages/acl/role/data.d';
 import { BasicContext } from '@/store/context';
 import { useI18n } from '@/store/i18n';
 
@@ -10,7 +9,6 @@ interface PreviewProps {
   visible: boolean;
   setVisible: Function;
   data: Partial<TableListItem>;
-  roleList: RoleTableListItem[];
 }
 
 function Preview(props: PreviewProps) {
@@ -42,23 +40,6 @@ function Preview(props: PreviewProps) {
         <Descriptions.Item label={t('page.user.job')}>{data?.job || '-'}</Descriptions.Item>
         <Descriptions.Item label={t('page.user.email')}>{data?.email || '-'}</Descriptions.Item>
         <Descriptions.Item label={t('page.user.phone')}>{data?.phone_number || '-'}</Descriptions.Item>
-        <Descriptions.Item label={t('page.user.role')}>
-          {Array.isArray(data?.role) ? (
-            <span>
-              {data?.role?.length ? (
-                <div>
-                  {data?.role.map((item: any) => (
-                    <div key={item.role}>{`${item.name} (${item.role})`}</div>
-                  ))}
-                </div>
-              ) : (
-                '-'
-              )}
-            </span>
-          ) : (
-            ''
-          )}
-        </Descriptions.Item>
       </Descriptions>
     </Modal>
   );

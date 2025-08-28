@@ -148,41 +148,6 @@ export const formatRoutes = (routes: IRouter[], parentPath = '/', parentPaths: s
 };
 
 /**
- * 根据 自定义传入验证的权限名 判断当前用户是否有权限
- * @param userRoles string[] 用户的权限
- * @param roles string | string[] 自定义验证的权限名
- * @returns boolean
- * @author duheng1992
- */
-export const hasPermissionRoles = (userRoles: IRoleInfo[], roles?: string | string[]): boolean => {
-  if (userRoles.length < 1) {
-    return true;
-  }
-
-  if (userRoles.find((role) => role.role === 'admin')) {
-    return true;
-  }
-
-  if (typeof roles === 'undefined') {
-    return true;
-  }
-
-  if (typeof roles === 'string') {
-    return userRoles.findIndex((role) => role.role === roles) > -1;
-  }
-
-  if (roles instanceof Array && roles.length === 0) {
-    return true;
-  }
-
-  if (roles instanceof Array && roles.length > 0) {
-    return roles.some((role) => userRoles.findIndex((currentRole) => currentRole.role === role) > -1);
-  }
-
-  return false;
-};
-
-/**
  * 根据路由 pathname 数组 - 返回对应的 route 数组
  * @param pathname string[] 路由path数组
  * @param jsonRoutesData IPathKeyRouter 经过formatRoutes处理，框架的所有pathKeyRouter路由

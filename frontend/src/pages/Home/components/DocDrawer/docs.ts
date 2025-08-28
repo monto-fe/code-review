@@ -1,4 +1,4 @@
-const gitlabConfigDoc = (IP: string) => `
+const gitlabConfigDoc = (t: any, IP: string) => `
 ✅ 如果Gitlab有的版本支持Group Webhook，推荐在 Group 层级统一配置。
 
 ## 1. 在对应项目中：
@@ -13,12 +13,11 @@ const gitlabConfigDoc = (IP: string) => `
 
 ## 2. Webhook 配置示意：
 
-![Webhook配置](https://picture.questionlearn.cn/blog/picture/1746626508783.png)
+![Webhook Config](http://picture.questionlearn.cn/blog/picture/1746626508783.png)
 
 ## 3. AI 检查示例：
 
-![Webhook触发](https://picture.questionlearn.cn/blog/picture/1746626303888.png)
-
+![Webhook Trigger](http://picture.questionlearn.cn/blog/picture/1746626303888.png)
 ---
 `;
 

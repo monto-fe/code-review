@@ -15,21 +15,12 @@ const PromptDrawer: React.FC<PromptDrawerProps> = ({ visible, onClose, prompts, 
   const displayPrompts = prompts.slice(0, 3);
 
   return (
-    <Drawer
-      title="提示词列表"
-      placement="right"
-      width={800}
-      open={visible}
-      onClose={onClose}
-      destroyOnClose
-    >
+    <Drawer title='提示词列表' placement='right' width={800} open={visible} onClose={onClose} destroyOnHidden>
       <Collapse accordion>
         {displayPrompts.map((item, idx) => (
           <Panel header={item.title || `提示词${idx + 1}`} key={idx}>
-            <div style={{ whiteSpace: 'pre-wrap', marginBottom: 16 }}>
-              {item.content}
-            </div>
-            <Button type="primary" size="small" onClick={() => onUse(item.content)}>
+            <div style={{ whiteSpace: 'pre-wrap', marginBottom: 16 }}>{item.content}</div>
+            <Button type='primary' size='small' onClick={() => onUse(item.content)}>
               使用
             </Button>
           </Panel>

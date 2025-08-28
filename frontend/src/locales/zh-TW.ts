@@ -1,4 +1,9 @@
 export default {
+  'app.404': '404',
+  'app.404.title': '404',
+  'app.404.description': '找不到頁面',
+  'app.404.back': '返回首頁',
+
   'app.empty': '空空如也',
   'app.global.menu.notfound': '沒有數據',
   'app.global.form.validatefields.catch': '驗證不通過，請檢查輸入',
@@ -88,10 +93,8 @@ export default {
   'universal-layout.menu.home.bookmark': '多彩書籤',
   'universal-layout.menu.home.timestamp': '時間戳轉換',
 
-  'universal-layout.menu.roles': '權限驗證',
-  'universal-layout.menu.roles.user': '使用者列表',
-  'universal-layout.menu.roles.role': '角色列表',
-  'universal-layout.menu.roles.resource': '資源列表',
+  'universal-layout.menu.user.title': '使用者管理',
+  'universal-layout.menu.user': '使用者列表',
 
   'universal-layout.menu.aicodecheck': 'AI程式碼檢測',
   'universal-layout.menu.aicodecheck.commonrule': '通用規則',
