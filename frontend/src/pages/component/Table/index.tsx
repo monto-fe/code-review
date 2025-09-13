@@ -28,6 +28,7 @@ function CommonTable<T extends AnyObject>(props: ITable<T>, ref: Ref<unknown> | 
     expandable,
     scroll,
     rightToolsSlot,
+    onDataChange,
   } = props;
   const context = useContext(BasicContext) as any;
   const { i18nLocale } = context.storeContext;
@@ -63,14 +64,19 @@ function CommonTable<T extends AnyObject>(props: ITable<T>, ref: Ref<unknown> | 
     queryList(params)
       .then((response: ResponseData<T[]>) => {
         if (response) {
-          setList(Array.isArray(response.data.data) ? response.data.data : []);
+          const data = Array.isArray(response.data.data||response.data.list) ? response.data.data||response.data.list : [];
+          const total = response.data.count || 0;
+          setList(data);
           setPagination({
             ...pagination,
             current,
             page_size: pageSize,
-            total: response.data.count || 0,
+            total,
           });
           setFilter(filter);
+          
+          // 调用数据变化回调
+          onDataChange?.(data, total);
         }
 
         setLoading(false);

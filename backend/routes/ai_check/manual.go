@@ -13,12 +13,12 @@ import (
 
 // ManualCheck 手动触发代码审核
 // @Summary 手动触发代码审核
-// @Description 用户输入projectId和mergeId，手动触发代码审核
+// @Description 用户输入合并请求链接和AI模型ID，手动触发代码审核。支持配置多个机器人，每个机器人都有对应的提示词。系统会异步从缓存中获取项目信息和AI模型信息并更新到任务中。
 // @Tags 手动代码审核
 // @Accept json
 // @Produce json
 // @Param jwt_token header string true "JWT认证Token"
-// @Param request body dto.ManualCheckRequest true "审核请求参数"
+// @Param request body dto.ManualCheckRequest true "审核请求参数" example({"merge_url":"https://gitlab.example.com/project/repo/-/merge_requests/123","ai_model_id":1,"bot_configs":[{"bot_name":"安全审查机器人","bot_prompt":"请重点检查代码中的安全漏洞，包括SQL注入、XSS攻击、权限绕过等问题"},{"bot_name":"性能优化机器人","bot_prompt":"请分析代码性能问题，关注算法复杂度、内存使用、数据库查询优化等"}]})
 // @Success 200 {object} response.Response{data=dto.ManualCheckResponse}
 // @Router /v1/ai/check/manual [post]
 func ManualCheck(c *gin.Context) {

@@ -145,6 +145,32 @@ const universalLayoutRotes: IRouter[] = [
         },
         component: lazy(() => import('@/pages/aicodecheck/GitlabToken/detail')),
       },
+      // {
+      //   path: 'merge-review',
+      //   meta: {
+      //     icon: OrderedListOutlined,
+      //     title: 'universal-layout.menu.aicodecheck.mergeReview',
+      //   },
+      //   component: lazy(() => import('@/pages/aicodecheck/MergeReviewTaskList/index')),
+      // },
+      // {
+      //   path: 'merge-review-create',
+      //   meta: {
+      //     icon: OrderedListOutlined,
+      //     hidden: true,
+      //     title: 'universal-layout.menu.aicodecheck.mergeReviewCreate',
+      //   },
+      //   component: lazy(() => import('@/pages/aicodecheck/MergeReviewTaskList/CreateForm')),
+      // },
+      // {
+      //   path: 'merge-review-detail',
+      //   meta: {
+      //     icon: OrderedListOutlined,
+      //     hidden: true,
+      //     title: 'universal-layout.menu.aicodecheck.mergeReviewDetail',
+      //   },
+      //   component: lazy(() => import('@/pages/aicodecheck/MergeReviewTaskList/DetailPage/index')),
+      // },
     ],
   },
   {

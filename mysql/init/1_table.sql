@@ -241,6 +241,8 @@ CREATE TABLE IF NOT EXISTS `t_manual_check_task` (
   `result` text COLLATE utf8mb4_general_ci COMMENT '审核结果',
   `error_message` varchar(500) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '错误信息',
   `ai_model` varchar(50) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'AI模型',
+  `ai_model_id` int unsigned NOT NULL DEFAULT '0' COMMENT 'AI模型ID',
+  `bot_configs` text COLLATE utf8mb4_general_ci COMMENT '机器人配置列表',
   `rule_id` int unsigned NOT NULL DEFAULT '0' COMMENT '规则ID',
   `rule_name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '规则名称',
   `create_time` int NOT NULL COMMENT '创建时间',

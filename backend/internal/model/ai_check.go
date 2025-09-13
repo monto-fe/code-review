@@ -73,7 +73,9 @@ type ManualCheckTask struct {
 	Status       int8   `gorm:"default:1" json:"status"`                // 状态: 1-进行中, 2-完成, 3-失败
 	Result       string `gorm:"type:text" json:"result"`                // 审核结果
 	ErrorMessage string `gorm:"type:varchar(500)" json:"error_message"` // 错误信息
-	AIModel      string `gorm:"type:varchar(50)" json:"ai_model"`       // AI模型
+	AIModelID    uint   `gorm:"not null" json:"ai_model_id"`            // AI模型ID
+	AIModel      string `gorm:"type:varchar(50)" json:"ai_model"`       // AI模型名称
+	BotConfigs   string `gorm:"type:text" json:"bot_configs"`           // 机器人配置列表(JSON格式)
 	RuleID       uint   `gorm:"default:0" json:"rule_id"`               // 规则ID
 	RuleName     string `gorm:"type:varchar(100)" json:"rule_name"`     // 规则名称
 	CreateTime   int64  `gorm:"not null" json:"create_time"`

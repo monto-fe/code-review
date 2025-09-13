@@ -26,6 +26,7 @@ function App() {
   const t = useI18n(i18nLocale);
 
   const [roleList, setRoleList] = useState<RoleTableListItem[]>([]);
+  const [userCount, setUserCount] = useState<number>(0);
 
   const getRoleList = () => {
     queryRoleList({
@@ -39,6 +40,11 @@ function App() {
   };
 
   const reload = () => tableRef.current && tableRef.current.reload && tableRef.current.reload();
+
+  // 更新用户数量
+  const updateUserCount = (count: number) => {
+    setUserCount(count);
+  };
 
   useEffect(() => {
     getRoleList();
@@ -203,25 +209,27 @@ function App() {
             <Button className='btn-group-cell' size='small' type='link' onClick={() => handleUpdate(record)}>
               {t('app.global.edit')}
             </Button>
-            <Popconfirm
-              open={deleteOpen === record.id}
-              title={t('app.global.delete')}
-              description={t('app.global.delete.tip')}
-              onConfirm={() => deleteConfirm(record.id, record.user)}
-              onCancel={deleteCancel}
-              okText='Yes'
-              cancelText='No'
-            >
-              <Button
-                danger
-                className='btn-group-cell'
-                onClick={() => handleDelete(record.id)}
-                size='small'
-                type='link'
+            {userCount > 1 && (
+              <Popconfirm
+                open={deleteOpen === record.id}
+                title={t('app.global.delete')}
+                description={t('app.global.delete.tip')}
+                onConfirm={() => deleteConfirm(record.id, record.user)}
+                onCancel={deleteCancel}
+                okText='Yes'
+                cancelText='No'
               >
-                {t('app.global.delete')}
-              </Button>
-            </Popconfirm>
+                <Button
+                  danger
+                  className='btn-group-cell'
+                  onClick={() => handleDelete(record.id)}
+                  size='small'
+                  type='link'
+                >
+                  {t('app.global.delete')}
+                </Button>
+              </Popconfirm>
+            )}
           </Space>
         </Permission>
       ),
@@ -259,6 +267,7 @@ function App() {
         filterFormItems={formItems}
         useTools
         scroll={{ x: 1200 }}
+        onDataChange={(data, total) => updateUserCount(total)}
       />
       <CreateForm
         initialValues={updateData}

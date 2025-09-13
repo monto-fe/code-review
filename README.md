@@ -23,8 +23,6 @@ git clone https://github.com/monto-fe/code-review.git
 cd code-review
 ```
 
----
-
 ### 2️⃣ 配置环境变量
 
 > 假设服务器 IP 为：`192.168.1.1`
@@ -57,8 +55,6 @@ cp .env.mariadb .env
 vi .env
 docker compose -f docker-compose.mariadb.yml up -d
 ```
-
----
 
 ### 3️⃣ 访问控制台
 

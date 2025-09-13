@@ -184,6 +184,91 @@ definitions:
       period:
         type: string
     type: object
+  dto.BotConfig:
+    properties:
+      bot_name:
+        description: 检测机器人名称，必填
+        example: 代码审查机器人
+        type: string
+      bot_prompt:
+        description: 机器人提示词，必填
+        example: 请仔细审查代码，重点关注安全性和性能问题
+        type: string
+    required:
+    - bot_name
+    - bot_prompt
+    type: object
+  dto.BotReviewRequest:
+    properties:
+      additional_prompt:
+        description: 额外提示词，可选
+        example: 请特别关注性能问题
+        type: string
+      api_url:
+        description: API地址，必填
+        example: https://api.openai.com/v1
+        type: string
+      bot_name:
+        description: 机器人名称，必填
+        example: security_reviewer
+        type: string
+      code_content:
+        description: 代码内容，必填
+        example: function test() { ... }
+        type: string
+      model:
+        description: AI模型，必填
+        example: gpt-4
+        type: string
+      type:
+        description: AI类型，必填
+        example: OpenAI
+        type: string
+    required:
+    - api_url
+    - bot_name
+    - code_content
+    - model
+    - type
+    type: object
+  dto.BotReviewResult:
+    properties:
+      ai_model:
+        description: AI模型
+        type: string
+      bot_category:
+        description: 机器人分类
+        type: string
+      bot_name:
+        description: 机器人名称
+        type: string
+      create_time:
+        description: 创建时间
+        type: integer
+      result:
+        description: 审查结果
+        type: string
+    type: object
+  dto.BotRoleResponse:
+    properties:
+      category:
+        description: 机器人分类
+        type: string
+      description:
+        description: 机器人描述
+        type: string
+      name:
+        description: 机器人名称
+        type: string
+    type: object
+  dto.BotRolesListResponse:
+    properties:
+      roles:
+        description: 机器人角色列表
+        items:
+          $ref: '#/definitions/dto.BotRoleResponse'
+        type: array
+    type: object
   dto.CheckCountResponse:
     properties:
       count:
@@ -310,25 +395,22 @@ definitions:
     type: object
   dto.ManualCheckRequest:
     properties:
-      ai_model:
-        description: AI模型，可选
-        example: gpt-4
-        type: string
-      merge_id:
-        description: 合并请求ID
-        example: 456
-        type: integer
-      project_id:
-        description: 项目ID
-        example: 123
-        type: integer
-      rule_id:
-        description: 规则ID，可选
+      ai_model_id:
+        description: AI模型ID，必填
         example: 1
         type: integer
+      bot_configs:
+        description: 机器人配置列表，可选
+        items:
+          $ref: '#/definitions/dto.BotConfig'
+        type: array
+      merge_url:
+        description: 合并请求链接，必填
+        example: https://gitlab.example.com/project/repo/-/merge_requests/123
+        type: string
     required:
-    - merge_id
-    - project_id
+    - ai_model_id
+    - merge_url
     type: object
   dto.ManualCheckResponse:
     properties:
@@ -347,6 +429,11 @@ definitions:
       ai_model:
         description: AI模型
         type: string
+      bot_configs:
+        description: 机器人配置列表
+        items:
+          $ref: '#/definitions/dto.BotConfig'
+        type: array
       create_time:
         description: 创建时间
         type: integer
@@ -710,6 +797,21 @@ definitions:
       ret_code:
         type: integer
     type: object
+  service.BotRole:
+    properties:
+      category:
+        description: 机器人分类
+        type: string
+      description:
+        description: 机器人描述
+        type: string
+      name:
+        description: 机器人名称
+        type: string
+      prompt:
+        description: 机器人提示词
+        type: string
+    type: object
 host: localhost:9000
 info:
   contact: {}
@@ -717,6 +819,128 @@ info:
   title: Code Review API
   version: "1.0"
 paths:
+  /v1/ai/check/bot:
+    post:
+      consumes:
+      - application/json
+      description: 使用指定的机器人角色对代码进行审查，支持多个内置机器人角色
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 审查请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BotReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.BotReviewResult'
+              type: object
+      summary: 机器人代码审查
+      tags:
+      - 机器人审查
+  /v1/ai/check/bot/roles:
+    get:
+      consumes:
+      - application/json
+      description: 获取系统中所有可用的机器人角色列表
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.BotRolesListResponse'
+              type: object
+      summary: 获取所有机器人角色
+      tags:
+      - 机器人管理
+  /v1/ai/check/bot/roles/{category}:
+    get:
+      consumes:
+      - application/json
+      description: 根据指定分类获取机器人角色列表
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 机器人分类
+        example: '"安全"'
+        in: path
+        name: category
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.BotRolesListResponse'
+              type: object
+      summary: 根据分类获取机器人角色
+      tags:
+      - 机器人管理
+  /v1/ai/check/bot/roles/detail/{bot_name}:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定机器人角色的详细信息
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 机器人名称
+        example: '"安全审查机器人"'
+        in: path
+        name: bot_name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.BotRole'
+              type: object
+      summary: 获取机器人角色详情
+      tags:
+      - 机器人管理
   /v1/ai/check/history:
     get:
       consumes:
@@ -772,7 +996,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: 用户输入projectId和mergeId，手动触发代码审核
+      description: 用户输入合并请求链接和AI模型ID，手动触发代码审核。支持配置多个机器人，每个机器人都有对应的提示词。系统会异步从缓存中获取项目信息和AI模型信息并更新到任务中。
       parameters:
       - description: JWT认证Token
         in: header

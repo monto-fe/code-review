@@ -32,6 +32,7 @@ export interface ITable<T> {
   scroll?: { x?: number; y?: number };
   reload?: Function;
   rightToolsSlot?: React.ReactNode;
+  onDataChange?: (data: T[], total: number) => void;
 }
 
 export interface ITableFilter {

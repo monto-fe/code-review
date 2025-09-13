@@ -15,6 +15,207 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/v1/ai/check/bot": {
+            "post": {
+                "description": "使用指定的机器人角色对代码进行审查，支持多个内置机器人角色",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "机器人审查"
+                ],
+                "summary": "机器人代码审查",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "审查请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.BotReviewRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.BotReviewResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/ai/check/bot/roles": {
+            "get": {
+                "description": "获取系统中所有可用的机器人角色列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "机器人管理"
+                ],
+                "summary": "获取所有机器人角色",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.BotRolesListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/ai/check/bot/roles/detail/{bot_name}": {
+            "get": {
+                "description": "获取指定机器人角色的详细信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "机器人管理"
+                ],
+                "summary": "获取机器人角色详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"安全审查机器人\"",
+                        "description": "机器人名称",
+                        "name": "bot_name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/service.BotRole"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/ai/check/bot/roles/{category}": {
+            "get": {
+                "description": "根据指定分类获取机器人角色列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "机器人管理"
+                ],
+                "summary": "根据分类获取机器人角色",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "JWT认证Token",
+                        "name": "jwt_token",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"安全\"",
+                        "description": "机器人分类",
+                        "name": "category",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.BotRolesListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/v1/ai/check/history": {
             "get": {
                 "description": "查询手动触发的审核历史记录",
@@ -96,7 +297,7 @@ const docTemplate = `{
         },
         "/v1/ai/check/manual": {
             "post": {
-                "description": "用户输入projectId和mergeId，手动触发代码审核",
+                "description": "用户输入合并请求链接和AI模型ID，手动触发代码审核。支持配置多个机器人，每个机器人都有对应的提示词。系统会异步从缓存中获取项目信息和AI模型信息并更新到任务中。",
                 "consumes": [
                     "application/json"
                 ],
@@ -1792,6 +1993,121 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.BotConfig": {
+            "type": "object",
+            "required": [
+                "bot_name",
+                "bot_prompt"
+            ],
+            "properties": {
+                "bot_name": {
+                    "description": "检测机器人名称，必填",
+                    "type": "string",
+                    "example": "代码审查机器人"
+                },
+                "bot_prompt": {
+                    "description": "机器人提示词，必填",
+                    "type": "string",
+                    "example": "请仔细审查代码，重点关注安全性和性能问题"
+                }
+            }
+        },
+        "dto.BotReviewRequest": {
+            "type": "object",
+            "required": [
+                "api_url",
+                "bot_name",
+                "code_content",
+                "model",
+                "type"
+            ],
+            "properties": {
+                "additional_prompt": {
+                    "description": "额外提示词，可选",
+                    "type": "string",
+                    "example": "请特别关注性能问题"
+                },
+                "api_url": {
+                    "description": "API地址，必填",
+                    "type": "string",
+                    "example": "https://api.openai.com/v1"
+                },
+                "bot_name": {
+                    "description": "机器人名称，必填",
+                    "type": "string",
+                    "example": "security_reviewer"
+                },
+                "code_content": {
+                    "description": "代码内容，必填",
+                    "type": "string",
+                    "example": "function test() { ... }"
+                },
+                "model": {
+                    "description": "AI模型，必填",
+                    "type": "string",
+                    "example": "gpt-4"
+                },
+                "type": {
+                    "description": "AI类型，必填",
+                    "type": "string",
+                    "example": "OpenAI"
+                }
+            }
+        },
+        "dto.BotReviewResult": {
+            "type": "object",
+            "properties": {
+                "ai_model": {
+                    "description": "AI模型",
+                    "type": "string"
+                },
+                "bot_category": {
+                    "description": "机器人分类",
+                    "type": "string"
+                },
+                "bot_name": {
+                    "description": "机器人名称",
+                    "type": "string"
+                },
+                "create_time": {
+                    "description": "创建时间",
+                    "type": "integer"
+                },
+                "result": {
+                    "description": "审查结果",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.BotRoleResponse": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "description": "机器人分类",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "机器人描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "机器人名称",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.BotRolesListResponse": {
+            "type": "object",
+            "properties": {
+                "roles": {
+                    "description": "机器人角色列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.BotRoleResponse"
+                    }
+                }
+            }
+        },
         "dto.CheckCountResponse": {
             "type": "object",
             "properties": {
@@ -1974,29 +2290,26 @@ const docTemplate = `{
         "dto.ManualCheckRequest": {
             "type": "object",
             "required": [
-                "merge_id",
-                "project_id"
+                "ai_model_id",
+                "merge_url"
             ],
             "properties": {
-                "ai_model": {
-                    "description": "AI模型，可选",
-                    "type": "string",
-                    "example": "gpt-4"
-                },
-                "merge_id": {
-                    "description": "合并请求ID",
-                    "type": "integer",
-                    "example": 456
-                },
-                "project_id": {
-                    "description": "项目ID",
-                    "type": "integer",
-                    "example": 123
-                },
-                "rule_id": {
-                    "description": "规则ID，可选",
+                "ai_model_id": {
+                    "description": "AI模型ID，必填",
                     "type": "integer",
                     "example": 1
+                },
+                "bot_configs": {
+                    "description": "机器人配置列表，可选",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.BotConfig"
+                    }
+                },
+                "merge_url": {
+                    "description": "合并请求链接，必填",
+                    "type": "string",
+                    "example": "https://gitlab.example.com/project/repo/-/merge_requests/123"
                 }
             }
         },
@@ -2023,6 +2336,13 @@ const docTemplate = `{
                 "ai_model": {
                     "description": "AI模型",
                     "type": "string"
+                },
+                "bot_configs": {
+                    "description": "机器人配置列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.BotConfig"
+                    }
                 },
                 "create_time": {
                     "description": "创建时间",
@@ -2554,6 +2874,27 @@ const docTemplate = `{
                 },
                 "ret_code": {
                     "type": "integer"
+                }
+            }
+        },
+        "service.BotRole": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "description": "机器人分类",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "机器人描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "机器人名称",
+                    "type": "string"
+                },
+                "prompt": {
+                    "description": "机器人提示词",
+                    "type": "string"
                 }
             }
         }
