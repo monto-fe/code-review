@@ -339,7 +339,7 @@ func (m *RAGServiceManager) PerformAIEnhancement(prompt string, data *AnalysisDa
 }
 
 // SaveResult 保存分析结果
-func (m *RAGServiceManager) SaveResult(body dto.WebhookBody, comments string, data *AnalysisData) (*model.AImessage, error) {
+func (m *RAGServiceManager) SaveResult(body dto.WebhookBody, comments string, data *AnalysisData) (*model.AIMessage, error) {
 	// 判断是否通过
 	passed := -1
 	if strings.Contains(comments, "未发现Bug") || strings.Contains(comments, "通过") {
@@ -347,7 +347,7 @@ func (m *RAGServiceManager) SaveResult(body dto.WebhookBody, comments string, da
 	}
 
 	// 创建AI消息记录
-	aiMessage := &model.AImessage{
+	aiMessage := &model.AIMessage{
 		ProjectID:        uint(body.Project.ID),
 		MergeURL:         body.ObjectAttributes.URL,
 		ProjectName:      body.Project.Name,

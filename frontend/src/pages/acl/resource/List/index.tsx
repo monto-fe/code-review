@@ -1,6 +1,7 @@
 import { memo, useContext, useRef, useState } from 'react';
 import { Button, FormInstance, message, Popconfirm, PopconfirmProps, Space } from 'antd';
-import { ColumnsType } from 'antd/lib/table';
+import type { TableColumnsType } from 'antd';
+
 import { observer } from 'mobx-react-lite';
 
 import { renderDateFromTimestamp, timeFormatType } from '@/utils/timeformat';
@@ -73,7 +74,7 @@ function App() {
     setCreateFormVisible(true);
   };
 
-  const columns: ColumnsType<TableListItem> = [
+  const columns: TableColumnsType<TableListItem> = [
     {
       title: 'id',
       dataIndex: 'id',

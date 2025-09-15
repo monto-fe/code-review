@@ -98,6 +98,61 @@ definitions:
         description: 更新时间
         type: integer
     type: object
+  dto.AIMessageListRequest:
+    properties:
+      current:
+        description: 基础参数
+        example: 1
+        type: integer
+      end_date:
+        description: 结束日期 (时间戳，秒级别)
+        example: 1705680000
+        type: integer
+      human_ratings:
+        description: 人工评分列表，支持多选
+        example:
+        - 1
+        - 2
+        items:
+          type: integer
+        type: array
+      id:
+        description: 筛选参数
+        example: 0
+        type: integer
+      page_size:
+        description: 每页数量
+        example: 20
+        type: integer
+      passed:
+        description: 是否通过 -1未通过 1通过
+        example: 0
+        type: integer
+      project_ids:
+        description: 项目ID列表，支持多选
+        example:
+        - 1
+        - 2
+        - 3
+        items:
+          type: integer
+        type: array
+      project_namespaces:
+        description: 项目命名空间列表，支持多选
+        example:
+        - frontend
+        - backend
+        items:
+          type: string
+        type: array
+      start_date:
+        description: 新增筛选参数
+        example: 1703001600
+        type: integer
+    required:
+    - current
+    - page_size
+    type: object
   dto.AIMessageListResponse:
     properties:
       count:
@@ -128,6 +183,91 @@ definitions:
         type: array
       period:
         type: string
+    type: object
+  dto.BotConfig:
+    properties:
+      bot_name:
+        description: 检测机器人名称，必填
+        example: 代码审查机器人
+        type: string
+      bot_prompt:
+        description: 机器人提示词，必填
+        example: 请仔细审查代码，重点关注安全性和性能问题
+        type: string
+    required:
+    - bot_name
+    - bot_prompt
+    type: object
+  dto.BotReviewRequest:
+    properties:
+      additional_prompt:
+        description: 额外提示词，可选
+        example: 请特别关注性能问题
+        type: string
+      api_url:
+        description: API地址，必填
+        example: https://api.openai.com/v1
+        type: string
+      bot_name:
+        description: 机器人名称，必填
+        example: security_reviewer
+        type: string
+      code_content:
+        description: 代码内容，必填
+        example: function test() { ... }
+        type: string
+      model:
+        description: AI模型，必填
+        example: gpt-4
+        type: string
+      type:
+        description: AI类型，必填
+        example: OpenAI
+        type: string
+    required:
+    - api_url
+    - bot_name
+    - code_content
+    - model
+    - type
+    type: object
+  dto.BotReviewResult:
+    properties:
+      ai_model:
+        description: AI模型
+        type: string
+      bot_category:
+        description: 机器人分类
+        type: string
+      bot_name:
+        description: 机器人名称
+        type: string
+      create_time:
+        description: 创建时间
+        type: integer
+      result:
+        description: 审查结果
+        type: string
+    type: object
+  dto.BotRoleResponse:
+    properties:
+      category:
+        description: 机器人分类
+        type: string
+      description:
+        description: 机器人描述
+        type: string
+      name:
+        description: 机器人名称
+        type: string
+    type: object
+  dto.BotRolesListResponse:
+    properties:
+      roles:
+        description: 机器人角色列表
+        items:
+          $ref: '#/definitions/dto.BotRoleResponse'
+        type: array
     type: object
   dto.CheckCountResponse:
     properties:
@@ -185,11 +325,147 @@ definitions:
     required:
     - id
     type: object
+  dto.GitlabTokenProjectListResponse:
+    properties:
+      data:
+        description: Token项目信息列表
+        items:
+          $ref: '#/definitions/dto.GitlabTokenProjectResponse'
+        type: array
+    type: object
+  dto.GitlabTokenProjectResponse:
+    properties:
+      id:
+        description: Token ID
+        type: integer
+      name:
+        description: Token名称
+        type: string
+      project_ids:
+        description: 项目ID列表
+        type: string
+    type: object
   dto.HumanRatingStat:
     properties:
       count:
         type: integer
       level:
+        type: integer
+    type: object
+  dto.ManualCheckHistoryItem:
+    properties:
+      create_time:
+        description: 创建时间
+        type: integer
+      id:
+        description: 任务ID
+        type: integer
+      merge_id:
+        description: 合并请求ID
+        type: integer
+      merge_title:
+        description: 合并请求标题
+        type: string
+      project_id:
+        description: 项目ID
+        type: integer
+      project_name:
+        description: 项目名称
+        type: string
+      status:
+        description: 状态
+        type: integer
+      status_text:
+        description: 状态文本
+        type: string
+      update_time:
+        description: 更新时间
+        type: integer
+    type: object
+  dto.ManualCheckHistoryResponse:
+    properties:
+      list:
+        description: 任务列表
+        items:
+          $ref: '#/definitions/dto.ManualCheckHistoryItem'
+        type: array
+      total:
+        description: 总数
+        type: integer
+    type: object
+  dto.ManualCheckRequest:
+    properties:
+      ai_model_id:
+        description: AI模型ID，必填
+        example: 1
+        type: integer
+      bot_configs:
+        description: 机器人配置列表，可选
+        items:
+          $ref: '#/definitions/dto.BotConfig'
+        type: array
+      merge_url:
+        description: 合并请求链接，必填
+        example: https://gitlab.example.com/project/repo/-/merge_requests/123
+        type: string
+    required:
+    - ai_model_id
+    - merge_url
+    type: object
+  dto.ManualCheckResponse:
+    properties:
+      estimated_time:
+        description: 预估完成时间（秒）
+        type: integer
+      status:
+        description: 任务状态
+        type: string
+      task_id:
+        description: 任务ID
+        type: integer
+    type: object
+  dto.ManualCheckResultResponse:
+    properties:
+      ai_model:
+        description: AI模型
+        type: string
+      bot_configs:
+        description: 机器人配置列表
+        items:
+          $ref: '#/definitions/dto.BotConfig'
+        type: array
+      create_time:
+        description: 创建时间
+        type: integer
+      id:
+        description: 任务ID
+        type: integer
+      merge_id:
+        description: 合并请求ID
+        type: integer
+      merge_title:
+        description: 合并请求标题
+        type: string
+      merge_url:
+        description: 合并请求URL
+        type: string
+      project_id:
+        description: 项目ID
+        type: integer
+      project_name:
+        description: 项目名称
+        type: string
+      result:
+        description: 审核结果
+        type: string
+      rule_name:
+        description: 规则名称
+        type: string
+      status:
+        description: 状态
+        type: integer
+      update_time:
+        description: 更新时间
         type: integer
     type: object
   dto.MergeRequest:
@@ -234,6 +510,23 @@ definitions:
         type: string
       path_with_namespace:
         type: string
+    type: object
+  dto.ProjectNamespaceItem:
+    properties:
+      project_id:
+        description: 项目ID
+        type: integer
+      project_namespace:
+        description: 项目命名空间
+        type: string
+    type: object
+  dto.ProjectNamespaceListResponse:
+    properties:
+      data:
+        description: 项目命名空间列表
+        items:
+          $ref: '#/definitions/dto.ProjectNamespaceItem'
+        type: array
     type: object
   dto.Resource:
     properties:
@@ -384,7 +677,7 @@ definitions:
       name:
         type: string
       type:
-        description: UCloud, DeepSeek, OpenAI
+        description: UCloud, DeepSeek, OpenAI, Qwen
         type: string
     required:
     - id
@@ -411,7 +704,7 @@ definitions:
       api:
         type: string
       comment_type:
-        description: '0: 普通评论, 1: 行级评论'
+        description: '1: 普通评论, 2: 行级评论'
         type: integer
       create_time:
         type: integer
@@ -458,7 +751,7 @@ definitions:
       api:
         type: string
       comment_type:
-        description: '0: 普通评论, 1: 行级评论'
+        description: '1: 普通评论, 2: 行级评论'
         type: integer
       expired:
         type: integer
@@ -504,6 +797,21 @@ definitions:
       ret_code:
         type: integer
     type: object
+  service.BotRole:
+    properties:
+      category:
+        description: 机器人分类
+        type: string
+      description:
+        description: 机器人描述
+        type: string
+      name:
+        description: 机器人名称
+        type: string
+      prompt:
+        description: 机器人提示词
+        type: string
+    type: object
 host: localhost:9000
 info:
   contact: {}
@@ -511,6 +819,242 @@ info:
   title: Code Review API
   version: "1.0"
 paths:
+  /v1/ai/check/bot:
+    post:
+      consumes:
+      - application/json
+      description: 使用指定的机器人角色对代码进行审查，支持多个内置机器人角色
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 审查请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BotReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.BotReviewResult'
+              type: object
+      summary: 机器人代码审查
+      tags:
+      - 机器人审查
+  /v1/ai/check/bot/roles:
+    get:
+      consumes:
+      - application/json
+      description: 获取系统中所有可用的机器人角色列表
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.BotRolesListResponse'
+              type: object
+      summary: 获取所有机器人角色
+      tags:
+      - 机器人管理
+  /v1/ai/check/bot/roles/{category}:
+    get:
+      consumes:
+      - application/json
+      description: 根据指定分类获取机器人角色列表
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 机器人分类
+        example: '"安全"'
+        in: path
+        name: category
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.BotRolesListResponse'
+              type: object
+      summary: 根据分类获取机器人角色
+      tags:
+      - 机器人管理
+  /v1/ai/check/bot/roles/detail/{bot_name}:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定机器人角色的详细信息
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 机器人名称
+        example: '"安全审查机器人"'
+        in: path
+        name: bot_name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.BotRole'
+              type: object
+      summary: 获取机器人角色详情
+      tags:
+      - 机器人管理
+  /v1/ai/check/history:
+    get:
+      consumes:
+      - application/json
+      description: 查询手动触发的审核历史记录
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - default: 1
+        description: 当前页码
+        in: query
+        name: current
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - default: 0
+        description: 状态筛选：0-全部，1-进行中，2-完成，3-失败
+        in: query
+        name: status
+        type: integer
+      - description: 开始日期
+        example: "1703001600"
+        in: query
+        name: start_date
+        type: string
+      - description: 结束日期
+        example: "1705680000"
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ManualCheckHistoryResponse'
+              type: object
+      summary: 获取手动审核历史
+      tags:
+      - 手动代码审核
+  /v1/ai/check/manual:
+    post:
+      consumes:
+      - application/json
+      description: 用户输入合并请求链接和AI模型ID，手动触发代码审核。支持配置多个机器人，每个机器人都有对应的提示词。系统会异步从缓存中获取项目信息和AI模型信息并更新到任务中。
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 审核请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ManualCheckRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ManualCheckResponse'
+              type: object
+      summary: 手动触发代码审核
+      tags:
+      - 手动代码审核
+  /v1/ai/check/result/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 获取特定审核任务的详细结果
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 任务ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ManualCheckResultResponse'
+              type: object
+      summary: 获取手动审核结果详情
+      tags:
+      - 手动代码审核
   /v1/ai/config:
     delete:
       consumes:
@@ -757,49 +1301,6 @@ paths:
       tags:
       - AI Code Review
   /v1/ai/message:
-    get:
-      consumes:
-      - application/json
-      description: 获取AI代码审查记录列表
-      parameters:
-      - description: JWT认证Token
-        in: header
-        name: jwt_token
-        required: true
-        type: string
-      - description: 项目ID
-        in: query
-        name: project_id
-        type: integer
-      - description: 审查记录ID
-        in: query
-        name: id
-        type: integer
-      - default: 1
-        description: 当前页码
-        in: query
-        name: current
-        type: integer
-      - default: 10
-        description: 每页数量
-        in: query
-        name: page_size
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/dto.AIMessageListResponse'
-              type: object
-      summary: 获取AI Code Review列表
-      tags:
-      - AI Code Review
     post:
       consumes:
       - application/json
@@ -855,6 +1356,72 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
       summary: 更新AI Code Review记录
+      tags:
+      - AI Code Review
+  /v1/ai/message/list:
+    post:
+      consumes:
+      - application/json
+      description: 获取AI代码审查记录列表，支持多种筛选条件
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 查询参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AIMessageListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AIMessageListResponse'
+              type: object
+      summary: 获取AI Code Review列表
+      tags:
+      - AI Code Review
+  /v1/ai/project-namespaces:
+    get:
+      consumes:
+      - application/json
+      description: 获取所有AI消息中的项目命名空间列表（去重），支持时间段筛选，最大允许查询31天的数据
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 开始时间戳
+        in: query
+        name: start_time
+        type: integer
+      - description: 结束时间戳
+        in: query
+        name: end_time
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ProjectNamespaceListResponse'
+              type: object
+      summary: 获取项目命名空间列表
       tags:
       - AI Code Review
   /v1/gitlab:
@@ -956,7 +1523,7 @@ paths:
       summary: 更新 Gitlab Token
       tags:
       - Gitlab
-  /v1/gitlab/token/{id}:
+  /v1/gitlab/token:
     get:
       consumes:
       - application/json
@@ -968,10 +1535,10 @@ paths:
         required: true
         type: string
       - description: Gitlab Token ID
-        in: path
+        in: query
         name: id
         required: true
-        type: string
+        type: integer
       produces:
       - application/json
       responses:
@@ -982,11 +1549,37 @@ paths:
       summary: 获取 Gitlab Token 详情
       tags:
       - Gitlab
+  /v1/gitlab/token/projects:
+    get:
+      consumes:
+      - application/json
+      description: 获取所有Gitlab Token的名称和对应的ProjectIds，全量拉取不分页
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.GitlabTokenProjectListResponse'
+              type: object
+      summary: 获取Gitlab Token项目信息列表
+      tags:
+      - Gitlab管理
   /v1/gitlab/token/refresh:
     post:
       consumes:
       - application/json
-      description: 刷新所有 Gitlab Token
+      description: 刷新所有 Gitlab Token 缓存
       parameters:
       - description: JWT认证Token
         in: header

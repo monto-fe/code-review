@@ -27,7 +27,7 @@ const customCodeMessage: { [key: number]: string } = {
   10005: '该用户还未登陆',
   10006: '验证码错误', // 注册时
   10008: '未知错误',
-  10009: '登录失效，请重新登录',
+  10014: '登录失效，请重新登录',
 };
 
 const serverCodeMessage: { [key: number]: string } = {
@@ -53,7 +53,12 @@ const errorHandler = (error: any) => {
     const { url, baseURL } = config;
     const reqUrl = url.split('?')[0].replace(baseURL, '');
     const noVerifyBool = settings.ajaxResponseNoVerifyUrl.includes(reqUrl);
-    if (!noVerifyBool) {
+    
+    // 检查是否是获取用户信息的请求且没有token的情况
+    const hasToken = localStorage.getItem(settings.siteTokenKey);
+    const isUserInfoRequest = reqUrl === '/user/info' || reqUrl === '/userInfo';
+    
+    if (!noVerifyBool && !(isUserInfoRequest && !hasToken)) {
       if (!needLoginCodes.includes(data.ret_code)) {
         notification.error({
           message: `提示 (Tips)`,

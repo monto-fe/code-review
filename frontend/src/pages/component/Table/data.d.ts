@@ -1,9 +1,10 @@
+import type { TableColumnsType } from 'antd';
 import { FormType } from "@/@types/enum";
 
 export interface PaginationConfig {
   total: number;
   current: number;
-  pageSize: number;
+  page_size: number;
   showSizeChanger: boolean;
   showQuickJumper: boolean;
 }
@@ -23,12 +24,15 @@ export interface ITable<T> {
   columns: ColumnsType<T>;
   title?: React.ReactElement | string;
   rowKey?: string;
+  expandable?: TableColumnsType.ExpandableConfig;
   useTools?: boolean;
   fuzzySearchKey?: string;
   fuzzySearchPlaceholder?: string;
   filterFormItems?: ITableFilterItem[];
   scroll?: { x?: number; y?: number };
   reload?: Function;
+  rightToolsSlot?: React.ReactNode;
+  onDataChange?: (data: T[], total: number) => void;
 }
 
 export interface ITableFilter {

@@ -3,6 +3,7 @@ package ai_config
 import (
 	"code-review-go/internal/database"
 	"code-review-go/internal/model"
+	"code-review-go/internal/pkg/constants"
 	"code-review-go/internal/pkg/response"
 	"code-review-go/internal/pkg/utils"
 	"code-review-go/internal/service"
@@ -35,13 +36,13 @@ func GetAIConfig(c *gin.Context) {
 	// 获取服务实例并查询数据
 	aiConfigManager, err := service.NewAIConfigManager(database.DB)
 	if err != nil {
-		response.Error(c, err, "初始化AI配置管理器失败", 500)
+		response.Error(c, err, "初始化AI配置管理器失败", int(constants.RetCodeInternalError))
 		return
 	}
 
 	configs, total, err := aiConfigManager.GetConfigListPaged(page, pageSize)
 	if err != nil {
-		response.Error(c, err, "获取AI配置列表失败", 500)
+		response.Error(c, err, "获取AI配置列表失败", int(constants.RetCodeInternalError))
 		return
 	}
 
@@ -54,7 +55,7 @@ func GetAIConfig(c *gin.Context) {
 	response.Success(c, map[string]interface{}{
 		"data":  responseList,
 		"total": total,
-	}, "获取成功", 0)
+	}, "获取成功", int(constants.RetCodeSuccess))
 }
 
 // CreateAIConfig 创建 AI 配置
@@ -70,24 +71,24 @@ func GetAIConfig(c *gin.Context) {
 func CreateAIConfig(c *gin.Context) {
 	var req model.AIConfigCreate
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, err, "参数错误", 400)
+		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
 		return
 	}
 
 	// 获取服务实例并创建配置
 	aiConfigManager, err := service.NewAIConfigManager(database.DB)
 	if err != nil {
-		response.Error(c, err, "初始化AI配置管理器失败", 500)
+		response.Error(c, err, "初始化AI配置管理器失败", int(constants.RetCodeInternalError))
 		return
 	}
 
 	config, err := aiConfigManager.AddAIConfig(req)
 	if err != nil {
-		response.Error(c, err, "创建AI配置失败", 500)
+		response.Error(c, err, "创建AI配置失败", int(constants.RetCodeInternalError))
 		return
 	}
 
-	response.Success(c, config, "创建成功", 0)
+	response.Success(c, config, "创建成功", int(constants.RetCodeSuccess))
 }
 
 // UpdateAIConfig 更新 AI 配置
@@ -103,23 +104,24 @@ func CreateAIConfig(c *gin.Context) {
 func UpdateAIConfig(c *gin.Context) {
 	var req model.AIConfigUpdate
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, err, "参数错误", 400)
+		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
 		return
 	}
 
 	// 获取服务实例并更新配置
 	aiConfigManager, err := service.NewAIConfigManager(database.DB)
 	if err != nil {
-		response.Error(c, err, "初始化AI配置管理器失败", 500)
+		response.Error(c, err, "初始化AI配置管理器失败", int(constants.RetCodeInternalError))
 		return
 	}
 
-	if err := aiConfigManager.UpdateAIConfig(req); err != nil {
-		response.Error(c, err, "更新AI配置失败", 500)
+	err = aiConfigManager.UpdateAIConfig(req)
+	if err != nil {
+		response.Error(c, err, "更新AI配置失败", int(constants.RetCodeInternalError))
 		return
 	}
 
-	response.Success(c, nil, "更新成功", 0)
+	response.Success(c, nil, "更新成功", int(constants.RetCodeSuccess))
 }
 
 // DeleteAIConfig 删除AI配置
@@ -135,20 +137,22 @@ func UpdateAIConfig(c *gin.Context) {
 func DeleteAIConfig(c *gin.Context) {
 	var req model.AIConfigDelete
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, err, "参数错误", 400)
+		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
 		return
 	}
 
+	// 获取服务实例并删除配置
 	aiConfigManager, err := service.NewAIConfigManager(database.DB)
 	if err != nil {
-		response.Error(c, err, "初始化AI配置管理器失败", 500)
+		response.Error(c, err, "初始化AI配置管理器失败", int(constants.RetCodeInternalError))
 		return
 	}
 
-	if err := aiConfigManager.DeleteAIConfig(req.ID); err != nil {
-		response.Error(c, err, "删除AI配置失败", 500)
+	err = aiConfigManager.DeleteAIConfig(req.ID)
+	if err != nil {
+		response.Error(c, err, "删除AI配置失败", int(constants.RetCodeInternalError))
 		return
 	}
 
-	response.Success(c, nil, "删除成功", 0)
+	response.Success(c, nil, "删除成功", int(constants.RetCodeSuccess))
 }

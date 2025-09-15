@@ -35,7 +35,7 @@ export default {
   'page.user.login.form-item-username.required': '請輸入使用者名稱',
   'page.user.login.form-item-password': '密碼: 12345678',
   'page.user.login.form-item-password.required': '請輸入密碼',
-  'page.user.login.form.title': '帳號登入',
+  'page.user.login.form.title': 'Gitlab AI Code Review',
   'page.user.login.form.btn-submit': '登入',
   'page.user.login.form.btn-jump': '還沒有帳號？現在註冊！',
   'page.user.login.form.login-error': '使用者名稱或密碼錯誤！',

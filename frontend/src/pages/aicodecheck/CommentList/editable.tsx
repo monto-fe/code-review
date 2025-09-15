@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Button, Input } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Button, Flex, Input } from 'antd';
 
 const { TextArea } = Input;
 
@@ -15,7 +15,7 @@ const EditableFeedback: React.FC<EditableFeedbackProps> = ({ value = '', onChang
   const [tempValue, setTempValue] = useState(value);
 
   // 外部 value 变化时同步 internalValue
-  React.useEffect(() => {
+  useEffect(() => {
     setInternalValue(value);
     setTempValue(value);
   }, [value]);
@@ -43,7 +43,7 @@ const EditableFeedback: React.FC<EditableFeedbackProps> = ({ value = '', onChang
           value={tempValue}
           onChange={e => setTempValue(e.target.value)}
           placeholder={placeholder}
-          autoSize={{ minRows: 6, maxRows: 10 }}
+          autoSize={{ minRows: 3, maxRows: 10 }}
           onPressEnter={e => {
             if (!e.shiftKey && !e.ctrlKey && !e.altKey) {
               e.preventDefault();
@@ -64,14 +64,14 @@ const EditableFeedback: React.FC<EditableFeedbackProps> = ({ value = '', onChang
   }
 
   return (
-    <div>
-      <div style={{ minHeight: 48, whiteSpace: 'pre-wrap', color: internalValue ? undefined : '#aaa' }}>
+    <Flex>
+      <div style={{ whiteSpace: 'pre-wrap', color: internalValue ? undefined : '#999' }}>
         {internalValue || placeholder}
       </div>
-      <Button type="link" size="small" onClick={handleEdit} style={{ padding: 0 }}>
+      <Button type="link" size="small" onClick={handleEdit} style={{ marginLeft: 8, padding: 0 }}>
         编辑
       </Button>
-    </div>
+    </Flex>
   );
 };
 

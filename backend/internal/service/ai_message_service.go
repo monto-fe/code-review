@@ -28,29 +28,60 @@ func NewAIMessageService(db *gorm.DB) *AIMessageService {
 
 // GetAIMessage 获取AI消息列表
 func (s *AIMessageService) GetAIMessage(params map[string]interface{}) ([]dto.AIMessageItem, int64, error) {
-	var messages []model.AImessage
+	var messages []model.AIMessage
 	var total int64
 
-	query := s.db.Model(&model.AImessage{})
+	query := s.db.Model(&model.AIMessage{})
 
-	// 添加查询条件
-	if projectID, ok := params["projectId"].(uint); ok && projectID > 0 {
-		query = query.Where("project_id = ?", projectID)
-	}
+	// 基础筛选条件
 	if id, ok := params["id"].(uint); ok && id > 0 {
 		query = query.Where("id = ?", id)
 	}
-	if projectNamespace, ok := params["projectNamespace"].(string); ok && projectNamespace != "" {
-		query = query.Where("project_namespace = ?", projectNamespace)
-	}
-	if projectName, ok := params["projectName"].(string); ok && projectName != "" {
-		query = query.Where("project_name = ?", projectName)
-	}
-	if createTime, ok := params["createTime"].(int64); ok && createTime > 0 {
-		query = query.Where("create_time >= ?", createTime)
-	}
 	if passed, ok := params["passed"].(int); ok {
 		query = query.Where("passed = ?", passed)
+	}
+
+	// 项目ID筛选
+	if projectID, ok := params["project_id"].(uint); ok && projectID > 0 {
+		query = query.Where("project_id = ?", projectID)
+	}
+
+	// 项目命名空间筛选
+	if projectNamespace, ok := params["project_namespace"].(string); ok && projectNamespace != "" {
+		query = query.Where("project_namespace = ?", projectNamespace)
+	}
+
+	// 时间范围筛选（时间戳格式）
+	if startDateVal, exists := params["start_date"]; exists && startDateVal != nil {
+		if startDate, ok := startDateVal.(int64); ok && startDate > 0 {
+			query = query.Where("create_time >= ?", startDate)
+		}
+	}
+	if endDateVal, exists := params["end_date"]; exists && endDateVal != nil {
+		if endDate, ok := endDateVal.(int64); ok && endDate > 0 {
+			query = query.Where("create_time <= ?", endDate)
+		}
+	}
+
+	// 项目ID多选筛选
+	if projectIDsVal, exists := params["project_ids"]; exists && projectIDsVal != nil {
+		if projectIDs, ok := projectIDsVal.([]uint); ok && len(projectIDs) > 0 {
+			query = query.Where("project_id IN ?", projectIDs)
+		}
+	}
+
+	// 人工评分多选筛选
+	if humanRatingsVal, exists := params["human_ratings"]; exists && humanRatingsVal != nil {
+		if humanRatings, ok := humanRatingsVal.([]int8); ok && len(humanRatings) > 0 {
+			query = query.Where("human_rating IN ?", humanRatings)
+		}
+	}
+
+	// 项目命名空间多选筛选
+	if projectNamespacesVal, exists := params["project_namespaces"]; exists && projectNamespacesVal != nil {
+		if projectNamespaces, ok := projectNamespacesVal.([]string); ok && len(projectNamespaces) > 0 {
+			query = query.Where("project_namespace IN ?", projectNamespaces)
+		}
 	}
 
 	// 获取总数
@@ -123,7 +154,7 @@ func parseUint(s string) uint64 {
 }
 
 // CreateAIMessage 创建AI消息
-func (s *AIMessageService) CreateAIMessage(data *model.AImessage) (uint, error) {
+func (s *AIMessageService) CreateAIMessage(data *model.AIMessage) (uint, error) {
 	if err := s.db.Create(data).Error; err != nil {
 		return 0, err
 	}
@@ -162,7 +193,7 @@ func SendMarkdownToWechatBot(webhookURL, markdownContent string) error {
 }
 
 func (s *AIMessageService) GetCheckCount(req dto.CheckCountRequest) (int64, error) {
-	query := s.db.Model(&model.AImessage{})
+	query := s.db.Model(&model.AIMessage{})
 
 	// 只有传入时才加条件
 	if req.Passed != 0 {
@@ -191,7 +222,7 @@ func (s *AIMessageService) GetCheckCount(req dto.CheckCountRequest) (int64, erro
 }
 
 func (s *AIMessageService) GetProblemChart(req dto.AIProblemCountRequest) ([]dto.HumanRatingStat, error) {
-	query := s.db.Model(&model.AImessage{})
+	query := s.db.Model(&model.AIMessage{})
 
 	query = query.Where("create_time >= ?", req.StartTime)
 	query = query.Where("create_time <= ?", req.EndTime)
@@ -230,4 +261,44 @@ func (s *AIMessageService) GetProblemChart(req dto.AIProblemCountRequest) ([]dto
 	}
 
 	return resp, nil
+}
+
+// GetProjectNamespaceList 获取项目命名空间列表（去重）
+// 使用DISTINCT查询优化性能，避免全表扫描
+// 支持时间段筛选，最大允许查询31天的数据
+func (s *AIMessageService) GetProjectNamespaceList(startTime, endTime int64) ([]dto.ProjectNamespaceItem, error) {
+	var results []struct {
+		ProjectID        uint   `json:"project_id"`
+		ProjectNamespace string `json:"project_namespace"`
+	}
+
+	query := s.db.Model(&model.AIMessage{})
+
+	// 添加时间段筛选条件
+	if startTime > 0 {
+		query = query.Where("create_time >= ?", startTime)
+	}
+	if endTime > 0 {
+		query = query.Where("create_time <= ?", endTime)
+	}
+
+	// 使用DISTINCT查询，只选择需要的字段，提高查询效率
+	err := query.Select("DISTINCT project_id, project_namespace").
+		Order("project_id ASC, project_namespace ASC").
+		Scan(&results).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	// 转换为响应模型
+	responseList := make([]dto.ProjectNamespaceItem, len(results))
+	for i, result := range results {
+		responseList[i] = dto.ProjectNamespaceItem{
+			ProjectID:        result.ProjectID,
+			ProjectNamespace: result.ProjectNamespace,
+		}
+	}
+
+	return responseList, nil
 }

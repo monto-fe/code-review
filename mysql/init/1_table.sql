@@ -227,3 +227,29 @@ CREATE TABLE IF NOT EXISTS `t_ai_manager` (
 CREATE INDEX idx_project_id ON t_ai_message(project_id);
 CREATE INDEX idx_rule_id ON t_ai_message(rule_id);
 CREATE INDEX idx_status ON t_gitlab_info(status);
+
+-- 创建 t_manual_check_task 表
+CREATE TABLE IF NOT EXISTS `t_manual_check_task` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT '主键 ID',
+  `user_id` int unsigned NOT NULL COMMENT '触发用户ID',
+  `project_id` int NOT NULL COMMENT '项目ID',
+  `merge_id` int NOT NULL COMMENT '合并请求ID',
+  `project_name` varchar(200) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '项目名称',
+  `merge_title` varchar(500) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '合并请求标题',
+  `merge_url` varchar(500) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '合并请求URL',
+  `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态: 1-进行中, 2-完成, 3-失败',
+  `result` text COLLATE utf8mb4_general_ci COMMENT '审核结果',
+  `error_message` varchar(500) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '错误信息',
+  `ai_model` varchar(50) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'AI模型',
+  `ai_model_id` int unsigned NOT NULL DEFAULT '0' COMMENT 'AI模型ID',
+  `bot_configs` text COLLATE utf8mb4_general_ci COMMENT '机器人配置列表',
+  `rule_id` int unsigned NOT NULL DEFAULT '0' COMMENT '规则ID',
+  `rule_name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '规则名称',
+  `create_time` int NOT NULL COMMENT '创建时间',
+  `update_time` int NOT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_project_id` (`project_id`),
+  KEY `idx_merge_id` (`merge_id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='手动审核任务表';
