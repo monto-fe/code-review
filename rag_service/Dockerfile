@@ -18,34 +18,25 @@ ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple/
 ENV PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn
 
 # 安装系统依赖：curl 用于健康检查，git 用于 GitPython
-RUN apt-get update && apt-get install -y curl git && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y curl git && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # 复制依赖文件
 COPY pyproject.toml ./
 
-# 使用最保守的方式安装依赖
-RUN python -m pip install --upgrade "pip<24.0" --no-cache-dir --disable-pip-version-check --quiet
-
-# 安装基础依赖
-RUN python -m pip install fastapi uvicorn python-dotenv pydantic requests numpy --no-cache-dir --disable-pip-version-check --quiet
-
-# 安装 GitPython
-RUN python -m pip install gitpython --no-cache-dir --disable-pip-version-check --quiet
-
-# 安装 HuggingFace 相关依赖
-RUN python -m pip install huggingface-hub transformers --no-cache-dir --disable-pip-version-check --quiet
-
-# 安装 PyTorch
-RUN python -m pip install torch==2.1.2 torchvision==0.16.2 --no-cache-dir --disable-pip-version-check --quiet
-
-# 安装 sentence-transformers
-RUN python -m pip install sentence-transformers --no-cache-dir --disable-pip-version-check --quiet
-
-# 安装 FAISS
-RUN python -m pip install faiss-cpu --no-cache-dir --disable-pip-version-check --quiet
-
-# 安装 LangChain 相关依赖
-RUN python -m pip install langchain==0.0.350 langchain-community==0.0.10 --no-cache-dir --disable-pip-version-check --quiet
+# 安装所有 Python 依赖
+RUN python -m pip install --upgrade "pip<24.0" --no-cache-dir --disable-pip-version-check --quiet && \
+    python -m pip install \
+        fastapi uvicorn python-dotenv pydantic requests numpy \
+        gitpython \
+        huggingface-hub transformers \
+        torch==2.1.2 torchvision==0.16.2 \
+        sentence-transformers \
+        faiss-cpu \
+        langchain==0.0.350 langchain-community==0.0.10 \
+        --no-cache-dir --disable-pip-version-check --quiet
 
 # 复制应用代码
 COPY . .

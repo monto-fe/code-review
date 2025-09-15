@@ -1,6 +1,9 @@
 # 🚦 Code Review 项目
 
-基于 **AI 的自动化代码审查系统**，支持 GitLab Merge Request 审查，可通过 Docker Compose 一键启动服务与数据库。
+<div align="center">
+  <h3>基于 AI 的自动化代码审查系统</h3>
+  <p>支持 GitLab Merge Request 审查，可通过 Docker Compose 一键启动服务与数据库</p>
+</div>
 
 ---
 
@@ -65,7 +68,7 @@ docker compose -f docker-compose.mariadb.yml up -d
 
 #### 控制台示意图：
 
-![控制台](https://picture.questionlearn.cn/blog/picture/1746626120106.png)
+![控制台](https://github.com/user-attachments/assets/4100582a-d69e-49cf-826d-b8e3d32a4d79)
 
 首次登录请配置以下内容：
 
@@ -99,11 +102,11 @@ http://192.168.1.1:9000/v1/webhook/merge
 
 #### Webhook 配置示意：
 
-![Webhook配置](https://picture.questionlearn.cn/blog/picture/1746626508783.png)
+![Webhook配置](https://github.com/user-attachments/assets/3615a38d-53f2-4acd-9ea0-7443e4bea8bd)
 
 #### AI 检查示例：
 
-![Webhook触发](https://picture.questionlearn.cn/blog/picture/1746626303888.png)
+![Webhook触发](https://github.com/user-attachments/assets/e4bcbce3-4866-45af-924a-7dd634f0696e)
 
 ---
 
@@ -117,6 +120,13 @@ http://192.168.1.1:9000/v1/webhook/merge
 
 ---
 
+## 📞 联系方式
+
+欢迎添加微信，拉群沟通。
+微信备注：CodeReview
+
+<img width="686" height="940" alt="微信二维码" src="https://github.com/user-attachments/assets/46a174fb-ee49-4a7a-b576-62fd47292ae1" />
+
 ## 📝 更新日志
 
 * ✅ 支持自定义 GitLab 地址
@@ -128,7 +138,7 @@ http://192.168.1.1:9000/v1/webhook/merge
 * ✅ 优化 GitLab Token 添加/更新流程，自动刷新模型缓存
 * ✅ 支持自定义提示词检测代码
 * ✅ 支持RAG检索代码仓库
-* ✅ 支持行级评论
+* ✅ 支持行级评论【不稳定，待处理】
 
 ---
 
