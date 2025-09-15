@@ -325,6 +325,8 @@ func (m *RAGServiceManager) PerformAIEnhancement(prompt string, data *AnalysisDa
 		provider = providers.NewUCAIProvider(data.AIConfig)
 	case "DeepSeek":
 		provider = providers.NewDeepSeekProvider(data.AIConfig)
+	case "Qwen":
+		provider = providers.NewQwenProvider(data.AIConfig)
 	default:
 		return "", fmt.Errorf("不支持的AI模型类型: %s", data.AIConfig.Type)
 	}
