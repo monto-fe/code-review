@@ -422,13 +422,16 @@ func (m *MainServiceManager) SendNotifications(body dto.WebhookBody, comments st
 
 	// 发送GitLab评论
 	apiURL := data.GitlabInfo.Config.API
+	gitlabToken := data.GitlabToken
+
 	if apiURL == "" {
 		fmt.Printf("警告: GitLab API URL 为空，尝试从缓存重新获取\n")
 		// 尝试从缓存重新获取
 		gitlabCache := cache.GetGitlabCache()
-		_, gitlabInfo, ok := cache.FindTokenByProjectID(fmt.Sprintf("%d", body.Project.ID), gitlabCache)
+		token, gitlabInfo, ok := cache.FindTokenByProjectID(fmt.Sprintf("%d", body.Project.ID), gitlabCache)
 		if ok && gitlabInfo.Config.API != "" {
 			apiURL = gitlabInfo.Config.API
+			gitlabToken = token // 同时更新 token
 			fmt.Printf("从缓存重新获取到 API URL: %s\n", apiURL)
 		} else {
 			fmt.Printf("错误: 无法获取有效的 GitLab API URL\n")
@@ -438,7 +441,7 @@ func (m *MainServiceManager) SendNotifications(body dto.WebhookBody, comments st
 
 	err := notificationService.SendEnhancedNotification(
 		apiURL,
-		data.GitlabToken,
+		gitlabToken, // 使用更新后的 token
 		body.Project.ID,
 		body.ObjectAttributes.IID,
 		comments,
