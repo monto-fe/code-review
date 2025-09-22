@@ -33,14 +33,8 @@ func AICheck(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("RAG检查请求: ProjectID=%d, MergeRequestID=%d\n",
+	fmt.Printf("webhook请求信息: ProjectID=%d, MergeRequestID=%d\n",
 		body.Project.ID, body.ObjectAttributes.IID)
-
-	// 💡 防止重复执行
-	if utils.IsDuplicateWebhook(body) {
-		fmt.Println("重复 webhook 请求，跳过处理")
-		return
-	}
 
 	// 2. 立即响应（不阻塞webhook）
 	response.Success(c, gin.H{
@@ -50,6 +44,17 @@ func AICheck(c *gin.Context) {
 		"timestamp":      time.Now().Unix(),
 	}, "AI检查已启动，请稍候查看结果", int(constants.RetCodeSuccess))
 
+	// 💡 防止重复执行
+	if utils.IsDuplicateWebhook(body) {
+		fmt.Println("重复webhook请求，跳过处理")
+		return
+	}
+	// 检查Merge Request状态
+	if !service.ShouldProcessState(body) {
+		fmt.Printf("跳过非opened状态的合并请求: %+v\n", body)
+		return
+	}
+
 	// 3. 异步处理优化的RAG检查
 	go handleOptimizedAICheck(body)
 }
@@ -57,36 +62,13 @@ func AICheck(c *gin.Context) {
 // handleOptimizedAICheck 处理优化的AI检查
 func handleOptimizedAICheck(body dto.WebhookBody) {
 	startTime := time.Now()
-	fmt.Printf("开始AI检查流程: %s\n", startTime.Format("2006-01-02 15:04:05"))
+	fmt.Printf("开始代码评审检查: %s\n", startTime.Format("2006-01-02 15:04:05"))
 
-	// 检查Merge Request状态
-	if !service.ShouldProcessState(body) {
-		fmt.Printf("跳过非opened状态的合并请求: %+v\n", body)
-		return
-	}
-
-	// 使用优化的RAG检查服务
-	result, data, aiMessageID, err := service.CheckMergeRequestWithRAGOptimized(body)
-	fmt.Printf("RAG检查结果返回: %s\n", result)
-
-	duration := time.Since(startTime)
-
+	// 1. 使用RAG服务检查
+	result, err := service.CheckMergeRequestWithAI(body)
 	if err != nil {
-		fmt.Printf("RAG检查失败 (耗时: %v): %v\n", duration, err)
-
-		// 最后回退到AI检查
-		aiResult, aiErr := service.CheckMergeRequestWithAI(body)
-		if aiErr != nil {
-			if data != nil {
-				manager := service.GetRAGServiceManager()
-				manager.SendNotifications(body, fmt.Sprintf("AI审核检查失败: %v", aiErr), data, aiMessageID)
-			}
-			fmt.Printf("所有检查方式都失败: %v\n", aiErr)
-			return
-		}
-		fmt.Printf("通过AI检查成功 (耗时: %v): %s\n", duration, aiResult)
+		fmt.Printf("检查失败 (耗时: %v): %v\n", time.Since(startTime), err)
 		return
 	}
-
-	fmt.Printf("RAG检查成功 (耗时: %v): %s\n", duration, result)
+	fmt.Printf("检查成功 (耗时: %v): %s\n", time.Since(startTime), result)
 }

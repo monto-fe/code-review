@@ -1,4 +1,4 @@
-package service
+package dto
 
 // CodeReviewRequest 代码审查请求
 type CodeReviewRequest struct {
@@ -12,6 +12,17 @@ type CodeReviewRequest struct {
 // CodeAnalysisResponse 代码分析响应
 type CodeAnalysisResponse struct {
 	Review string `json:"review"`
+}
+
+// CodeReviewResponse 代码审查响应（别名）
+type CodeReviewResponse = CodeAnalysisResponse
+
+// LineComment 行级评论
+type LineComment struct {
+	File     string `json:"file"`
+	Line     int    `json:"line"`
+	Message  string `json:"message"`
+	Severity string `json:"severity"`
 }
 
 // RAGService 定义RAG服务接口
