@@ -39,8 +39,11 @@ cd mysql/init
 # 编辑环境变量
 vi .env
 
-# 服务启动
+# 服务启动+RAG
 docker compose up -d
+
+# 不启动RAG服务
+docker compose up -d frontend backend
 ```
 
 #### 方式二：使用内置 MySQL

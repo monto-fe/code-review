@@ -3,10 +3,8 @@ package service
 import (
 	dto "code-review-go/internal/dto"
 	"code-review-go/internal/model"
-	"code-review-go/internal/pkg/utils"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"gorm.io/gorm"
 )
@@ -25,61 +23,6 @@ func NewAICheckService(db *gorm.DB, gitlabService *GitlabService, aiRuleService 
 	}
 }
 
-// 使用大模型检查合并请求
-func CheckMergeRequestWithAI(body dto.WebhookBody) (string, error) {
-	// 获取RAG服务管理器
-	manager := GetRAGServiceManager()
-	if err := manager.Initialize(); err != nil {
-		return "", err
-	}
-
-	// 前置验证
-	if err := manager.ValidateRequest(body); err != nil {
-		return "", err
-	}
-
-	// 获取必要数据
-	data, err := manager.PrepareData(body)
-	if err != nil {
-		return "", err
-	}
-
-	gitlabPrompt := data.GitlabInfo.Config.Prompt
-	// 如果 gitlabPrompt 为空，使用默认的 gitlabPrompt, 2关闭自定义配置
-	if gitlabPrompt == "" || data.GitlabInfo.RuleCheckStatus == 2 {
-		gitlabPrompt = utils.CodeReviewPrompt
-	}
-	// 生成提示词
-	// 读取gitlab中的评论类型，然后选择不同的提示词
-	var prompt string
-	if data.GitlabInfo.CommentType == utils.CommentTypeCommon {
-		prompt = utils.GenerateAICheckCommonPrompt(gitlabPrompt, data.MergeRequest.Title, data.MergeRequest.Description, data.DiffStr)
-	} else {
-		prompt = utils.GenerateAICheckInlinePrompt(gitlabPrompt, data.MergeRequest.Title, data.MergeRequest.Description, data.DiffStr)
-	}
-
-	// 执行AI分析
-	comments, err := manager.PerformAIEnhancement(prompt, data)
-	if err != nil {
-		return "", err
-	}
-
-	// 保存结果
-	aiMessage, err := manager.SaveResult(body, comments, data)
-	if err != nil {
-		return "", err
-	}
-
-	// 发送通知 - 修复空指针问题
-	var aiMessageID uint
-	if aiMessage != nil {
-		aiMessageID = aiMessage.ID
-	}
-	manager.SendNotifications(body, comments, data, aiMessageID)
-
-	return comments, nil
-}
-
 // 只处理opened状态的merge请求
 func ShouldProcessState(body dto.WebhookBody) bool {
 	if body.ObjectKind == "merge_request" {
@@ -92,14 +35,14 @@ func ShouldProcessState(body dto.WebhookBody) bool {
 	return false
 }
 
-func branchMatch(cfg, actual string) bool {
+func BranchMatch(cfg, actual string) bool {
 	if cfg == "" {
 		return true
 	}
 	return cfg == actual
 }
 
-func getMergeDiff(api string, projectID, iid int, token string) []model.Change {
+func GetMergeDiff(api string, projectID, iid int, token string) []model.Change {
 	if api != "" && projectID != 0 && iid != 0 {
 		diff, _ := GetMergeRequestDiff(api, strconv.Itoa(projectID), strconv.Itoa(iid), token)
 		return diff
@@ -107,71 +50,81 @@ func getMergeDiff(api string, projectID, iid int, token string) []model.Change {
 	return nil
 }
 
-func postComment(api string, projectID, iid int, token, comments string) {
-	if comments != "" && iid != 0 && projectID != 0 && token != "" && api != "" {
-		// 获取差异信息用于行级评论
-		diff := getMergeDiff(api, projectID, iid, token)
+// func postComment(api string, projectID, iid int, token, comments string) {
+// 	if comments != "" && iid != 0 && projectID != 0 && token != "" && api != "" {
+// 		// 获取差异信息用于行级评论
+// 		diff := GetMergeDiff(api, projectID, iid, token)
 
-		// 解析所有评论内容
-		allComments := ParseCommentsForLineComments(comments, diff)
+// 		// 解析所有评论内容
+// 		allComments := ParseCommentsForLineComments(comments, diff)
 
-		// 分类评论
-		lineComments, generalComments := ClassifyComments(allComments)
+// 		// 分类评论
+// 		lineComments, generalComments := ClassifyComments(allComments)
 
-		// 处理行级评论
-		var failedLineComments []string
-		if len(lineComments) > 0 {
-			failedLineComments, err := PostLineComments(api, projectID, iid, token, lineComments, diff)
-			if err != nil {
-				fmt.Printf("发送行级评论失败: %v\n", err)
-			}
-			if len(failedLineComments) > 0 {
-				fmt.Printf("失败的行级评论: %v\n", failedLineComments)
-			}
-		}
+// 		// 处理行级评论
+// 		var failedLineComments []string
+// 		if len(lineComments) > 0 {
+// 			// 转换 CommentInfo 到 dto.LineComment
+// 			dtoLineComments := make([]dto.LineComment, len(lineComments))
+// 			for i, comment := range lineComments {
+// 				dtoLineComments[i] = dto.LineComment{
+// 					File:     comment.File,
+// 					Line:     comment.Line,
+// 					Message:  comment.Message,
+// 					Severity: comment.Severity,
+// 				}
+// 			}
+// 			failedLineComments, err := PostLineComments(api, projectID, iid, token, dtoLineComments, diff)
+// 			if err != nil {
+// 				fmt.Printf("发送行级评论失败: %v\n", err)
+// 			}
+// 			if len(failedLineComments) > 0 {
+// 				fmt.Printf("失败的行级评论: %v\n", failedLineComments)
+// 			}
+// 		}
 
-		// 构建普通评论内容
-		var generalCommentContent strings.Builder
+// 		// 构建普通评论内容
+// 		var generalCommentContent strings.Builder
 
-		// 1. 添加原有的普通评论
-		for _, comment := range generalComments {
-			generalCommentContent.WriteString(fmt.Sprintf("- %s:%d: %s\n", comment.File, comment.Line, comment.Message))
-		}
+// 		// 1. 添加原有的普通评论
+// 		for _, comment := range generalComments {
+// 			generalCommentContent.WriteString(fmt.Sprintf("- %s:%d: %s\n", comment.File, comment.Line, comment.Message))
+// 		}
 
-		// 2. 添加失败的行级评论
-		if len(failedLineComments) > 0 {
-			if generalCommentContent.Len() > 0 {
-				generalCommentContent.WriteString("\n")
-			}
-			generalCommentContent.WriteString("以下评论因行级评论失败，转为普通评论：\n")
-			for _, failedComment := range failedLineComments {
-				generalCommentContent.WriteString("- ")
-				generalCommentContent.WriteString(failedComment)
-				generalCommentContent.WriteString("\n")
-			}
-		}
+// 		// 2. 添加失败的行级评论
+// 		if len(failedLineComments) > 0 {
+// 			if generalCommentContent.Len() > 0 {
+// 				generalCommentContent.WriteString("\n")
+// 			}
+// 			generalCommentContent.WriteString("以下评论因行级评论失败，转为普通评论：\n")
+// 			for _, failedComment := range failedLineComments {
+// 				generalCommentContent.WriteString("- ")
+// 				generalCommentContent.WriteString(failedComment)
+// 				generalCommentContent.WriteString("\n")
+// 			}
+// 		}
 
-		// 3. 添加评论质量反馈复选框
-		if generalCommentContent.Len() > 0 {
-			generalCommentContent.WriteString("\n---\n")
-			generalCommentContent.WriteString("**请评价此评论的质量：**\n")
-			generalCommentContent.WriteString("- [ ] 精准定位并提供建议\n")
-			generalCommentContent.WriteString("- [ ] 部分有效但需要改进\n")
-			generalCommentContent.WriteString("- [ ] 完全误导性建议\n")
-			generalCommentContent.WriteString("- [ ] 建议不相关\n")
-		}
+// 		// 3. 添加评论质量反馈复选框
+// 		if generalCommentContent.Len() > 0 {
+// 			generalCommentContent.WriteString("\n---\n")
+// 			generalCommentContent.WriteString("**请评价此评论的质量：**\n")
+// 			generalCommentContent.WriteString("- [ ] 精准定位并提供建议\n")
+// 			generalCommentContent.WriteString("- [ ] 部分有效但需要改进\n")
+// 			generalCommentContent.WriteString("- [ ] 完全误导性建议\n")
+// 			generalCommentContent.WriteString("- [ ] 建议不相关\n")
+// 		}
 
-		// 发送普通评论（如果有内容）
-		if generalCommentContent.Len() > 0 {
-			_, err := PostCommentToGitLab(api, projectID, iid, token, generalCommentContent.String())
-			if err != nil {
-				fmt.Println("普通评论失败:", err)
-			}
-		}
-	} else {
-		fmt.Println("评论提交失败:", comments, iid, projectID, token, api)
-	}
-}
+// 		// 发送普通评论（如果有内容）
+// 		if generalCommentContent.Len() > 0 {
+// 			_, err := PostCommentToGitLab(api, projectID, iid, token, generalCommentContent.String())
+// 			if err != nil {
+// 				fmt.Println("普通评论失败:", err)
+// 			}
+// 		}
+// 	} else {
+// 		fmt.Println("评论提交失败:", comments, iid, projectID, token, api)
+// 	}
+// }
 
 func PushWeChatInfo(pathWithNamespace, mergeURL, comments string, aiMessageId uint) string {
 	return fmt.Sprintf("项目: %s\n合并请求: %s\nAI检查结果: %s\nAI消息ID: %d", pathWithNamespace, mergeURL, comments, aiMessageId)

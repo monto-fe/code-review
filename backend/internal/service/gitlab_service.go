@@ -721,7 +721,7 @@ func determineSeverity(message string) string {
 }
 
 // PostLineComments 发送行级评论，返回失败的行级评论列表
-func PostLineComments(gitlabAPI string, projectID, mergeRequestID int, gitlabToken string, comments []CommentInfo, diff []model.Change) ([]string, error) {
+func PostLineComments(gitlabAPI string, projectID, mergeRequestID int, gitlabToken string, comments []dto.LineComment, diff []model.Change) ([]string, error) {
 	// 获取合并请求的SHA信息
 	mergeRequest, err := GetMergeRequestInfoRefs(gitlabAPI, strconv.Itoa(projectID), strconv.Itoa(mergeRequestID), gitlabToken)
 	if err != nil {
