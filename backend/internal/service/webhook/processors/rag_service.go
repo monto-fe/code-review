@@ -481,10 +481,47 @@ func (m *MainServiceManager) SendNotifications(body dto.WebhookBody, comments st
 			fmt.Printf("发送Webhook通知失败: %v\n", err)
 		}
 	case "push":
-		// Push 事件：只发送 webhook 通知，不发送 GitLab 评论
-		fmt.Printf("Push事件：跳过GitLab评论，直接发送webhook通知\n")
+		// Push 事件：发送 GitLab 评论和 webhook 通知
+		fmt.Printf("Push事件：开始发送GitLab评论和webhook通知\n")
 
-		// 构建 Push 事件的 webhook URL
+		// 1. 发送 GitLab 评论（为每个 commit 创建评论）
+		branch := extractBranchFromRef(body.Ref)
+		title := fmt.Sprintf("AI代码审查 - Push to %s", branch)
+
+		// 为每个 commit 创建评论
+		if len(body.Commits) > 0 {
+			err := notificationService.SendPushEventComments(
+				apiURL,
+				gitlabToken,
+				body.Project.ID,
+				body.Commits,
+				comments,
+				data.CommentType,
+			)
+			if err != nil {
+				fmt.Printf("发送Push事件GitLab评论失败: %v\n", err)
+			} else {
+				fmt.Printf("Push事件GitLab评论发送成功，共处理 %d 个commit\n", len(body.Commits))
+			}
+		} else {
+			// 如果没有 commit 信息，为整个 push 创建评论
+			err := notificationService.SendPushEventComment(
+				apiURL,
+				gitlabToken,
+				body.Project.ID,
+				body.After,
+				title,
+				comments,
+				data.CommentType,
+			)
+			if err != nil {
+				fmt.Printf("发送Push事件GitLab评论失败: %v\n", err)
+			} else {
+				fmt.Printf("Push事件GitLab评论发送成功\n")
+			}
+		}
+
+		// 2. 发送 webhook 通知
 		pushWebhookURL := fmt.Sprintf("%s/-/commits/%s", data.GitlabInfo.Config.WebhookURL, body.After)
 
 		err := notificationService.SendWebhookNotification(

@@ -51,6 +51,10 @@ type NotificationService interface {
 	SendEnhancedNotification(api, token string, projectID, mergeRequestID int, comments string, commentType int8, diff []model.Change) error
 	// 发送Webhook通知
 	SendWebhookNotification(webhookURL string, status int, projectNamespace, mergeURL, comments string, aiMessageID uint, mergeRequest *model.MergeRequestInfo) error
+	// 发送Push事件评论
+	SendPushEventComment(api, token string, projectID int, commitSHA, title, comments string, commentType int8) error
+	// 为多个commit发送Push事件评论
+	SendPushEventComments(api, token string, projectID int, commits []dto.CommitInfo, comments string, commentType int8) error
 	// 检查是否已初始化
 	IsInitialized() bool
 }

@@ -150,3 +150,47 @@ func (n *NotificationServiceImpl) SendEnhancedNotification(api, token string, pr
 
 	return nil
 }
+
+// SendPushEventComment 发送 Push 事件评论
+func (n *NotificationServiceImpl) SendPushEventComment(api, token string, projectID int, commitSHA, title, comments string, commentType int8) error {
+	// Push 事件统一使用 commit 评论，不创建 Issue
+	if commitSHA != "" {
+		// 为 commit 创建评论
+		_, err := CreateCommitComment(api, projectID, commitSHA, token, title, comments)
+		if err != nil {
+			return fmt.Errorf("创建Commit评论失败: %v", err)
+		}
+		fmt.Printf("Push事件Commit评论创建成功: %s (SHA: %s)\n", title, commitSHA)
+	} else {
+		// 如果没有 commit SHA，创建项目 Discussion
+		_, err := CreateDiscussionForPush(api, projectID, token, title, comments)
+		if err != nil {
+			return fmt.Errorf("创建Push事件Discussion失败: %v", err)
+		}
+		fmt.Printf("Push事件Discussion创建成功: %s\n", title)
+	}
+
+	return nil
+}
+
+// SendPushEventComments 为多个 commit 发送评论
+func (n *NotificationServiceImpl) SendPushEventComments(api, token string, projectID int, commits []dto.CommitInfo, comments string, commentType int8) error {
+	// 为每个 commit 创建评论
+	for _, commit := range commits {
+		commitID := commit.ID
+		if len(commitID) > 8 {
+			commitID = commitID[:8]
+		}
+
+		title := fmt.Sprintf("AI代码审查 - Commit %s", commitID)
+		commitComment := fmt.Sprintf("**提交信息**: %s\n\n**审查结果**:\n%s", commit.Message, comments)
+
+		err := n.SendPushEventComment(api, token, projectID, commit.ID, title, commitComment, commentType)
+		if err != nil {
+			fmt.Printf("为commit %s 创建评论失败: %v\n", commitID, err)
+			// 继续处理其他 commit，不中断整个流程
+		}
+	}
+
+	return nil
+}

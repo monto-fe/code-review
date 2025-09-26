@@ -472,6 +472,27 @@ func PostCommentToGitLab(gitlabAPI string, projectID, mergeRequestID int, gitlab
 	return &result, nil
 }
 
+// CreateDiscussionForPush 为 Push 事件创建 Discussion
+func CreateDiscussionForPush(gitlabAPI string, projectID int, gitlabToken, title, body string) (*CommentResponse, error) {
+	url := fmt.Sprintf("%s/v4/projects/%d/discussions", gitlabAPI, projectID)
+
+	requestBody := map[string]string{
+		"body": body,
+	}
+
+	responseBody, err := utils.CommonGetRequest("POST", url, gitlabToken, requestBody)
+	if err != nil {
+		return nil, fmt.Errorf("创建Discussion失败: %v", err)
+	}
+
+	var result CommentResponse
+	if err := json.Unmarshal(responseBody, &result); err != nil {
+		return nil, fmt.Errorf("解析响应失败: %v", err)
+	}
+
+	return &result, nil
+}
+
 // LineCommentRequest 行级评论请求
 type LineCommentRequest struct {
 	Body     string `json:"body"`
@@ -922,4 +943,28 @@ func isCodeFile(filename string) bool {
 	}
 
 	return specialFiles[strings.ToLower(filename)]
+}
+
+// CreateCommitComment 为 commit 创建评论
+func CreateCommitComment(gitlabAPI string, projectID int, commitSHA, gitlabToken, title, comment string) (*CommentResponse, error) {
+	url := fmt.Sprintf("%s/v4/projects/%d/repository/commits/%s/comments", gitlabAPI, projectID, commitSHA)
+
+	// 构建评论内容
+	commentBody := fmt.Sprintf("## %s\n\n%s", title, comment)
+
+	requestBody := map[string]string{
+		"note": commentBody,
+	}
+
+	body, err := utils.CommonGetRequest("POST", url, gitlabToken, requestBody)
+	if err != nil {
+		return nil, fmt.Errorf("创建Commit评论失败: %v", err)
+	}
+
+	var result CommentResponse
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, fmt.Errorf("解析响应失败: %v", err)
+	}
+
+	return &result, nil
 }
