@@ -5,7 +5,7 @@ import (
 	"code-review-go/internal/dto"
 	"code-review-go/internal/pkg/constants"
 	"code-review-go/internal/pkg/response"
-	"code-review-go/internal/service"
+	"code-review-go/internal/service/business"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,7 +16,7 @@ func GetRoleList(c *gin.Context) {
 		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
 		return
 	}
-	roleService := service.NewRoleService(database.DB)
+	roleService := business.NewRoleService(database.DB)
 	roles, total, err := roleService.GetRoleList(req)
 	if err != nil {
 		response.Error(c, err, "获取失败", int(constants.RetCodeInternalError))
@@ -34,7 +34,7 @@ func CreateRole(c *gin.Context) {
 		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
 		return
 	}
-	roleService := service.NewRoleService(database.DB)
+	roleService := business.NewRoleService(database.DB)
 	if err := roleService.CreateRoleWithResources(&req); err != nil {
 		response.Error(c, err, "创建角色失败", int(constants.RetCodeInternalError))
 		return
@@ -48,7 +48,7 @@ func UpdateRole(c *gin.Context) {
 		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
 		return
 	}
-	roleService := service.NewRoleService(database.DB)
+	roleService := business.NewRoleService(database.DB)
 	if err := roleService.UpdateRole(&req); err != nil {
 		response.Error(c, err, "更新角色失败", int(constants.RetCodeInternalError))
 		return
@@ -62,7 +62,7 @@ func DeleteRole(c *gin.Context) {
 		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
 		return
 	}
-	roleService := service.NewRoleService(database.DB)
+	roleService := business.NewRoleService(database.DB)
 	if err := roleService.DeleteRole(&req); err != nil {
 		response.Error(c, err, "删除角色失败", int(constants.RetCodeInternalError))
 		return

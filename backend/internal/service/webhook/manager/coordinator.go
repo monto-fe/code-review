@@ -1,6 +1,7 @@
-package service
+package manager
 
 import (
+	"code-review-go/internal/service/common"
 	"fmt"
 	"sync"
 )
@@ -106,21 +107,21 @@ func (c *ServiceCoordinator) IsInitialized() bool {
 }
 
 // GetDatabaseService 获取数据库服务
-func (c *ServiceCoordinator) GetDatabaseService() DatabaseService {
+func (c *ServiceCoordinator) GetDatabaseService() common.DatabaseService {
 	return c.GetDatabaseManager().GetService()
 }
 
 // GetRAGService 获取RAG服务
-func (c *ServiceCoordinator) GetRAGService() RAGServiceInterface {
+func (c *ServiceCoordinator) GetRAGService() common.RAGServiceInterface {
 	return c.GetRAGManager().GetService()
 }
 
 // GetAIService 获取AI服务
-func (c *ServiceCoordinator) GetAIService() AIService {
+func (c *ServiceCoordinator) GetAIService() common.AIService {
 	return c.GetAIManager().GetService()
 }
 
 // GetNotificationService 获取通知服务
-func (c *ServiceCoordinator) GetNotificationService() NotificationService {
+func (c *ServiceCoordinator) GetNotificationService() common.NotificationService {
 	return c.GetNotificationManager().GetService()
 }

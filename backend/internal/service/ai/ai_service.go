@@ -1,9 +1,10 @@
-package service
+package ai
 
 import (
 	"code-review-go/internal/cache"
 	"code-review-go/internal/model"
-	"code-review-go/internal/service/providers"
+	"code-review-go/internal/service/ai/providers"
+	"code-review-go/internal/service/common"
 	"fmt"
 	"sync"
 )
@@ -16,7 +17,7 @@ type AIServiceImpl struct {
 }
 
 // NewAIService 创建AI服务实例
-func NewAIService() AIService {
+func NewAIService() common.AIService {
 	return &AIServiceImpl{}
 }
 

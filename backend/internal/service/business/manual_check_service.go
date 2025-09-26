@@ -1,10 +1,13 @@
-package service
+package business
 
 import (
 	"code-review-go/internal/database"
 	"code-review-go/internal/dto"
 	"code-review-go/internal/model"
 	"code-review-go/internal/pkg/utils"
+	"code-review-go/internal/service/ai"
+	"code-review-go/internal/service/gitlab_service"
+	"code-review-go/internal/service/webhook/processors"
 	"encoding/json"
 	"fmt"
 	"hash/fnv"
@@ -18,11 +21,11 @@ import (
 
 type ManualCheckService struct {
 	db            *gorm.DB
-	gitlabService *GitlabService
-	aiRuleService *AIRuleService
+	gitlabService *gitlab_service.GitlabService
+	aiRuleService *ai.AIRuleService
 }
 
-func NewManualCheckService(db *gorm.DB, gitlabService *GitlabService, aiRuleService *AIRuleService) *ManualCheckService {
+func NewManualCheckService(db *gorm.DB, gitlabService *gitlab_service.GitlabService, aiRuleService *ai.AIRuleService) *ManualCheckService {
 	return &ManualCheckService{
 		db:            db,
 		gitlabService: gitlabService,
@@ -113,7 +116,7 @@ func (s *ManualCheckService) ExecuteManualCheckTask(taskID uint) error {
 	}
 
 	// 执行AI审核
-	result, err := CheckMergeRequestWithAI(webhookBody)
+	result, err := processors.CheckMergeRequestWithAI(webhookBody)
 
 	// 更新任务状态和结果
 	updateData := map[string]interface{}{
@@ -237,7 +240,7 @@ func (s *ManualCheckService) GetManualCheckResult(taskID uint, userID uint) (*dt
 
 // GetManualCheckService 获取手动审核服务实例
 func GetManualCheckService() *ManualCheckService {
-	return NewManualCheckService(database.DB, NewGitlabService(database.DB), NewAIRuleService(database.DB))
+	return NewManualCheckService(database.DB, gitlab_service.NewGitlabService(database.DB), ai.NewAIRuleService(database.DB))
 }
 
 // parseMergeURL 解析合并请求URL，提取项目ID、合并请求ID和项目名称

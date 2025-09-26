@@ -1,7 +1,9 @@
-package service
+package infrastructure
 
 import (
 	"code-review-go/internal/database"
+	"code-review-go/internal/service/ai"
+	"code-review-go/internal/service/common"
 	"fmt"
 	"sync"
 
@@ -11,13 +13,13 @@ import (
 // DatabaseServiceImpl 数据库服务实现
 type DatabaseServiceImpl struct {
 	db            *gorm.DB
-	aiRuleService *AIRuleService
+	aiRuleService *ai.AIRuleService
 	mu            sync.RWMutex
 	initialized   bool
 }
 
 // NewDatabaseService 创建数据库服务实例
-func NewDatabaseService() DatabaseService {
+func NewDatabaseService() common.DatabaseService {
 	return &DatabaseServiceImpl{}
 }
 
@@ -37,7 +39,7 @@ func (d *DatabaseServiceImpl) Initialize() error {
 	}
 
 	// 初始化AI规则服务
-	d.aiRuleService = NewAIRuleService(d.db)
+	d.aiRuleService = ai.NewAIRuleService(d.db)
 
 	d.initialized = true
 	return nil
@@ -51,7 +53,7 @@ func (d *DatabaseServiceImpl) GetDB() *gorm.DB {
 }
 
 // GetAIRuleService 获取AI规则服务
-func (d *DatabaseServiceImpl) GetAIRuleService() *AIRuleService {
+func (d *DatabaseServiceImpl) GetAIRuleService() interface{} {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 	return d.aiRuleService

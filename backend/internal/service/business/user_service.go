@@ -1,5 +1,5 @@
 // @Description:   用户服务
-package service
+package business
 
 import (
 	"fmt"

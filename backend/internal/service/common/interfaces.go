@@ -1,4 +1,4 @@
-package service
+package common
 
 import (
 	"code-review-go/internal/dto"
@@ -14,7 +14,7 @@ type DatabaseService interface {
 	// 获取数据库连接
 	GetDB() *gorm.DB
 	// 获取AI规则服务
-	GetAIRuleService() *AIRuleService
+	GetAIRuleService() interface{}
 	// 检查是否已初始化
 	IsInitialized() bool
 }
@@ -71,4 +71,24 @@ type Config struct {
 	AIServiceURL  string
 	DatabaseURL   string
 	// 其他配置项...
+}
+
+// RAGClientPool RAG客户端连接池
+type RAGClientPool struct {
+	// 连接池实现
+}
+
+// NewRAGClientPool 创建RAG客户端连接池
+func NewRAGClientPool(baseURL string, poolSize int) (*RAGClientPool, error) {
+	return &RAGClientPool{}, nil
+}
+
+// GetClient 获取客户端
+func (p *RAGClientPool) GetClient() interface{} {
+	return nil
+}
+
+// ReturnClient 归还客户端
+func (p *RAGClientPool) ReturnClient(client interface{}) {
+	// 实现归还逻辑
 }

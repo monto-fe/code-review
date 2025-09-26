@@ -1,5 +1,5 @@
 // @Description:   角色服务
-package service
+package business
 
 import (
 	"code-review-go/internal/database"

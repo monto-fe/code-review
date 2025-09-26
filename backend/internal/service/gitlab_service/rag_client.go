@@ -1,8 +1,9 @@
-package service
+package gitlab_service
 
 import (
 	"bytes"
 	dto "code-review-go/internal/dto"
+	"code-review-go/internal/service/common"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -15,7 +16,7 @@ import (
 type RAGClient struct {
 	baseURL    string
 	client     *http.Client
-	clientPool *RAGClientPool
+	clientPool *common.RAGClientPool
 	cache      *RAGResponseCache
 	config     *RAGClientConfig
 	metrics    *RAGMetrics
@@ -65,7 +66,7 @@ func NewRAGClient(baseURL string) *RAGClient {
 
 	// 如果启用优化功能，初始化连接池和缓存
 	if config.EnableOptimization {
-		clientPool, err := NewRAGClientPool(baseURL, config.PoolSize)
+		clientPool, err := common.NewRAGClientPool(baseURL, config.PoolSize)
 		if err == nil {
 			client.clientPool = clientPool
 		}
@@ -84,7 +85,7 @@ func NewOptimizedRAGClient(config *RAGClientConfig) (*RAGClient, error) {
 	config.EnableOptimization = true
 
 	// 创建连接池
-	clientPool, err := NewRAGClientPool(config.BaseURL, config.PoolSize)
+	clientPool, err := common.NewRAGClientPool(config.BaseURL, config.PoolSize)
 	if err != nil {
 		return nil, fmt.Errorf("创建连接池失败: %v", err)
 	}
@@ -222,7 +223,8 @@ func (c *RAGClient) performRequest(req *dto.CodeReviewRequest) (*dto.CodeAnalysi
 	if c.clientPool != nil {
 		poolClient := c.clientPool.GetClient()
 		defer c.clientPool.ReturnClient(poolClient)
-		httpClient = poolClient.client
+		// 暂时使用默认客户端，连接池功能待完善
+		httpClient = c.client
 	} else {
 		httpClient = c.client
 	}

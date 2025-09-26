@@ -1,4 +1,4 @@
-package service
+package processors
 
 import (
 	"code-review-go/config"
@@ -6,6 +6,11 @@ import (
 	dto "code-review-go/internal/dto"
 	"code-review-go/internal/model"
 	"code-review-go/internal/pkg/utils"
+	"code-review-go/internal/service/ai"
+	"code-review-go/internal/service/common"
+	"code-review-go/internal/service/gitlab_service"
+	"code-review-go/internal/service/webhook/helpers"
+	"code-review-go/internal/service/webhook/manager"
 	"context"
 	"fmt"
 	"strconv"
@@ -16,7 +21,7 @@ import (
 
 // MainServiceManager 主服务管理器，单例模式
 type MainServiceManager struct {
-	coordinator *ServiceCoordinator
+	coordinator *manager.ServiceCoordinator
 	mu          sync.RWMutex
 	initialized bool
 }
@@ -43,14 +48,14 @@ var (
 func GetMainServiceManager() *MainServiceManager {
 	mainOnce.Do(func() {
 		mainManager = &MainServiceManager{
-			coordinator: NewServiceCoordinator(),
+			coordinator: manager.NewServiceCoordinator(),
 		}
 	})
 	return mainManager
 }
 
 // NewMainServiceManager 创建主服务管理器实例（用于测试）
-func NewMainServiceManager(coordinator *ServiceCoordinator) *MainServiceManager {
+func NewMainServiceManager(coordinator *manager.ServiceCoordinator) *MainServiceManager {
 	return &MainServiceManager{
 		coordinator: coordinator,
 	}
@@ -58,14 +63,14 @@ func NewMainServiceManager(coordinator *ServiceCoordinator) *MainServiceManager 
 
 // RAGServiceImpl RAG服务实现
 type RAGServiceImpl struct {
-	ragService  RAGServiceInterface
+	ragService  common.RAGServiceInterface
 	config      *config.Config
 	mu          sync.RWMutex
 	initialized bool
 }
 
 // NewRAGService 创建RAG服务实例
-func NewRAGService() RAGServiceInterface {
+func NewRAGService() common.RAGServiceInterface {
 	return &RAGServiceImpl{}
 }
 
@@ -85,7 +90,7 @@ func (r *RAGServiceImpl) Initialize() error {
 	}
 
 	// 创建RAG客户端
-	ragService, err := CreateDefaultRAGClient(r.config.RAGServiceURL)
+	ragService, err := gitlab_service.CreateDefaultRAGClient(r.config.RAGServiceURL)
 	if err != nil {
 		return fmt.Errorf("创建RAG客户端失败: %v", err)
 	}
@@ -185,10 +190,10 @@ func (m *MainServiceManager) ValidateRequest(body dto.WebhookBody) error {
 	}
 
 	// 验证分支匹配
-	if !BranchMatch(gitlabInfo.Config.SourceBranch, body.ObjectAttributes.SourceBranch) {
+	if !helpers.BranchMatch(gitlabInfo.Config.SourceBranch, body.ObjectAttributes.SourceBranch) {
 		return fmt.Errorf("源分支不匹配")
 	}
-	if !BranchMatch(gitlabInfo.Config.TargetBranch, body.ObjectAttributes.TargetBranch) {
+	if !helpers.BranchMatch(gitlabInfo.Config.TargetBranch, body.ObjectAttributes.TargetBranch) {
 		return fmt.Errorf("目标分支不匹配")
 	}
 
@@ -211,13 +216,13 @@ func (m *MainServiceManager) PrepareData(body dto.WebhookBody) (*AnalysisData, e
 	gitlabToken, gitlabInfo, _ := cache.FindTokenByProjectID(fmt.Sprintf("%d", body.Project.ID), gitlabCache)
 
 	// 获取合并请求信息
-	mergeRequest, err := GetMergeRequestInfo(gitlabInfo.Config.API, strconv.Itoa(body.Project.ID), gitlabToken)
+	mergeRequest, err := gitlab_service.GetMergeRequestInfo(gitlabInfo.Config.API, strconv.Itoa(body.Project.ID), gitlabToken)
 	if err != nil {
 		return nil, fmt.Errorf("获取合并请求信息失败: %v", err)
 	}
 
 	// 获取差异信息
-	diff := GetMergeDiff(gitlabInfo.Config.API, body.Project.ID, body.ObjectAttributes.IID, gitlabToken)
+	diff := helpers.GetMergeDiff(gitlabInfo.Config.API, body.Project.ID, body.ObjectAttributes.IID, gitlabToken)
 
 	// 获取AI配置
 	aiConfig, _ := cache.GetAIConfigCache()
@@ -251,9 +256,15 @@ func (m *MainServiceManager) PrepareData(body dto.WebhookBody) (*AnalysisData, e
 func (m *MainServiceManager) buildFinalRule(mergeRequest *model.MergeRequestInfo, gitlabInfo dto.GitlabCacheItem, gitlabToken string) (string, error) {
 	// 获取AI规则服务
 	dbService := m.coordinator.GetDatabaseService()
-	aiRuleService := dbService.GetAIRuleService()
-	if aiRuleService == nil {
+	aiRuleServiceInterface := dbService.GetAIRuleService()
+	if aiRuleServiceInterface == nil {
 		return "", fmt.Errorf("AI规则服务未初始化")
+	}
+
+	// 类型断言
+	aiRuleService, ok := aiRuleServiceInterface.(*ai.AIRuleService)
+	if !ok {
+		return "", fmt.Errorf("AI规则服务类型断言失败")
 	}
 
 	// 获取项目规则
@@ -267,7 +278,7 @@ func (m *MainServiceManager) buildFinalRule(mergeRequest *model.MergeRequestInfo
 		currentRule = customRule.Rule
 	} else {
 		// 获取项目主要语言
-		language, err := GetDominantLanguage(gitlabInfo.Config.API, fmt.Sprintf("%d", mergeRequest.ProjectID), gitlabToken)
+		language, err := gitlab_service.GetDominantLanguage(gitlabInfo.Config.API, fmt.Sprintf("%d", mergeRequest.ProjectID), gitlabToken)
 		if err != nil {
 			return "", fmt.Errorf("获取项目语言失败: %v", err)
 		}
@@ -439,67 +450,57 @@ func (m *MainServiceManager) SendNotifications(body dto.WebhookBody, comments st
 		}
 	}
 
-	err := notificationService.SendEnhancedNotification(
-		apiURL,
-		gitlabToken, // 使用更新后的 token
-		body.Project.ID,
-		body.ObjectAttributes.IID,
-		comments,
-		data.CommentType,
-		data.Diff,
-	)
-	if err != nil {
-		fmt.Printf("发送GitLab评论失败: %v\n", err)
-	}
+	// 根据事件类型发送不同的通知
+	switch body.ObjectKind {
+	case "merge_request":
+		// Merge Request 事件：发送 GitLab 评论
+		err := notificationService.SendEnhancedNotification(
+			apiURL,
+			gitlabToken,
+			body.Project.ID,
+			body.ObjectAttributes.IID,
+			comments,
+			data.CommentType,
+			data.Diff,
+		)
+		if err != nil {
+			fmt.Printf("发送GitLab评论失败: %v\n", err)
+		}
 
-	// 推送webhook通知
-	err = notificationService.SendWebhookNotification(
-		data.GitlabInfo.Config.WebhookURL,
-		int(data.GitlabInfo.Config.WebhookStatus),
-		body.Project.PathWithNamespace,
-		body.ObjectAttributes.MergeURL,
-		comments,
-		aiMessageID,
-		data.MergeRequest,
-	)
-	if err != nil {
-		fmt.Printf("发送Webhook通知失败: %v\n", err)
-	}
-}
+		// 推送webhook通知
+		err = notificationService.SendWebhookNotification(
+			data.GitlabInfo.Config.WebhookURL,
+			int(data.GitlabInfo.Config.WebhookStatus),
+			body.Project.PathWithNamespace,
+			body.ObjectAttributes.MergeURL,
+			comments,
+			aiMessageID,
+			data.MergeRequest,
+		)
+		if err != nil {
+			fmt.Printf("发送Webhook通知失败: %v\n", err)
+		}
+	case "push":
+		// Push 事件：只发送 webhook 通知，不发送 GitLab 评论
+		fmt.Printf("Push事件：跳过GitLab评论，直接发送webhook通知\n")
 
-// RAGClientPool RAG客户端连接池
-type RAGClientPool struct {
-	clients chan *RAGClient
-	baseURL string
-}
+		// 构建 Push 事件的 webhook URL
+		pushWebhookURL := fmt.Sprintf("%s/-/commits/%s", data.GitlabInfo.Config.WebhookURL, body.After)
 
-// NewRAGClientPool 创建RAG客户端连接池
-func NewRAGClientPool(baseURL string, poolSize int) (*RAGClientPool, error) {
-	pool := &RAGClientPool{
-		clients: make(chan *RAGClient, poolSize),
-		baseURL: baseURL,
-	}
-
-	// 预创建客户端
-	for i := 0; i < poolSize; i++ {
-		client := NewRAGClient(baseURL)
-		pool.clients <- client
-	}
-
-	return pool, nil
-}
-
-// GetClient 获取客户端
-func (p *RAGClientPool) GetClient() *RAGClient {
-	return <-p.clients
-}
-
-// ReturnClient 归还客户端
-func (p *RAGClientPool) ReturnClient(client *RAGClient) {
-	select {
-	case p.clients <- client:
+		err := notificationService.SendWebhookNotification(
+			data.GitlabInfo.Config.WebhookURL,
+			int(data.GitlabInfo.Config.WebhookStatus),
+			body.Project.PathWithNamespace,
+			pushWebhookURL,
+			comments,
+			aiMessageID,
+			data.MergeRequest,
+		)
+		if err != nil {
+			fmt.Printf("发送Push事件Webhook通知失败: %v\n", err)
+		}
 	default:
-		// 池已满，丢弃客户端
+		fmt.Printf("未知的事件类型: %s，跳过通知发送\n", body.ObjectKind)
 	}
 }
 

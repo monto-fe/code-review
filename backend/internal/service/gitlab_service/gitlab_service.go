@@ -1,4 +1,4 @@
-package service
+package gitlab_service
 
 import (
 	"code-review-go/internal/cache"
@@ -801,4 +801,125 @@ func (s *GitlabService) GetGitlabTokenProjects() ([]dto.GitlabTokenProjectRespon
 	}
 
 	return responseList, nil
+}
+
+// GetCommitCodeContent 获取指定commit的代码内容
+func GetCommitCodeContent(gitlabAPI string, projectID int, commitSHA, gitlabToken string) ([]model.Change, error) {
+	// 构建GitLab API URL来获取commit的文件树
+	url := fmt.Sprintf("%s/v4/projects/%d/repository/tree?ref=%s&recursive=true", gitlabAPI, projectID, commitSHA)
+
+	body, err := utils.CommonGetRequest("GET", url, gitlabToken, nil)
+	if err != nil {
+		return nil, fmt.Errorf("获取commit文件树失败: %v", err)
+	}
+
+	var treeResponse []struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+		Type string `json:"type"`
+		Path string `json:"path"`
+		Mode string `json:"mode"`
+	}
+
+	if err := json.Unmarshal(body, &treeResponse); err != nil {
+		return nil, fmt.Errorf("解析文件树响应失败: %v", err)
+	}
+
+	// 过滤出代码文件（排除目录和二进制文件）
+	var codeFiles []string
+	for _, item := range treeResponse {
+		if item.Type == "blob" && isCodeFile(item.Name) {
+			codeFiles = append(codeFiles, item.Path)
+		}
+	}
+
+	// 获取每个代码文件的内容
+	var changes []model.Change
+	for _, filePath := range codeFiles {
+		content, err := getFileContent(gitlabAPI, projectID, commitSHA, filePath, gitlabToken)
+		if err != nil {
+			fmt.Printf("获取文件内容失败 %s: %v\n", filePath, err)
+			continue
+		}
+
+		change := model.Change{
+			OldPath: filePath,
+			NewPath: filePath,
+			Diff:    fmt.Sprintf("+++ %s\n%s", filePath, content),
+		}
+		changes = append(changes, change)
+	}
+
+	fmt.Printf("获取commit代码内容成功: %s, 代码文件数: %d\n", commitSHA, len(changes))
+	return changes, nil
+}
+
+// getFileContent 获取单个文件的内容
+func getFileContent(gitlabAPI string, projectID int, commitSHA, filePath, gitlabToken string) (string, error) {
+	// 构建GitLab API URL来获取文件内容
+	url := fmt.Sprintf("%s/v4/projects/%d/repository/files/%s/raw?ref=%s",
+		gitlabAPI, projectID, strings.ReplaceAll(filePath, "/", "%2F"), commitSHA)
+
+	body, err := utils.CommonGetRequest("GET", url, gitlabToken, nil)
+	if err != nil {
+		return "", fmt.Errorf("获取文件内容失败: %v", err)
+	}
+
+	return string(body), nil
+}
+
+// isCodeFile 判断是否为代码文件
+func isCodeFile(filename string) bool {
+	// 定义代码文件扩展名
+	codeExtensions := map[string]bool{
+		".go":         true,
+		".js":         true,
+		".ts":         true,
+		".tsx":        true,
+		".jsx":        true,
+		".py":         true,
+		".java":       true,
+		".cpp":        true,
+		".c":          true,
+		".h":          true,
+		".cs":         true,
+		".php":        true,
+		".rb":         true,
+		".swift":      true,
+		".kt":         true,
+		".scala":      true,
+		".rs":         true,
+		".vue":        true,
+		".html":       true,
+		".css":        true,
+		".scss":       true,
+		".less":       true,
+		".sql":        true,
+		".sh":         true,
+		".yaml":       true,
+		".yml":        true,
+		".json":       true,
+		".xml":        true,
+		".md":         true,
+		".dockerfile": true,
+		".makefile":   true,
+	}
+
+	// 检查文件扩展名
+	for ext := range codeExtensions {
+		if strings.HasSuffix(strings.ToLower(filename), ext) {
+			return true
+		}
+	}
+
+	// 检查特殊文件名
+	specialFiles := map[string]bool{
+		"dockerfile": true,
+		"makefile":   true,
+		"rakefile":   true,
+		"gemfile":    true,
+		"podfile":    true,
+	}
+
+	return specialFiles[strings.ToLower(filename)]
 }

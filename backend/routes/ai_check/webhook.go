@@ -2,20 +2,34 @@ package ai_check
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"code-review-go/internal/dto"
 	"code-review-go/internal/pkg/constants"
 	"code-review-go/internal/pkg/response"
-	"code-review-go/internal/pkg/utils"
-	"code-review-go/internal/service"
+	"code-review-go/internal/service/webhook/handlers"
 
 	"github.com/gin-gonic/gin"
 )
 
-// AICheck 处理 AI 检查请求
+// 全局事件路由器实例
+var eventRouter *handlers.EventRouter
+
+// init 初始化事件路由器
+func init() {
+	eventRouter = handlers.NewEventRouter()
+
+	// 注册事件处理器
+	eventRouter.RegisterHandler(handlers.NewMergeRequestHandler())
+	eventRouter.RegisterHandler(handlers.NewPushHandler())
+
+	fmt.Printf("事件路由器初始化完成，已注册处理器: %v\n", eventRouter.GetRegisteredHandlers())
+}
+
+// AICheck 处理 AI 检查请求（事件驱动架构）
 // @Summary 触发 AI 代码审查
-// @Description 处理 GitLab 合并请求的 webhook，自动触发 AI 代码审查与评论
+// @Description 处理 GitLab 合并请求和 Push 事件的 webhook，自动触发 AI 代码审查与评论
 // @Tags Webhook
 // @Accept json
 // @Produce json
@@ -23,9 +37,12 @@ import (
 // @Success 200 {object} response.Response
 // @Router /v1/webhook/merge [post]
 func AICheck(c *gin.Context) {
+	startTime := time.Now()
+
 	// 1. 解析请求体
 	var body dto.WebhookBody
 	if err := c.ShouldBindJSON(&body); err != nil {
+		fmt.Printf("解析请求体失败: %v\n", err)
 		c.JSON(400, gin.H{
 			"msg":   "参数错误",
 			"error": err.Error(),
@@ -33,42 +50,82 @@ func AICheck(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("webhook请求信息: ProjectID=%d, MergeRequestID=%d\n",
-		body.Project.ID, body.ObjectAttributes.IID)
-
-	// 2. 立即响应（不阻塞webhook）
-	response.Success(c, gin.H{
-		"projectId":      body.Project.ID,
-		"mergeRequestId": body.ObjectAttributes.IID,
-		"optimized":      true,
-		"timestamp":      time.Now().Unix(),
-	}, "AI检查已启动，请稍候查看结果", int(constants.RetCodeSuccess))
-
-	// 💡 防止重复执行
-	if utils.IsDuplicateWebhook(body) {
-		fmt.Println("重复webhook请求，跳过处理")
-		return
-	}
-	// 检查Merge Request状态
-	if !service.ShouldProcessState(body) {
-		fmt.Printf("跳过非opened状态的合并请求: %+v\n", body)
+	// 2. 基础验证
+	if body.Project.ID == 0 {
+		fmt.Printf("无效的项目ID: %d\n", body.Project.ID)
+		c.JSON(400, gin.H{
+			"msg":   "无效的项目ID",
+			"error": "Project ID is required",
+		})
 		return
 	}
 
-	// 3. 异步处理优化的RAG检查
-	go handleOptimizedAICheck(body)
+	// 3. 检测事件类型
+	eventType := detectEventType(body)
+	fmt.Printf("检测到事件类型: %s, ProjectID=%d, 处理耗时: %v\n",
+		eventType, body.Project.ID, time.Since(startTime))
+
+	// 4. 立即响应（不阻塞webhook）
+	responseData := gin.H{
+		"eventType":  eventType,
+		"timestamp":  time.Now().Unix(),
+		"optimized":  true,
+		"processing": true,
+	}
+
+	switch eventType {
+	case "merge_request":
+		responseData["projectId"] = body.Project.ID
+		responseData["mergeRequestId"] = body.ObjectAttributes.IID
+		responseData["targetBranch"] = body.ObjectAttributes.TargetBranch
+		fmt.Printf("Merge Request事件: ProjectID=%d, MergeRequestID=%d, TargetBranch=%s\n",
+			body.Project.ID, body.ObjectAttributes.IID, body.ObjectAttributes.TargetBranch)
+	case "push":
+		responseData["projectId"] = body.Project.ID
+		responseData["branch"] = extractBranchFromRef(body.Ref)
+		responseData["commits"] = body.TotalCommitsCount
+		fmt.Printf("Push事件: ProjectID=%d, Branch=%s, Commits=%d\n",
+			body.Project.ID, extractBranchFromRef(body.Ref), body.TotalCommitsCount)
+	}
+
+	response.Success(c, responseData, "AI检查已启动，请稍候查看结果", int(constants.RetCodeSuccess))
+
+	// 5. 使用事件路由器处理事件
+	err := eventRouter.Route(body)
+	if err != nil {
+		fmt.Printf("事件路由失败: %v\n", err)
+	}
 }
 
-// handleOptimizedAICheck 处理优化的AI检查
-func handleOptimizedAICheck(body dto.WebhookBody) {
-	startTime := time.Now()
-	fmt.Printf("开始代码评审检查: %s\n", startTime.Format("2006-01-02 15:04:05"))
-
-	// 1. 使用RAG服务检查
-	result, err := service.CheckMergeRequestWithAI(body)
-	if err != nil {
-		fmt.Printf("检查失败 (耗时: %v): %v\n", time.Since(startTime), err)
-		return
+// detectEventType 检测事件类型
+func detectEventType(body dto.WebhookBody) string {
+	// 1. 检查 object_kind 字段
+	if body.ObjectKind == "merge_request" {
+		return "merge_request"
 	}
-	fmt.Printf("检查成功 (耗时: %v): %s\n", time.Since(startTime), result)
+	if body.ObjectKind == "push" {
+		return "push"
+	}
+
+	// 2. 检查是否有 Merge Request 相关字段
+	if body.ObjectAttributes.IID > 0 && body.ObjectAttributes.Title != "" {
+		return "merge_request"
+	}
+
+	// 3. 检查是否有 Push 相关字段
+	if body.Ref != "" && body.After != "" {
+		return "push"
+	}
+
+	// 4. 默认返回 merge_request（保持向后兼容）
+	return "merge_request"
+}
+
+// extractBranchFromRef 从 ref 中提取分支名称
+func extractBranchFromRef(ref string) string {
+	// 从 refs/heads/feature-branch 提取 feature-branch
+	if strings.HasPrefix(ref, "refs/heads/") {
+		return strings.TrimPrefix(ref, "refs/heads/")
+	}
+	return ref
 }

@@ -1,10 +1,45 @@
-package service
+package processors
 
 import (
-	dto "code-review-go/internal/dto"
-	"code-review-go/internal/pkg/utils"
 	"fmt"
+	"time"
+
+	"code-review-go/internal/dto"
+	"code-review-go/internal/pkg/utils"
 )
+
+// MergeRequestService Merge Request 服务
+type MergeRequestService struct {
+	// 这里应该注入实际的依赖服务
+	// 暂时使用 nil，实际使用时需要注入
+}
+
+// NewMergeRequestService 创建 Merge Request 服务
+func NewMergeRequestService() *MergeRequestService {
+	return &MergeRequestService{}
+}
+
+// ProcessMergeRequest 处理 Merge Request 事件
+func (s *MergeRequestService) ProcessMergeRequest(body dto.WebhookBody) error {
+	startTime := time.Now()
+	fmt.Printf("开始处理Merge Request: ProjectID=%d, MergeRequestID=%d\n",
+		body.Project.ID, body.ObjectAttributes.IID)
+
+	// 直接调用现有的 AI 检查逻辑
+	result, err := CheckMergeRequestWithAI(body)
+	if err != nil {
+		return fmt.Errorf("AI检查失败: %v", err)
+	}
+
+	fmt.Printf("Merge Request处理完成 (耗时: %v): %s\n", time.Since(startTime), result)
+	return nil
+}
+
+// ProcessMergeRequestEvent 处理 Merge Request 事件（对外接口）
+func ProcessMergeRequestEvent(body dto.WebhookBody) error {
+	service := NewMergeRequestService()
+	return service.ProcessMergeRequest(body)
+}
 
 // CheckMergeRequestWithAI 使用指定的管理器执行RAG检查
 func CheckMergeRequestWithAI(body dto.WebhookBody) (string, error) {

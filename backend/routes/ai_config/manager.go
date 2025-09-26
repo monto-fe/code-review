@@ -4,7 +4,7 @@ import (
 	"code-review-go/internal/database"
 	"code-review-go/internal/pkg/constants"
 	"code-review-go/internal/pkg/response"
-	"code-review-go/internal/service"
+	"code-review-go/internal/service/ai"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,7 +19,7 @@ import (
 // @Success 200 {object} response.Response{data=[]model.AIManager}
 // @Router /v1/ai/manager [get]
 func GetAIManagerList(c *gin.Context) {
-	managerService := service.NewAIManagerService(database.DB)
+	managerService := ai.NewAIManagerService(database.DB)
 	managers, err := managerService.GetManagerList()
 	if err != nil {
 		response.Error(c, err, "获取AI管理器列表失败", int(constants.RetCodeInternalError))

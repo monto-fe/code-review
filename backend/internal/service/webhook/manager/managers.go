@@ -1,12 +1,16 @@
-package service
+package manager
 
 import (
+	"code-review-go/internal/service/ai"
+	"code-review-go/internal/service/common"
+	"code-review-go/internal/service/gitlab_service"
+	"code-review-go/internal/service/infrastructure"
 	"sync"
 )
 
 // DatabaseServiceManager 数据库服务管理器
 type DatabaseServiceManager struct {
-	service     DatabaseService
+	service     common.DatabaseService
 	mu          sync.RWMutex
 	initialized bool
 }
@@ -14,7 +18,7 @@ type DatabaseServiceManager struct {
 // NewDatabaseServiceManager 创建数据库服务管理器
 func NewDatabaseServiceManager() *DatabaseServiceManager {
 	return &DatabaseServiceManager{
-		service: NewDatabaseService(),
+		service: infrastructure.NewDatabaseService(),
 	}
 }
 
@@ -36,7 +40,7 @@ func (m *DatabaseServiceManager) Initialize() error {
 }
 
 // GetService 获取数据库服务
-func (m *DatabaseServiceManager) GetService() DatabaseService {
+func (m *DatabaseServiceManager) GetService() common.DatabaseService {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return m.service
@@ -51,15 +55,16 @@ func (m *DatabaseServiceManager) IsInitialized() bool {
 
 // RAGServiceManagerImpl RAG服务管理器实现
 type RAGServiceManagerImpl struct {
-	service     RAGServiceInterface
+	service     common.RAGServiceInterface
 	mu          sync.RWMutex
 	initialized bool
 }
 
 // NewRAGServiceManagerImpl 创建RAG服务管理器实现
 func NewRAGServiceManagerImpl() *RAGServiceManagerImpl {
+	service, _ := gitlab_service.CreateRAGClient("")
 	return &RAGServiceManagerImpl{
-		service: NewRAGService(),
+		service: service,
 	}
 }
 
@@ -81,7 +86,7 @@ func (m *RAGServiceManagerImpl) Initialize() error {
 }
 
 // GetService 获取RAG服务
-func (m *RAGServiceManagerImpl) GetService() RAGServiceInterface {
+func (m *RAGServiceManagerImpl) GetService() common.RAGServiceInterface {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return m.service
@@ -96,7 +101,7 @@ func (m *RAGServiceManagerImpl) IsInitialized() bool {
 
 // AIServiceManager AI服务管理器
 type AIServiceManager struct {
-	service     AIService
+	service     common.AIService
 	mu          sync.RWMutex
 	initialized bool
 }
@@ -104,7 +109,7 @@ type AIServiceManager struct {
 // NewAIServiceManager 创建AI服务管理器
 func NewAIServiceManager() *AIServiceManager {
 	return &AIServiceManager{
-		service: NewAIService(),
+		service: ai.NewAIService(),
 	}
 }
 
@@ -126,7 +131,7 @@ func (m *AIServiceManager) Initialize() error {
 }
 
 // GetService 获取AI服务
-func (m *AIServiceManager) GetService() AIService {
+func (m *AIServiceManager) GetService() common.AIService {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return m.service
@@ -141,7 +146,7 @@ func (m *AIServiceManager) IsInitialized() bool {
 
 // NotificationServiceManager 通知服务管理器
 type NotificationServiceManager struct {
-	service     NotificationService
+	service     common.NotificationService
 	mu          sync.RWMutex
 	initialized bool
 }
@@ -149,7 +154,7 @@ type NotificationServiceManager struct {
 // NewNotificationServiceManager 创建通知服务管理器
 func NewNotificationServiceManager() *NotificationServiceManager {
 	return &NotificationServiceManager{
-		service: NewNotificationService(),
+		service: gitlab_service.NewNotificationService(),
 	}
 }
 
@@ -171,7 +176,7 @@ func (m *NotificationServiceManager) Initialize() error {
 }
 
 // GetService 获取通知服务
-func (m *NotificationServiceManager) GetService() NotificationService {
+func (m *NotificationServiceManager) GetService() common.NotificationService {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return m.service

@@ -154,7 +154,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/service.BotRole"
+                                            "$ref": "#/definitions/infrastructure.BotRole"
                                         }
                                     }
                                 }
@@ -1707,7 +1707,7 @@ const docTemplate = `{
         },
         "/v1/webhook/merge": {
             "post": {
-                "description": "处理 GitLab 合并请求的 webhook，自动触发 AI 代码审查与评论",
+                "description": "处理 GitLab 合并请求和 Push 事件的 webhook，自动触发 AI 代码审查与评论",
                 "consumes": [
                     "application/json"
                 ],
@@ -2113,6 +2113,52 @@ const docTemplate = `{
             "properties": {
                 "count": {
                     "type": "integer"
+                }
+            }
+        },
+        "dto.CommitInfo": {
+            "type": "object",
+            "properties": {
+                "added": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "author": {
+                    "type": "object",
+                    "properties": {
+                        "email": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "modified": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "removed": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
                 }
             }
         },
@@ -2589,8 +2635,35 @@ const docTemplate = `{
         "dto.WebhookBody": {
             "type": "object",
             "properties": {
+                "after": {
+                    "description": "当前提交",
+                    "type": "string"
+                },
+                "before": {
+                    "description": "前一个提交",
+                    "type": "string"
+                },
+                "checkout_sha": {
+                    "description": "检出SHA",
+                    "type": "string"
+                },
+                "commits": {
+                    "description": "提交列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CommitInfo"
+                    }
+                },
+                "event_name": {
+                    "description": "Push 事件使用",
+                    "type": "string"
+                },
                 "merge_request": {
                     "$ref": "#/definitions/dto.MergeRequest"
+                },
+                "message": {
+                    "description": "提交消息",
+                    "type": "string"
                 },
                 "object_attributes": {
                     "$ref": "#/definitions/dto.ObjectAttributes"
@@ -2600,6 +2673,55 @@ const docTemplate = `{
                 },
                 "project": {
                     "$ref": "#/definitions/dto.ProjectInfo"
+                },
+                "ref": {
+                    "description": "Push 事件专用字段",
+                    "type": "string"
+                },
+                "total_commits_count": {
+                    "description": "总提交数",
+                    "type": "integer"
+                },
+                "user_avatar": {
+                    "description": "用户头像",
+                    "type": "string"
+                },
+                "user_email": {
+                    "description": "用户邮箱",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "用户ID",
+                    "type": "integer"
+                },
+                "user_name": {
+                    "description": "用户名",
+                    "type": "string"
+                },
+                "user_username": {
+                    "description": "用户用户名",
+                    "type": "string"
+                }
+            }
+        },
+        "infrastructure.BotRole": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "description": "机器人分类",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "机器人描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "机器人名称",
+                    "type": "string"
+                },
+                "prompt": {
+                    "description": "机器人提示词",
+                    "type": "string"
                 }
             }
         },
@@ -2874,27 +2996,6 @@ const docTemplate = `{
                 },
                 "ret_code": {
                     "type": "integer"
-                }
-            }
-        },
-        "service.BotRole": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "description": "机器人分类",
-                    "type": "string"
-                },
-                "description": {
-                    "description": "机器人描述",
-                    "type": "string"
-                },
-                "name": {
-                    "description": "机器人名称",
-                    "type": "string"
-                },
-                "prompt": {
-                    "description": "机器人提示词",
-                    "type": "string"
                 }
             }
         }

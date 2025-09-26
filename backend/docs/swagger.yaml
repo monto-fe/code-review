@@ -274,6 +274,36 @@ definitions:
       count:
         type: integer
     type: object
+  dto.CommitInfo:
+    properties:
+      added:
+        items:
+          type: string
+        type: array
+      author:
+        properties:
+          email:
+            type: string
+          name:
+            type: string
+        type: object
+      id:
+        type: string
+      message:
+        type: string
+      modified:
+        items:
+          type: string
+        type: array
+      removed:
+        items:
+          type: string
+        type: array
+      timestamp:
+        type: string
+      url:
+        type: string
+    type: object
   dto.CreateInnerUserRequest:
     properties:
       email:
@@ -601,14 +631,70 @@ definitions:
     type: object
   dto.WebhookBody:
     properties:
+      after:
+        description: 当前提交
+        type: string
+      before:
+        description: 前一个提交
+        type: string
+      checkout_sha:
+        description: 检出SHA
+        type: string
+      commits:
+        description: 提交列表
+        items:
+          $ref: '#/definitions/dto.CommitInfo'
+        type: array
+      event_name:
+        description: Push 事件使用
+        type: string
       merge_request:
         $ref: '#/definitions/dto.MergeRequest'
+      message:
+        description: 提交消息
+        type: string
       object_attributes:
         $ref: '#/definitions/dto.ObjectAttributes'
       object_kind:
         type: string
       project:
         $ref: '#/definitions/dto.ProjectInfo'
+      ref:
+        description: Push 事件专用字段
+        type: string
+      total_commits_count:
+        description: 总提交数
+        type: integer
+      user_avatar:
+        description: 用户头像
+        type: string
+      user_email:
+        description: 用户邮箱
+        type: string
+      user_id:
+        description: 用户ID
+        type: integer
+      user_name:
+        description: 用户名
+        type: string
+      user_username:
+        description: 用户用户名
+        type: string
+    type: object
+  infrastructure.BotRole:
+    properties:
+      category:
+        description: 机器人分类
+        type: string
+      description:
+        description: 机器人描述
+        type: string
+      name:
+        description: 机器人名称
+        type: string
+      prompt:
+        description: 机器人提示词
+        type: string
     type: object
   model.AIConfig:
     properties:
@@ -797,21 +883,6 @@ definitions:
       ret_code:
         type: integer
     type: object
-  service.BotRole:
-    properties:
-      category:
-        description: 机器人分类
-        type: string
-      description:
-        description: 机器人描述
-        type: string
-      name:
-        description: 机器人名称
-        type: string
-      prompt:
-        description: 机器人提示词
-        type: string
-    type: object
 host: localhost:9000
 info:
   contact: {}
@@ -936,7 +1007,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/service.BotRole'
+                  $ref: '#/definitions/infrastructure.BotRole'
               type: object
       summary: 获取机器人角色详情
       tags:
@@ -1881,7 +1952,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: 处理 GitLab 合并请求的 webhook，自动触发 AI 代码审查与评论
+      description: 处理 GitLab 合并请求和 Push 事件的 webhook，自动触发 AI 代码审查与评论
       parameters:
       - description: Webhook 触发参数
         in: body

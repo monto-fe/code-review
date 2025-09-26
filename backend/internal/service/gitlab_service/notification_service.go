@@ -1,9 +1,11 @@
-package service
+package gitlab_service
 
 import (
 	dto "code-review-go/internal/dto"
 	"code-review-go/internal/model"
 	"code-review-go/internal/pkg/utils"
+	"code-review-go/internal/service/ai"
+	"code-review-go/internal/service/common"
 	"fmt"
 	"strings"
 	"sync"
@@ -16,7 +18,7 @@ type NotificationServiceImpl struct {
 }
 
 // NewNotificationService 创建通知服务实例
-func NewNotificationService() NotificationService {
+func NewNotificationService() common.NotificationService {
 	return &NotificationServiceImpl{}
 }
 
@@ -49,6 +51,20 @@ func (n *NotificationServiceImpl) SendLineComments(api, token string, projectID,
 func (n *NotificationServiceImpl) SendWebhookNotification(webhookURL string, status int, projectNamespace, mergeURL, comments string, aiMessageID uint, mergeRequest *model.MergeRequestInfo) error {
 	pushWebhookIfNeeded(webhookURL, int8(status), projectNamespace, mergeURL, comments, aiMessageID, mergeRequest)
 	return nil
+}
+
+// pushWebhookIfNeeded 推送webhook通知
+func pushWebhookIfNeeded(webhookURL string, webhookStatus int8, pathWithNamespace, mergeURL, comments string, aiMessageId uint, mergeRequest *model.MergeRequestInfo) {
+	if webhookURL != "" && webhookStatus == 1 {
+		webhookContent := pushWeChatInfo(pathWithNamespace, mergeURL, comments, aiMessageId)
+		_ = ai.SendMarkdownToWechatBot(webhookURL, webhookContent)
+		fmt.Println("推送webhook成功", mergeRequest)
+	}
+}
+
+// pushWeChatInfo 构建企业微信推送信息
+func pushWeChatInfo(pathWithNamespace, mergeURL, comments string, aiMessageId uint) string {
+	return fmt.Sprintf("项目: %s\n合并请求: %s\nAI检查结果: %s\nAI消息ID: %d", pathWithNamespace, mergeURL, comments, aiMessageId)
 }
 
 // IsInitialized 检查是否已初始化
