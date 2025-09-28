@@ -81,6 +81,13 @@ func (s *GitlabService) CreateGitlabToken(data model.GitlabInfoCreate) (*dto.Git
 	}
 
 	now := time.Now().Unix()
+
+	// 设置 CommentType 默认值
+	commentType := data.CommentType
+	if commentType == 0 {
+		commentType = 1 // 默认使用普通评论
+	}
+
 	gitlabInfo := &model.GitlabInfo{
 		API:              data.API,
 		Name:             data.Name,
@@ -96,7 +103,7 @@ func (s *GitlabService) CreateGitlabToken(data model.GitlabInfoCreate) (*dto.Git
 		WebhookStatus:    data.WebhookStatus,
 		RuleCheckStatus:  data.RuleCheckStatus,
 		ProjectIdsSynced: ProjectIdsSyncedPending,
-		CommentType:      data.CommentType,
+		CommentType:      commentType,
 		CreateTime:       now,
 		UpdateTime:       now,
 	}
@@ -829,10 +836,14 @@ func (s *GitlabService) GetGitlabTokenProjects() ([]dto.GitlabTokenProjectRespon
 // GetCommitCodeContent 获取指定commit的代码内容
 func GetCommitCodeContent(gitlabAPI string, projectID int, commitSHA, gitlabToken string) ([]model.Change, error) {
 	// 构建GitLab API URL来获取commit的文件树
-	url := fmt.Sprintf("%s/v4/projects/%d/repository/tree?ref=%s&recursive=true", gitlabAPI, projectID, commitSHA)
+	// 注意：GitLab 12.9.2 可能对某些参数有限制
+	url := fmt.Sprintf("%s/v4/projects/%d/repository/tree?ref=%s&recursive=true&per_page=100", gitlabAPI, projectID, commitSHA)
+
+	fmt.Printf("🔍 获取commit文件树 (GitLab 12.9.2兼容): URL=%s, ProjectID=%d, CommitSHA=%s\n", url, projectID, commitSHA)
 
 	body, err := utils.CommonGetRequest("GET", url, gitlabToken, nil)
 	if err != nil {
+		fmt.Printf("❌ 获取commit文件树失败: %v\n", err)
 		return nil, fmt.Errorf("获取commit文件树失败: %v", err)
 	}
 
@@ -861,34 +872,105 @@ func GetCommitCodeContent(gitlabAPI string, projectID int, commitSHA, gitlabToke
 	for _, filePath := range codeFiles {
 		content, err := getFileContent(gitlabAPI, projectID, commitSHA, filePath, gitlabToken)
 		if err != nil {
-			fmt.Printf("获取文件内容失败 %s: %v\n", filePath, err)
+			fmt.Printf("❌ 获取文件内容失败 %s: %v\n", filePath, err)
 			continue
 		}
 
 		change := model.Change{
 			OldPath: filePath,
 			NewPath: filePath,
-			Diff:    fmt.Sprintf("+++ %s\n%s", filePath, content),
+			Diff:    content, // 直接使用文件内容，不添加 +++ 前缀
 		}
 		changes = append(changes, change)
+		fmt.Printf("✅ 成功获取文件内容: %s (大小: %d 字节)\n", filePath, len(content))
 	}
 
 	fmt.Printf("获取commit代码内容成功: %s, 代码文件数: %d\n", commitSHA, len(changes))
 	return changes, nil
 }
 
-// getFileContent 获取单个文件的内容
-func getFileContent(gitlabAPI string, projectID int, commitSHA, filePath, gitlabToken string) (string, error) {
-	// 构建GitLab API URL来获取文件内容
-	url := fmt.Sprintf("%s/v4/projects/%d/repository/files/%s/raw?ref=%s",
-		gitlabAPI, projectID, strings.ReplaceAll(filePath, "/", "%2F"), commitSHA)
+// GetBranchCodeContent 获取指定分支的代码内容（GitLab 12.9.2 兼容性方法）
+func GetBranchCodeContent(gitlabAPI string, projectID int, branchName, gitlabToken string) ([]model.Change, error) {
+	// 构建GitLab API URL来获取分支的文件树
+	url := fmt.Sprintf("%s/v4/projects/%d/repository/tree?ref=%s&recursive=true&per_page=100", gitlabAPI, projectID, branchName)
+
+	fmt.Printf("🔍 获取分支文件树 (GitLab 12.9.2兼容): URL=%s, ProjectID=%d, Branch=%s\n", url, projectID, branchName)
 
 	body, err := utils.CommonGetRequest("GET", url, gitlabToken, nil)
 	if err != nil {
+		fmt.Printf("❌ 获取分支文件树失败: %v\n", err)
+		return nil, fmt.Errorf("获取分支文件树失败: %v", err)
+	}
+
+	var treeResponse []struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+		Type string `json:"type"`
+		Path string `json:"path"`
+		Mode string `json:"mode"`
+	}
+
+	if err := json.Unmarshal(body, &treeResponse); err != nil {
+		fmt.Printf("❌ 解析分支文件树响应失败: %v, 响应内容: %s\n", err, string(body))
+		return nil, fmt.Errorf("解析分支文件树响应失败: %v", err)
+	}
+
+	fmt.Printf("📋 分支文件树项目总数: %d\n", len(treeResponse))
+
+	// 过滤出代码文件（排除目录和二进制文件）
+	var codeFiles []string
+	for _, item := range treeResponse {
+		if item.Type == "blob" && isCodeFile(item.Name) {
+			codeFiles = append(codeFiles, item.Path)
+			fmt.Printf("✅ 识别为代码文件: %s\n", item.Path)
+		} else {
+			fmt.Printf("❌ 跳过文件: %s (Type=%s, isCodeFile=%v)\n", item.Path, item.Type, isCodeFile(item.Name))
+		}
+	}
+
+	fmt.Printf("📝 过滤后的代码文件数: %d\n", len(codeFiles))
+
+	// 获取每个代码文件的内容
+	var changes []model.Change
+	for _, filePath := range codeFiles {
+		content, err := getFileContent(gitlabAPI, projectID, branchName, filePath, gitlabToken)
+		if err != nil {
+			fmt.Printf("❌ 获取文件内容失败 %s: %v\n", filePath, err)
+			continue
+		}
+
+		change := model.Change{
+			OldPath: filePath,
+			NewPath: filePath,
+			Diff:    content,
+		}
+		changes = append(changes, change)
+		fmt.Printf("✅ 成功获取文件内容: %s (大小: %d 字节)\n", filePath, len(content))
+	}
+
+	fmt.Printf("🎯 获取分支代码内容成功: %s, 代码文件数: %d\n", branchName, len(changes))
+	return changes, nil
+}
+
+// getFileContent 获取单个文件的内容
+func getFileContent(gitlabAPI string, projectID int, commitSHA, filePath, gitlabToken string) (string, error) {
+	// 构建GitLab API URL来获取文件内容
+	// 注意：GitLab 12.9.2 可能需要特殊的文件路径编码
+	encodedPath := strings.ReplaceAll(filePath, "/", "%2F")
+	url := fmt.Sprintf("%s/v4/projects/%d/repository/files/%s/raw?ref=%s",
+		gitlabAPI, projectID, encodedPath, commitSHA)
+
+	fmt.Printf("📄 获取文件内容 (GitLab 12.9.2兼容): URL=%s, FilePath=%s\n", url, filePath)
+
+	body, err := utils.CommonGetRequest("GET", url, gitlabToken, nil)
+	if err != nil {
+		fmt.Printf("❌ 获取文件内容失败: %v\n", err)
 		return "", fmt.Errorf("获取文件内容失败: %v", err)
 	}
 
-	return string(body), nil
+	content := string(body)
+	fmt.Printf("✅ 文件内容获取成功: %s (大小: %d 字节)\n", filePath, len(content))
+	return content, nil
 }
 
 // isCodeFile 判断是否为代码文件

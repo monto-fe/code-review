@@ -70,11 +70,16 @@ func CheckPushRequestWithAI(body dto.WebhookBody) (string, error) {
 	ragResult, err := manager.PerformRAGAnalysis(data)
 	if err == nil {
 		prompt = generatePushEnhancedPrompt(ragResult, data, body)
-		// fmt.Printf("RAG分析成功，提示词: %s\n", prompt)
+		fmt.Printf("✅ RAG分析成功，提示词长度: %d\n", len(prompt))
 	} else {
 		// 2. 如果RAG分析失败，则使用AI检查
 		prompt = generatePushAIPrompt(data, body)
-		// fmt.Printf("AI Push检查分析的提示词: %s\n", prompt)
+		fmt.Printf("⚠️ RAG分析失败，使用AI检查，提示词长度: %d\n", len(prompt))
+	}
+
+	// 打印提示词预览用于调试
+	if len(prompt) > 0 {
+		fmt.Printf("📝 AI提示词预览 (前300字符): %s\n", prompt[:min(300, len(prompt))])
 	}
 
 	// AI检查
@@ -138,7 +143,8 @@ func preparePushData(body dto.WebhookBody) (*AnalysisData, error) {
 	}
 
 	// 获取Push事件的代码内容
-	diff := getPushCodeContent(gitlabInfo.Config.API, body.Project.ID, body.After, gitlabToken)
+	branchName := extractBranchFromRef(body.Ref)
+	diff := getPushCodeContent(gitlabInfo.Config.API, body.Project.ID, body.After, branchName, gitlabToken)
 
 	// 获取AI配置
 	aiConfig, _ := cache.GetAIConfigCache()
@@ -255,31 +261,73 @@ func buildPushGitURL(webhookURL, branch string) string {
 }
 
 // getPushCodeContent 获取Push事件的代码内容
-func getPushCodeContent(api string, projectID int, commitSHA, token string) []model.Change {
+func getPushCodeContent(api string, projectID int, commitSHA, branchName, token string) []model.Change {
 	// 调用GitLab API获取当前commit的代码内容
 	if api != "" && projectID != 0 && commitSHA != "" {
+		fmt.Printf("🔍 开始获取Push代码内容: ProjectID=%d, CommitSHA=%s, Branch=%s\n", projectID, commitSHA, branchName)
+
 		codeContent, err := gitlab_service.GetCommitCodeContent(api, projectID, commitSHA, token)
 		if err != nil {
-			fmt.Printf("获取Push代码内容失败: %v\n", err)
-			return []model.Change{}
+			fmt.Printf("❌ 获取Push代码内容失败: %v\n", err)
+
+			// GitLab 12.9.2 特殊处理：尝试使用实际分支名获取
+			fmt.Printf("🔄 GitLab 12.9.2兼容性处理：尝试使用分支名 %s 获取文件内容...\n", branchName)
+			branchContent, branchErr := gitlab_service.GetBranchCodeContent(api, projectID, branchName, token)
+			if branchErr != nil {
+				fmt.Printf("❌ 分支回退方案也失败: %v\n", branchErr)
+				return []model.Change{}
+			}
+
+			fmt.Printf("✅ 分支回退方案成功: 文件数=%d\n", len(branchContent))
+			return branchContent
 		}
-		fmt.Printf("获取Push代码内容成功: ProjectID=%d, CommitSHA=%s, 文件数=%d\n",
+
+		if len(codeContent) == 0 {
+			// 尝试使用实际分支名获取文件内容作为回退方案
+			fmt.Printf("🔄 尝试使用分支名 %s 获取文件内容...\n", branchName)
+			branchContent, branchErr := gitlab_service.GetBranchCodeContent(api, projectID, branchName, token)
+			if branchErr != nil {
+				fmt.Printf("❌ 分支回退方案失败: %v\n", branchErr)
+			} else {
+				fmt.Printf("✅ 分支回退方案成功: 文件数=%d\n", len(branchContent))
+				return branchContent
+			}
+		}
+
+		fmt.Printf("✅ 获取Push代码内容成功: ProjectID=%d, CommitSHA=%s, 文件数=%d\n",
 			projectID, commitSHA, len(codeContent))
 		return codeContent
 	}
-	fmt.Printf("获取Push代码内容: 参数不完整, ProjectID=%d, CommitSHA=%s\n", projectID, commitSHA)
+	fmt.Printf("❌ 获取Push代码内容: 参数不完整, ProjectID=%d, CommitSHA=%s\n", projectID, commitSHA)
 	return []model.Change{}
 }
 
 // buildDiffString 构建差异字符串
 func buildDiffString(diff []model.Change) string {
 	var diffStr strings.Builder
-	for _, change := range diff {
+	fmt.Printf("🔍 开始构建差异字符串，文件数: %d\n", len(diff))
+
+	for i, change := range diff {
+		fmt.Printf("  处理文件[%d]: %s -> %s\n", i, change.OldPath, change.NewPath)
 		diffStr.WriteString(fmt.Sprintf("diff --git a/%s b/%s\n", change.OldPath, change.NewPath))
 		diffStr.WriteString(change.Diff)
 		diffStr.WriteString("\n")
 	}
-	return diffStr.String()
+
+	result := diffStr.String()
+	fmt.Printf("📝 差异字符串构建完成，总长度: %d 字符\n", len(result))
+	if len(result) > 0 {
+		fmt.Printf("📄 差异字符串预览 (前500字符): %s\n", result[:min(500, len(result))])
+	}
+	return result
+}
+
+// min 辅助函数
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 // extractBranchFromRef 从ref中提取分支名称
