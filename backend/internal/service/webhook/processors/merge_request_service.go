@@ -2,7 +2,6 @@ package processors
 
 import (
 	"fmt"
-	"time"
 
 	"code-review-go/internal/dto"
 	"code-review-go/internal/pkg/utils"
@@ -21,17 +20,17 @@ func NewMergeRequestService() *MergeRequestService {
 
 // ProcessMergeRequest 处理 Merge Request 事件
 func (s *MergeRequestService) ProcessMergeRequest(body dto.WebhookBody) error {
-	startTime := time.Now()
+	// startTime := time.Now()
 	fmt.Printf("开始处理Merge Request: ProjectID=%d, MergeRequestID=%d\n",
 		body.Project.ID, body.ObjectAttributes.IID)
 
 	// 直接调用现有的 AI 检查逻辑
-	result, err := CheckMergeRequestWithAI(body)
+	_, err := CheckMergeRequestWithAI(body)
 	if err != nil {
 		return fmt.Errorf("AI检查失败: %v", err)
 	}
 
-	fmt.Printf("Merge Request处理完成 (耗时: %v): %s\n", time.Since(startTime), result)
+	// fmt.Printf("Merge Request处理完成 (耗时: %v): %s\n", time.Since(startTime), result)
 	return nil
 }
 
@@ -83,7 +82,7 @@ func CheckMergeRequestWithAI(body dto.WebhookBody) (string, error) {
 		} else {
 			prompt = utils.GenerateAICheckInlinePrompt(gitlabPrompt, data.MergeRequest.Title, data.MergeRequest.Description, data.DiffStr)
 		}
-		fmt.Printf("AI CodeReview分析的提示词: %s\n", prompt)
+		// fmt.Printf("AI CodeReview分析的提示词: %s\n", prompt)
 	}
 	// AI检查
 	result, err := manager.PerformAIEnhancement(prompt, data)

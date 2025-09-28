@@ -89,8 +89,8 @@ func detectEventType(body dto.WebhookBody) string {
 		return "push"
 	}
 
-	// 4. 默认返回 merge_request（保持向后兼容）
-	return "merge_request"
+	// 4. 其他事件类型暂不处理，返回 unknown
+	return "unknown"
 }
 
 // GetRegisteredHandlers 获取已注册的处理器列表

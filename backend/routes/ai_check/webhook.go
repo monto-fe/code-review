@@ -37,8 +37,6 @@ func init() {
 // @Success 200 {object} response.Response
 // @Router /v1/webhook/merge [post]
 func AICheck(c *gin.Context) {
-	startTime := time.Now()
-
 	// 1. 解析请求体
 	var body dto.WebhookBody
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -62,10 +60,15 @@ func AICheck(c *gin.Context) {
 
 	// 3. 检测事件类型
 	eventType := detectEventType(body)
-	fmt.Printf("检测到事件类型: %s, ProjectID=%d, 处理耗时: %v\n",
-		eventType, body.Project.ID, time.Since(startTime))
 
-	// 4. 立即响应（不阻塞webhook）
+	// 4. 检查是否为支持的事件类型
+	if eventType == "unknown" {
+		fmt.Printf("不支持的事件类型，跳过处理: ProjectID=%d, ObjectKind=%s\n",
+			body.Project.ID, body.ObjectKind)
+		return
+	}
+
+	// 5. 立即响应（不阻塞webhook）
 	responseData := gin.H{
 		"eventType":  eventType,
 		"timestamp":  time.Now().Unix(),
@@ -90,7 +93,7 @@ func AICheck(c *gin.Context) {
 
 	response.Success(c, responseData, "AI检查已启动，请稍候查看结果", int(constants.RetCodeSuccess))
 
-	// 5. 使用事件路由器处理事件
+	// 6. 使用事件路由器处理事件
 	err := eventRouter.Route(body)
 	if err != nil {
 		fmt.Printf("事件路由失败: %v\n", err)
@@ -117,8 +120,8 @@ func detectEventType(body dto.WebhookBody) string {
 		return "push"
 	}
 
-	// 4. 默认返回 merge_request（保持向后兼容）
-	return "merge_request"
+	// 4. 其他事件类型暂不处理，返回 unknown
+	return "unknown"
 }
 
 // extractBranchFromRef 从 ref 中提取分支名称

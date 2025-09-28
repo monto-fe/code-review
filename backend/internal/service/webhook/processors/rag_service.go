@@ -182,7 +182,6 @@ func (m *MainServiceManager) Initialize() error {
 func (m *MainServiceManager) ValidateRequest(body dto.WebhookBody) error {
 	// 验证GitLab配置
 	gitlabCache := cache.GetGitlabCache()
-	fmt.Printf("GitLab缓存项数量: %d\n", len(gitlabCache))
 
 	_, gitlabInfo, ok := cache.FindTokenByProjectID(fmt.Sprintf("%d", body.Project.ID), gitlabCache)
 	if !ok {

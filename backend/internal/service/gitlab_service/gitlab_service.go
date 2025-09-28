@@ -469,6 +469,8 @@ func PostCommentToGitLab(gitlabAPI string, projectID, mergeRequestID int, gitlab
 		return nil, fmt.Errorf("解析响应失败: %v", err)
 	}
 
+	fmt.Printf("GitLab评论请求结果成功: %+v\n", result)
+
 	return &result, nil
 }
 

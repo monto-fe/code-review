@@ -56,16 +56,6 @@ func PushWeChatInfo(pathWithNamespace, mergeURL, comments string, aiMessageId ui
 	return fmt.Sprintf("项目: %s\n合并请求: %s\nAI检查结果: %s\nAI消息ID: %d", pathWithNamespace, mergeURL, comments, aiMessageId)
 }
 
-func pushWebhookIfNeeded(webhookURL string, webhookStatus int8, pathWithNamespace, mergeURL, comments string, aiMessageId uint, mergeRequest *model.MergeRequestInfo) {
-	if webhookURL != "" && webhookStatus == 1 {
-		webhookContent := PushWeChatInfo(pathWithNamespace, mergeURL, comments, aiMessageId)
-		_ = ai.SendMarkdownToWechatBot(webhookURL, webhookContent)
-		fmt.Println("推送webhook成功", mergeRequest)
-	}
-}
-
-// 实现gitlab推送评论到对应的行
-
 // TestLineCommentParsing 测试行级评论解析功能
 func TestLineCommentParsing() {
 	// 模拟AI输出
