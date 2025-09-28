@@ -44,9 +44,6 @@ func NewPushHandler() *PushHandler {
 
 // Handle 处理 Push 事件
 func (h *PushHandler) Handle(body dto.WebhookBody) error {
-	fmt.Printf("开始处理Push事件: ProjectID=%d, Branch=%s\n",
-		body.Project.ID, h.extractBranchFromRef(body.Ref))
-
 	// 1. 验证 Push 事件
 	if !h.shouldProcessPush(body) {
 		fmt.Printf("跳过Push事件: ProjectID=%d, Branch=%s\n",

@@ -27,8 +27,6 @@ func NewPushService() *PushService {
 // ProcessPush 处理 Push 事件
 func (s *PushService) ProcessPush(body dto.WebhookBody) error {
 	startTime := time.Now()
-	fmt.Printf("开始处理Push事件: ProjectID=%d, Branch=%s\n",
-		body.Project.ID, extractBranchFromRef(body.Ref))
 
 	result, err := CheckPushRequestWithAI(body)
 	if err != nil {
@@ -72,11 +70,11 @@ func CheckPushRequestWithAI(body dto.WebhookBody) (string, error) {
 	ragResult, err := manager.PerformRAGAnalysis(data)
 	if err == nil {
 		prompt = generatePushEnhancedPrompt(ragResult, data, body)
-		fmt.Printf("RAG分析成功，提示词: %s\n", prompt)
+		// fmt.Printf("RAG分析成功，提示词: %s\n", prompt)
 	} else {
 		// 2. 如果RAG分析失败，则使用AI检查
 		prompt = generatePushAIPrompt(data, body)
-		fmt.Printf("AI Push检查分析的提示词: %s\n", prompt)
+		// fmt.Printf("AI Push检查分析的提示词: %s\n", prompt)
 	}
 
 	// AI检查
