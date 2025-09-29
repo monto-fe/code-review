@@ -130,10 +130,13 @@ http://192.168.1.1:9000/v1/webhook/merge
 
 <img width="686" height="940" alt="微信二维码" src="https://github.com/user-attachments/assets/46a174fb-ee49-4a7a-b576-62fd47292ae1" />
 
+欢迎提Bug/问题：[issue](https://github.com/monto-fe/code-review/issues)
+
 ## 📝 更新日志
 
 * ✅ 支持自定义 GitLab 地址
 * ✅ 支持多个 GitLab Token
+* ✅ 支持 Merge request 和 Push 事件触发webhook
 * ✅ 支持 webhook 推送 AI 检查结果
 * ✅ 提供快速部署方案
 * ✅ 集成 DeepSeek、UCloud 模型，支持切换私有/公有大模型
@@ -141,16 +144,17 @@ http://192.168.1.1:9000/v1/webhook/merge
 * ✅ 优化 GitLab Token 添加/更新流程，自动刷新模型缓存
 * ✅ 支持自定义提示词检测代码
 * ✅ 支持RAG检索代码仓库
-* ✅ 支持行级评论【不稳定，待处理】
+* ✅ 支持行级评论【版本测试16.11.5】
+* ✅ 支持Qwen大模型
+* ✅ 已测试gitlab版本：12.9.2、16.11.5，其他版本如果出现问题可以反馈
 
 ---
 
 ## 🔭 规划中功能
 
 * [ ] 支持通过 `projectId + mergeId` 直接发起 AI 审查
+* [ ] 支持AI模型精确到对应的Token，也支持默认
 * [ ] 支持读取回复评论信息
 * [ ] 完成控制台权限管理能力
-* [ ] 支持Qwen大模型
 * [ ] 支持Kimi k2模型
 * [ ] 根据description描述信息，搜索对应的需求注意事项，进行检测
-* [ ] 支持监听 GitLab Push 事件

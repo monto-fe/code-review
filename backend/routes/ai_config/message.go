@@ -6,15 +6,15 @@ import (
 	"code-review-go/internal/model"
 	"code-review-go/internal/pkg/constants"
 	"code-review-go/internal/pkg/response"
-	"code-review-go/internal/service"
+	"code-review-go/internal/service/ai"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-func getAIMessageService() *service.AIMessageService {
-	return service.NewAIMessageService(database.DB)
+func getAIMessageService() *ai.AIMessageService {
+	return ai.NewAIMessageService(database.DB)
 }
 
 // GetAIMessage 获取AI Code Review列表

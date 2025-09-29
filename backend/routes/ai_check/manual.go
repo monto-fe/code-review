@@ -6,7 +6,7 @@ import (
 	"code-review-go/internal/dto"
 	"code-review-go/internal/pkg/constants"
 	"code-review-go/internal/pkg/response"
-	"code-review-go/internal/service"
+	"code-review-go/internal/service/business"
 
 	"github.com/gin-gonic/gin"
 )
@@ -42,7 +42,7 @@ func ManualCheck(c *gin.Context) {
 	}
 
 	// 创建手动审核任务
-	manualCheckService := service.GetManualCheckService()
+	manualCheckService := business.GetManualCheckService()
 	task, err := manualCheckService.CreateManualCheckTask(req, uint(userID))
 	if err != nil {
 		response.Error(c, err, "创建审核任务失败", int(constants.RetCodeInternalError))
@@ -108,7 +108,7 @@ func GetManualCheckHistory(c *gin.Context) {
 	}
 
 	// 查询审核历史
-	manualCheckService := service.GetManualCheckService()
+	manualCheckService := business.GetManualCheckService()
 	result, err := manualCheckService.GetManualCheckHistory(req, uint(userID))
 	if err != nil {
 		response.Error(c, err, "查询审核历史失败", int(constants.RetCodeInternalError))
@@ -151,7 +151,7 @@ func GetManualCheckResult(c *gin.Context) {
 	}
 
 	// 获取审核结果
-	manualCheckService := service.GetManualCheckService()
+	manualCheckService := business.GetManualCheckService()
 	result, err := manualCheckService.GetManualCheckResult(uint(taskID), uint(userID))
 	if err != nil {
 		response.Error(c, err, "获取审核结果失败", int(constants.RetCodeInternalError))

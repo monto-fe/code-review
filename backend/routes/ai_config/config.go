@@ -6,7 +6,7 @@ import (
 	"code-review-go/internal/pkg/constants"
 	"code-review-go/internal/pkg/response"
 	"code-review-go/internal/pkg/utils"
-	"code-review-go/internal/service"
+	"code-review-go/internal/service/ai"
 
 	"github.com/gin-gonic/gin"
 )
@@ -34,7 +34,7 @@ func GetAIConfig(c *gin.Context) {
 	}
 
 	// 获取服务实例并查询数据
-	aiConfigManager, err := service.NewAIConfigManager(database.DB)
+	aiConfigManager, err := ai.NewAIConfigManager(database.DB)
 	if err != nil {
 		response.Error(c, err, "初始化AI配置管理器失败", int(constants.RetCodeInternalError))
 		return
@@ -76,7 +76,7 @@ func CreateAIConfig(c *gin.Context) {
 	}
 
 	// 获取服务实例并创建配置
-	aiConfigManager, err := service.NewAIConfigManager(database.DB)
+	aiConfigManager, err := ai.NewAIConfigManager(database.DB)
 	if err != nil {
 		response.Error(c, err, "初始化AI配置管理器失败", int(constants.RetCodeInternalError))
 		return
@@ -109,7 +109,7 @@ func UpdateAIConfig(c *gin.Context) {
 	}
 
 	// 获取服务实例并更新配置
-	aiConfigManager, err := service.NewAIConfigManager(database.DB)
+	aiConfigManager, err := ai.NewAIConfigManager(database.DB)
 	if err != nil {
 		response.Error(c, err, "初始化AI配置管理器失败", int(constants.RetCodeInternalError))
 		return
@@ -142,7 +142,7 @@ func DeleteAIConfig(c *gin.Context) {
 	}
 
 	// 获取服务实例并删除配置
-	aiConfigManager, err := service.NewAIConfigManager(database.DB)
+	aiConfigManager, err := ai.NewAIConfigManager(database.DB)
 	if err != nil {
 		response.Error(c, err, "初始化AI配置管理器失败", int(constants.RetCodeInternalError))
 		return
