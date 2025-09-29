@@ -1,4 +1,4 @@
-package service
+package ai
 
 import (
 	"code-review-go/internal/model"

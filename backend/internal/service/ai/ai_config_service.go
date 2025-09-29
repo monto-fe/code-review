@@ -1,15 +1,15 @@
-package service
+package ai
 
 import (
 	"fmt"
 	"sync"
 	"time"
 
-	"gorm.io/gorm"
-
 	"code-review-go/internal/cache"
 	"code-review-go/internal/model"
 	"code-review-go/internal/pkg/utils"
+
+	"gorm.io/gorm"
 )
 
 const (

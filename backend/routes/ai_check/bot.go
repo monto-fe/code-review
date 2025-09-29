@@ -4,7 +4,7 @@ import (
 	"code-review-go/internal/dto"
 	"code-review-go/internal/pkg/constants"
 	"code-review-go/internal/pkg/response"
-	"code-review-go/internal/service"
+	"code-review-go/internal/service/infrastructure"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -41,7 +41,7 @@ func BotReview(c *gin.Context) {
 	}
 
 	// 执行机器人审查
-	botService := service.GetBotService()
+	botService := infrastructure.GetBotService()
 	result, err := botService.ExecuteBotReview(req.BotName, req.Type, req.Model, req.APIURL, req.CodeContent, req.AdditionalPrompt)
 	if err != nil {
 		response.Error(c, err, "机器人审查失败", int(constants.RetCodeInternalError))
@@ -61,7 +61,7 @@ func BotReview(c *gin.Context) {
 // @Success 200 {object} response.Response{data=dto.BotRolesListResponse}
 // @Router /v1/ai/check/bot/roles [get]
 func GetBotRoles(c *gin.Context) {
-	botService := service.GetBotService()
+	botService := infrastructure.GetBotService()
 	roles := botService.GetAllBotRoles()
 
 	// 转换为响应格式
@@ -96,7 +96,7 @@ func GetBotRolesByCategory(c *gin.Context) {
 		return
 	}
 
-	botService := service.GetBotService()
+	botService := infrastructure.GetBotService()
 	roles := botService.GetBotRolesByCategory(category)
 
 	// 转换为响应格式
@@ -122,7 +122,7 @@ func GetBotRolesByCategory(c *gin.Context) {
 // @Produce json
 // @Param jwt_token header string true "JWT认证Token"
 // @Param bot_name path string true "机器人名称" example("安全审查机器人")
-// @Success 200 {object} response.Response{data=service.BotRole}
+// @Success 200 {object} response.Response{data=infrastructure.BotRole}
 // @Router /v1/ai/check/bot/roles/detail/{bot_name} [get]
 func GetBotRoleDetail(c *gin.Context) {
 	botName := c.Param("bot_name")
@@ -131,7 +131,7 @@ func GetBotRoleDetail(c *gin.Context) {
 		return
 	}
 
-	botService := service.GetBotService()
+	botService := infrastructure.GetBotService()
 	role, err := botService.GetBotRole(botName)
 	if err != nil {
 		response.Error(c, err, "机器人角色不存在", int(constants.RetCodeBadRequest))

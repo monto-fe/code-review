@@ -1,7 +1,9 @@
-package service
+package gitlab_service
 
 import (
 	"bytes"
+	dto "code-review-go/internal/dto"
+	"code-review-go/internal/service/common"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -10,48 +12,80 @@ import (
 	"time"
 )
 
-// OptimizedRAGClient 优化后的RAG客户端
-type OptimizedRAGClient struct {
+// RAGClient RAG服务客户端
+type RAGClient struct {
 	baseURL    string
-	clientPool *RAGClientPool
+	client     *http.Client
+	clientPool *common.RAGClientPool
 	cache      *RAGResponseCache
 	config     *RAGClientConfig
+	metrics    *RAGMetrics
 }
 
 // RAGClientConfig RAG客户端配置
 type RAGClientConfig struct {
-	BaseURL           string
-	PoolSize          int
-	Timeout           time.Duration
-	MaxRetries        int
-	RetryDelay        time.Duration
-	CacheTTL          time.Duration
-	MaxCacheSize      int
-	EnableCompression bool
+	BaseURL            string
+	PoolSize           int
+	Timeout            time.Duration
+	MaxRetries         int
+	RetryDelay         time.Duration
+	CacheTTL           time.Duration
+	MaxCacheSize       int
+	EnableCompression  bool
+	EnableOptimization bool
 }
 
 // DefaultRAGClientConfig 默认配置
 func DefaultRAGClientConfig() *RAGClientConfig {
 	return &RAGClientConfig{
-		BaseURL:           "http://localhost:8000/api/code-analysis",
-		PoolSize:          10,
-		Timeout:           180 * time.Second,
-		MaxRetries:        2,
-		RetryDelay:        1 * time.Second,
-		CacheTTL:          5 * time.Minute,
-		MaxCacheSize:      1000,
-		EnableCompression: true,
+		BaseURL:            "http://localhost:8000/api/code-analysis",
+		PoolSize:           10,
+		Timeout:            180 * time.Second,
+		MaxRetries:         2,
+		RetryDelay:         1 * time.Second,
+		CacheTTL:           5 * time.Minute,
+		MaxCacheSize:       1000,
+		EnableCompression:  true,
+		EnableOptimization: false, // 默认关闭优化功能
 	}
 }
 
-// NewOptimizedRAGClient 创建优化后的RAG客户端
-func NewOptimizedRAGClient(config *RAGClientConfig) (*OptimizedRAGClient, error) {
+// NewRAGClient 创建RAG服务客户端
+func NewRAGClient(baseURL string) *RAGClient {
+	config := DefaultRAGClientConfig()
+	config.BaseURL = baseURL
+
+	client := &RAGClient{
+		baseURL: baseURL,
+		client: &http.Client{
+			Timeout: config.Timeout,
+		},
+		config:  config,
+		metrics: NewRAGMetrics(),
+	}
+
+	// 如果启用优化功能，初始化连接池和缓存
+	if config.EnableOptimization {
+		clientPool, err := common.NewRAGClientPool(baseURL, config.PoolSize)
+		if err == nil {
+			client.clientPool = clientPool
+		}
+		client.cache = NewRAGResponseCache(config.CacheTTL, config.MaxCacheSize)
+	}
+
+	return client
+}
+
+// NewOptimizedRAGClient 创建优化的RAG客户端
+func NewOptimizedRAGClient(config *RAGClientConfig) (*RAGClient, error) {
 	if config == nil {
 		config = DefaultRAGClientConfig()
 	}
 
+	config.EnableOptimization = true
+
 	// 创建连接池
-	clientPool, err := NewRAGClientPool(config.BaseURL, config.PoolSize)
+	clientPool, err := common.NewRAGClientPool(config.BaseURL, config.PoolSize)
 	if err != nil {
 		return nil, fmt.Errorf("创建连接池失败: %v", err)
 	}
@@ -59,26 +93,55 @@ func NewOptimizedRAGClient(config *RAGClientConfig) (*OptimizedRAGClient, error)
 	// 创建缓存
 	cache := NewRAGResponseCache(config.CacheTTL, config.MaxCacheSize)
 
-	return &OptimizedRAGClient{
+	return &RAGClient{
 		baseURL:    config.BaseURL,
+		client:     &http.Client{Timeout: config.Timeout},
 		clientPool: clientPool,
 		cache:      cache,
 		config:     config,
+		metrics:    NewRAGMetrics(),
 	}, nil
 }
 
-// AnalyzeCodeWithRequest 实现RAGService接口
-func (c *OptimizedRAGClient) AnalyzeCodeWithRequest(req *CodeReviewRequest) (*CodeAnalysisResponse, error) {
+// Initialize 初始化RAG客户端（实现RAGServiceInterface）
+func (c *RAGClient) Initialize() error {
+	// RAG客户端不需要特殊初始化
+	return nil
+}
+
+// IsInitialized 检查是否已初始化（实现RAGServiceInterface）
+func (c *RAGClient) IsInitialized() bool {
+	return true
+}
+
+// AnalyzeCodeWithRequest 使用请求对象进行分析
+func (c *RAGClient) AnalyzeCodeWithRequest(req *dto.CodeReviewRequest) (*dto.CodeAnalysisResponse, error) {
+	startTime := time.Now()
+
+	// 如果启用优化功能，使用缓存和连接池
+	if c.config != nil && c.config.EnableOptimization {
+		return c.analyzeWithOptimization(req, startTime)
+	}
+
+	// 使用基础实现
+	return c.analyzeBasic(req, startTime)
+}
+
+// analyzeWithOptimization 使用优化功能进行分析
+func (c *RAGClient) analyzeWithOptimization(req *dto.CodeReviewRequest, startTime time.Time) (*dto.CodeAnalysisResponse, error) {
 	// 生成缓存键
 	cacheKey := c.generateCacheKey(req)
 
 	// 尝试从缓存获取
 	if cached, found := c.cache.Get(cacheKey); found {
+		c.metrics.RecordCacheHit()
 		return cached, nil
 	}
 
+	c.metrics.RecordCacheMiss()
+
 	// 执行带重试的请求
-	var result *CodeAnalysisResponse
+	var result *dto.CodeAnalysisResponse
 	var err error
 
 	for attempt := 0; attempt <= c.config.MaxRetries; attempt++ {
@@ -94,30 +157,77 @@ func (c *OptimizedRAGClient) AnalyzeCodeWithRequest(req *CodeReviewRequest) (*Co
 	}
 
 	if err != nil {
+		c.metrics.RecordRequest(false, time.Since(startTime))
 		return nil, err
 	}
 
 	// 缓存结果
 	c.cache.Set(cacheKey, result)
+	c.metrics.RecordRequest(true, time.Since(startTime))
 
 	return result, nil
 }
 
-// GenerateReview 实现RAGService接口
-func (c *OptimizedRAGClient) GenerateReview(req *CodeReviewRequest) (string, error) {
-	analysis, err := c.AnalyzeCodeWithRequest(req)
-	if err != nil {
-		return "", err
+// analyzeBasic 基础分析实现
+func (c *RAGClient) analyzeBasic(req *dto.CodeReviewRequest, startTime time.Time) (*dto.CodeAnalysisResponse, error) {
+	// 创建超时的上下文
+	timeout := 180 * time.Second
+	if c.config != nil {
+		timeout = c.config.Timeout
 	}
 
-	return analysis.Review, nil
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	jsonData, err := json.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("序列化请求失败: %v", err)
+	}
+
+	// 创建带超时的请求
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", c.baseURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, fmt.Errorf("创建HTTP请求失败: %v", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.client.Do(httpReq)
+	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			return nil, fmt.Errorf("RAG服务请求超时(%v): %v", timeout, err)
+		}
+		return nil, fmt.Errorf("请求RAG服务失败: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("RAG服务返回错误状态码: %d", resp.StatusCode)
+	}
+
+	var result dto.CodeAnalysisResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("解析RAG服务响应失败: %v", err)
+	}
+
+	if c.metrics != nil {
+		c.metrics.RecordRequest(true, time.Since(startTime))
+	}
+
+	return &result, nil
 }
 
-// performRequest 执行单个请求
-func (c *OptimizedRAGClient) performRequest(req *CodeReviewRequest) (*CodeAnalysisResponse, error) {
-	// 从连接池获取客户端
-	client := c.clientPool.GetClient()
-	defer c.clientPool.ReturnClient(client)
+// performRequest 执行单个请求（优化版本）
+func (c *RAGClient) performRequest(req *dto.CodeReviewRequest) (*dto.CodeAnalysisResponse, error) {
+	// 从连接池获取客户端（如果可用）
+	var httpClient *http.Client
+	if c.clientPool != nil {
+		poolClient := c.clientPool.GetClient()
+		defer c.clientPool.ReturnClient(poolClient)
+		// 暂时使用默认客户端，连接池功能待完善
+		httpClient = c.client
+	} else {
+		httpClient = c.client
+	}
 
 	// 创建带超时的上下文
 	ctx, cancel := context.WithTimeout(context.Background(), c.config.Timeout)
@@ -142,7 +252,7 @@ func (c *OptimizedRAGClient) performRequest(req *CodeReviewRequest) (*CodeAnalys
 	}
 
 	// 执行请求
-	resp, err := client.client.Do(httpReq)
+	resp, err := httpClient.Do(httpReq)
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
 			return nil, fmt.Errorf("RAG服务请求超时(%v): %v", c.config.Timeout, err)
@@ -157,7 +267,7 @@ func (c *OptimizedRAGClient) performRequest(req *CodeReviewRequest) (*CodeAnalys
 	}
 
 	// 解析响应
-	var result CodeAnalysisResponse
+	var result dto.CodeAnalysisResponse
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("解析RAG服务响应失败: %v", err)
 	}
@@ -166,7 +276,7 @@ func (c *OptimizedRAGClient) performRequest(req *CodeReviewRequest) (*CodeAnalys
 }
 
 // generateCacheKey 生成缓存键
-func (c *OptimizedRAGClient) generateCacheKey(req *CodeReviewRequest) string {
+func (c *RAGClient) generateCacheKey(req *dto.CodeReviewRequest) string {
 	// 使用请求的关键信息生成缓存键
 	keyData := map[string]string{
 		"git_url":      req.GitURL,
@@ -177,6 +287,17 @@ func (c *OptimizedRAGClient) generateCacheKey(req *CodeReviewRequest) string {
 
 	keyBytes, _ := json.Marshal(keyData)
 	return string(keyBytes)
+}
+
+// GenerateReview 根据分析结果生成代码审查
+func (c *RAGClient) GenerateReview(req *dto.CodeReviewRequest) (string, error) {
+	analysis, err := c.AnalyzeCodeWithRequest(req)
+	if err != nil {
+		return "", err
+	}
+
+	// 直接返回RAG服务的审查结果
+	return analysis.Review, nil
 }
 
 // RAGResponseCache RAG响应缓存
@@ -191,7 +312,7 @@ type RAGResponseCache struct {
 
 // cacheEntry 缓存条目
 type cacheEntry struct {
-	response  *CodeAnalysisResponse
+	response  *dto.CodeAnalysisResponse
 	timestamp time.Time
 }
 
@@ -212,7 +333,7 @@ func NewRAGResponseCache(ttl time.Duration, maxSize int) *RAGResponseCache {
 }
 
 // Get 获取缓存值
-func (c *RAGResponseCache) Get(key string) (*CodeAnalysisResponse, bool) {
+func (c *RAGResponseCache) Get(key string) (*dto.CodeAnalysisResponse, bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
@@ -231,7 +352,7 @@ func (c *RAGResponseCache) Get(key string) (*CodeAnalysisResponse, bool) {
 }
 
 // Set 设置缓存值
-func (c *RAGResponseCache) Set(key string, response *CodeAnalysisResponse) {
+func (c *RAGResponseCache) Set(key string, response *dto.CodeAnalysisResponse) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 

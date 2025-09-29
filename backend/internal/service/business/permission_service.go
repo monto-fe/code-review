@@ -1,4 +1,4 @@
-package service
+package business
 
 import (
 	"code-review-go/internal/model"

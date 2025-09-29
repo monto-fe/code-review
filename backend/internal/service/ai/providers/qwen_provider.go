@@ -58,8 +58,8 @@ func (p *QwenProvider) CallAI(prompt string) (string, error) {
 
 	// 读取响应体用于错误调试
 	body, _ := io.ReadAll(resp.Body)
-	fmt.Printf("响应状态码: %d\n", resp.StatusCode)
-	fmt.Printf("响应体: %s\n", string(body))
+	// fmt.Printf("响应状态码: %d\n", resp.StatusCode)
+	// fmt.Printf("响应体: %s\n", string(body))
 
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("通义千问 API返回错误: %s, 状态码: %d", string(body), resp.StatusCode)

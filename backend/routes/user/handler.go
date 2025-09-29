@@ -10,7 +10,7 @@ import (
 	"code-review-go/internal/pkg/constants"
 	"code-review-go/internal/pkg/response"
 	"code-review-go/internal/pkg/utils"
-	"code-review-go/internal/service"
+	"code-review-go/internal/service/business"
 
 	"github.com/gin-gonic/gin"
 )
@@ -30,7 +30,7 @@ func Login(c *gin.Context) {
 		response.Error(c, err, "Invalid request parameters", int(constants.RetCodeInvalidParams))
 		return
 	}
-	userService := service.NewUserService(database.DB)
+	userService := business.NewUserService(database.DB)
 	findData, err := userService.FindUserByUsername(loginReq.User, loginReq.Namespace)
 	hashedPassword := utils.HashPassword(loginReq.Password)
 	if err != nil || findData.Password != hashedPassword {
@@ -72,7 +72,7 @@ func GetUserList(c *gin.Context) {
 		return
 	}
 
-	userService := service.NewUserService(database.DB)
+	userService := business.NewUserService(database.DB)
 	query := model.UserListQuery{
 		Current:   1,
 		PageSize:  10,
@@ -104,7 +104,7 @@ func GetUserList(c *gin.Context) {
 // @Failure 500 {object} response.Response "服务器内部错误"
 // @Router /v1/user/info [get]
 func GetUserInfo(c *gin.Context) {
-	userService := service.NewUserService(database.DB)
+	userService := business.NewUserService(database.DB)
 
 	// 从请求头获取用户ID
 	userId := c.GetHeader("userId")
@@ -162,7 +162,7 @@ func CreateInnerUser(c *gin.Context) {
 		return
 	}
 
-	userService := service.NewUserService(database.DB)
+	userService := business.NewUserService(database.DB)
 
 	// 检查用户是否已存在
 	exists, err := userService.CheckUsernameExists(req.Namespace, req.User)
@@ -331,7 +331,7 @@ func UpdateInnerUser(c *gin.Context) {
 		return
 	}
 
-	userService := service.NewUserService(database.DB)
+	userService := business.NewUserService(database.DB)
 
 	// 检查用户是否存在
 	exists, err := userService.CheckUsernameExists(req.Namespace, req.User)
@@ -391,7 +391,7 @@ func DeleteUser(c *gin.Context) {
 		return
 	}
 
-	userService := service.NewUserService(database.DB)
+	userService := business.NewUserService(database.DB)
 	if err := userService.DeleteUser(req.ID, req.Namespace, req.User); err != nil {
 		response.Error(c, err, "Failed to delete user", int(constants.RetCodeDeleteUserFailed))
 		return

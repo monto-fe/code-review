@@ -115,19 +115,6 @@ func SplitIntegerToObject(n int, j []string) map[string]int {
 	return result
 }
 
-// Base64ToBlob converts a base64 string to a blob
-// func Base64ToBlob(base64String string, mimeType string) ([]byte, error) {
-// 	return base64.StdEncoding.DecodeString(base64String)
-// }
-
-// GenerateAudioFileKey generates a unique key for audio files
-// func GenerateAudioFileKey(userID int, questionID int) string {
-// 	now := time.Now()
-// 	formattedDate := now.Format("2006_01_02")
-// 	timestamp := now.Unix()
-// 	return fmt.Sprintf("%d_%d_%s_%d.mp3", userID, timestamp, formattedDate, questionID)
-// }
-
 // PushWeChatInfo 生成企业微信群消息
 func PushWeChatInfo(pathWithNamespace, mergeURL, result string, id int) string {
 	return fmt.Sprintf(`🔍 您的「%s」合并请求「[%s](%s)」触发了AI检测，详情如下：

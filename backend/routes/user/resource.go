@@ -6,7 +6,7 @@ import (
 	"code-review-go/internal/model"
 	"code-review-go/internal/pkg/constants"
 	"code-review-go/internal/pkg/response"
-	"code-review-go/internal/service"
+	"code-review-go/internal/service/business"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,7 +26,7 @@ func GetResourceList(c *gin.Context) {
 		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
 		return
 	}
-	resourceService := service.NewResourceService(database.GetDB())
+	resourceService := business.NewResourceService(database.GetDB())
 	resources, total, err := resourceService.GetResourceList(req)
 	if err != nil {
 		response.Error(c, err, "获取资源列表失败", int(constants.RetCodeInternalError))
@@ -54,7 +54,7 @@ func CreateResource(c *gin.Context) {
 		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
 		return
 	}
-	resourceService := service.NewResourceService(database.GetDB())
+	resourceService := business.NewResourceService(database.GetDB())
 	resource, err := resourceService.Create(&req)
 	if err != nil {
 		response.Error(c, err, "创建资源失败", int(constants.RetCodeInternalError))
@@ -79,7 +79,7 @@ func UpdateResource(c *gin.Context) {
 		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
 		return
 	}
-	resourceService := service.NewResourceService(database.GetDB())
+	resourceService := business.NewResourceService(database.GetDB())
 	if err := resourceService.Update(&resource); err != nil {
 		response.Error(c, err, "更新资源失败", int(constants.RetCodeInternalError))
 		return
@@ -104,7 +104,7 @@ func DeleteResource(c *gin.Context) {
 		response.Error(c, err, "参数错误", int(constants.RetCodeBadRequest))
 		return
 	}
-	resourceService := service.NewResourceService(database.GetDB())
+	resourceService := business.NewResourceService(database.GetDB())
 	if err := resourceService.DeleteSelf(req.ID); err != nil {
 		response.Error(c, err, "删除资源失败", int(constants.RetCodeInternalError))
 		return

@@ -1,4 +1,5 @@
-package service
+// @Description:   角色服务
+package business
 
 import (
 	"code-review-go/internal/database"
@@ -17,6 +18,7 @@ func NewRoleService(db *gorm.DB) *RoleService {
 	return &RoleService{db: database.DB}
 }
 
+// GetRoleList 获取角色列表
 func (s *RoleService) GetRoleList(params dto.RoleQuery) ([]dto.Role, int64, error) {
 	var roles []dto.Role
 	var total int64
@@ -26,18 +28,22 @@ func (s *RoleService) GetRoleList(params dto.RoleQuery) ([]dto.Role, int64, erro
 	return roles, total, nil
 }
 
+// CreateRole 创建角色
 func (s *RoleService) CreateRole(role *dto.CreateRoleRequest) error {
 	return s.db.Create(role).Error
 }
 
+// UpdateRole 更新角色
 func (s *RoleService) UpdateRole(role *dto.UpdateRoleReq) error {
 	return s.db.Save(role).Error
 }
 
+// DeleteRole 删除角色
 func (s *RoleService) DeleteRole(req *dto.DeleteRoleRequest) error {
 	return s.db.Delete(&model.Role{}, req.ID).Error
 }
 
+// CreateRoleWithResources 创建角色并关联资源
 func (s *RoleService) CreateRoleWithResources(req *dto.CreateRoleRequest) error {
 	// 1. 创建角色
 	role := &model.Role{

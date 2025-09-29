@@ -7,7 +7,7 @@ import (
 	"code-review-go/internal/model"
 	"code-review-go/internal/pkg/constants"
 	"code-review-go/internal/pkg/response"
-	"code-review-go/internal/service"
+	"code-review-go/internal/service/gitlab_service"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -23,7 +23,7 @@ import (
 // @Success 200 {object} response.Response
 // @Router /v1/gitlab [get]
 func GetGitlabList(c *gin.Context) {
-	gitlabService := service.NewGitlabService(database.DB)
+	gitlabService := gitlab_service.NewGitlabService(database.DB)
 	// 获取Gitlab列表
 	gitlabList, err := gitlabService.GetGitlabInfo()
 	if err != nil {
@@ -53,7 +53,7 @@ func CreateGitlabToken(c *gin.Context) {
 		return
 	}
 
-	gitlabService := service.NewGitlabService(database.DB)
+	gitlabService := gitlab_service.NewGitlabService(database.DB)
 	// 创建Gitlab Token
 	result, err := gitlabService.CreateGitlabToken(req)
 	if err != nil {
@@ -88,7 +88,7 @@ func UpdateGitlabToken(c *gin.Context) {
 		return
 	}
 
-	gitlabService := service.NewGitlabService(database.DB)
+	gitlabService := gitlab_service.NewGitlabService(database.DB)
 	// 更新Gitlab Token
 	result, err := gitlabService.UpdateGitlabInfo(req)
 	if err != nil {
@@ -123,7 +123,7 @@ func DeleteGitlabToken(c *gin.Context) {
 		return
 	}
 
-	gitlabService := service.NewGitlabService(database.DB)
+	gitlabService := gitlab_service.NewGitlabService(database.DB)
 	// 删除Gitlab Token
 	err := gitlabService.DeleteGitlabToken(req.ID)
 	if err != nil {
@@ -176,7 +176,7 @@ func GetGitlabTokenDetail(c *gin.Context) {
 		response.Error(c, err, "id参数格式错误", int(constants.RetCodeBadRequest))
 		return
 	}
-	gitlabService := service.NewGitlabService(database.DB)
+	gitlabService := gitlab_service.NewGitlabService(database.DB)
 	// 获取Gitlab Token详情
 	gitlabInfo, err := gitlabService.GetGitlabTokenDetail(uint(idInt))
 	if err != nil {
@@ -199,7 +199,7 @@ func GetGitlabTokenDetail(c *gin.Context) {
 // @Success 200 {object} response.Response{data=dto.GitlabTokenProjectListResponse}
 // @Router /v1/gitlab/token/projects [get]
 func GetGitlabTokenProjects(c *gin.Context) {
-	gitlabService := service.NewGitlabService(database.DB)
+	gitlabService := gitlab_service.NewGitlabService(database.DB)
 
 	// 获取Token项目信息列表
 	tokenProjects, err := gitlabService.GetGitlabTokenProjects()

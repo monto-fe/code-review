@@ -24,13 +24,42 @@ type ObjectAttributes struct {
 
 type WebhookBody struct {
 	ObjectKind       string           `json:"object_kind,omitempty"`
+	EventName        string           `json:"event_name,omitempty"` // Push 事件使用
 	Project          ProjectInfo      `json:"project"`
 	ObjectAttributes ObjectAttributes `json:"object_attributes"`
 	MergeRequest     MergeRequest     `json:"merge_request,omitempty"`
+
+	// Push 事件专用字段
+	Ref               string       `json:"ref,omitempty"`                 // 分支引用
+	Before            string       `json:"before,omitempty"`              // 前一个提交
+	After             string       `json:"after,omitempty"`               // 当前提交
+	CheckoutSHA       string       `json:"checkout_sha,omitempty"`        // 检出SHA
+	Message           string       `json:"message,omitempty"`             // 提交消息
+	UserID            int          `json:"user_id,omitempty"`             // 用户ID
+	UserName          string       `json:"user_name,omitempty"`           // 用户名
+	UserUsername      string       `json:"user_username,omitempty"`       // 用户用户名
+	UserEmail         string       `json:"user_email,omitempty"`          // 用户邮箱
+	UserAvatar        string       `json:"user_avatar,omitempty"`         // 用户头像
+	Commits           []CommitInfo `json:"commits,omitempty"`             // 提交列表
+	TotalCommitsCount int          `json:"total_commits_count,omitempty"` // 总提交数
 }
 
 type MergeRequest struct {
 	State string `json:"state"`
+}
+
+type CommitInfo struct {
+	ID        string `json:"id"`
+	Message   string `json:"message"`
+	Timestamp string `json:"timestamp"`
+	URL       string `json:"url"`
+	Author    struct {
+		Name  string `json:"name"`
+		Email string `json:"email"`
+	} `json:"author"`
+	Added    []string `json:"added"`
+	Modified []string `json:"modified"`
+	Removed  []string `json:"removed"`
 }
 
 // BotConfig 机器人配置
