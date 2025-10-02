@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package ai_service;
+
+// AI 服务定义
+service AIService {
+  // 代码审查
+  rpc CodeReview(CodeReviewRequest) returns (CodeReviewResponse);
+  
+  // 智能问答
+  rpc Chat(ChatRequest) returns (ChatResponse);
+  
+  // 文档检索
+  rpc DocumentSearch(DocumentSearchRequest) returns (DocumentSearchResponse);
+  
+  // 健康检查
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+// 代码审查请求
+message CodeReviewRequest {
+  string git_url = 1;
+  string branch = 2;
+  string diff_content = 3;
+  string query = 4;
+  string gitlab_token = 5;
+  string agent_role = 6;  // AI 角色
+  map<string, string> context = 7;  // 额外上下文
+}
+
+// 代码审查响应
+message CodeReviewResponse {
+  string review = 1;
+  repeated string suggestions = 2;
+  int32 confidence_score = 3;
+  string agent_role = 4;
+  map<string, string> metadata = 5;
+}
+
+// 聊天请求
+message ChatRequest {
+  string message = 1;
+  string agent_role = 2;
+  string session_id = 3;
+  map<string, string> context = 4;
+}
+
+// 聊天响应
+message ChatResponse {
+  string response = 1;
+  string agent_role = 2;
+  string session_id = 3;
+  map<string, string> metadata = 4;
+}
+
+// 文档检索请求
+message DocumentSearchRequest {
+  string query = 1;
+  string repository_id = 2;
+  int32 limit = 3;
+  float similarity_threshold = 4;
+}
+
+// 文档检索响应
+message DocumentSearchResponse {
+  repeated Document documents = 1;
+  int32 total_count = 2;
+  float max_similarity = 3;
+}
+
+// 文档信息
+message Document {
+  string id = 1;
+  string content = 2;
+  string file_path = 3;
+  float similarity_score = 4;
+  map<string, string> metadata = 5;
+}
+
+// 健康检查请求
+message HealthCheckRequest {
+  string service = 1;
+}
+
+// 健康检查响应
+message HealthCheckResponse {
+  enum ServingStatus {
+    UNKNOWN = 0;
+    SERVING = 1;
+    NOT_SERVING = 2;
+  }
+  ServingStatus status = 1;
+  string message = 2;
+  map<string, string> details = 3;
+}

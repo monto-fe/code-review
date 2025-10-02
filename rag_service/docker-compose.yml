@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  # AI 服务
+  ai-service:
+    build: .
+    container_name: ai-service
+    ports:
+      - "50051:50051"
+    environment:
+      # 数据库配置
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USERNAME=ai_user
+      - DB_PASSWORD=ai_password
+      - DB_DATABASE=ai_service
+      
+      # AI 模型配置
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY}
+      
+      # 服务配置
+      - SERVICE_HOST=0.0.0.0
+      - SERVICE_PORT=50051
+      
+      # Git 配置
+      - GITLAB_TOKEN=${GITLAB_TOKEN}
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - ai-network
+
+  # MySQL 数据库
+  mysql:
+    image: mysql:8.0
+    container_name: ai-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=ai_service
+      - MYSQL_USER=ai_user
+      - MYSQL_PASSWORD=ai_password
+      - MYSQL_CHARACTER_SET_SERVER=utf8mb4
+      - MYSQL_COLLATION_SERVER=utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - ai-network
+
+  # Redis 缓存（可选）
+  redis:
+    image: redis:7-alpine
+    container_name: ai-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    networks:
+      - ai-network
+
+  # Nginx 反向代理（可选）
+  nginx:
+    image: nginx:alpine
+    container_name: ai-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - ai-service
+    restart: unless-stopped
+    networks:
+      - ai-network
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  ai-network:
+    driver: bridge

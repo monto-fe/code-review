@@ -1,28 +1,62 @@
 [tool.poetry]
-name = "code-review-rag-service"
-version = "0.1.0"
-description = "基于 RAG 的代码审查服务，支持 GitLab 代码分析和审查建议生成"
+name = "ai-service"
+version = "1.0.0"
+description = "基于 RAG 的 AI 服务，支持多模型、多角色智能体和 gRPC 接口"
 authors = ["richLpf <1045465391@qq.com>"]
 readme = "README.md"
-packages = [{include = "app"}, {include = "rag_engine"}]
+packages = [{include = "."}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+
+# Web 框架
 fastapi = "^0.104.1"
 uvicorn = {extras = ["standard"], version = "^0.24.0"}
-python-dotenv = "^1.0.0"
-gitpython = "^3.1.40"
-langchain = "^0.0.350"
-langchain-community = "^0.0.10"
+
+# gRPC
+grpcio = "^1.60.0"
+grpcio-tools = "^1.60.0"
+grpcio-reflection = "^1.60.0"
+
+# 数据库
+sqlalchemy = "^2.0.0"
+aiomysql = "^0.2.0"
+pymysql = "^1.1.0"
+alembic = "^1.13.0"
+
+# AI 模型
+openai = "^1.0.0"
+dashscope = "^1.23.5"
+transformers = "^4.35.0"
+torch = "^2.1.0"
+torchvision = "^0.16.0"
 sentence-transformers = "^2.2.2"
+
+# 向量数据库
 faiss-cpu = "^1.7.4"
-torch = "2.1.2"
-torchvision = "0.16.2"
+chromadb = "^0.4.0"
+
+# LangChain
+langchain = "^0.1.0"
+langchain-community = "^0.0.10"
+langchain-openai = "^0.0.5"
+langchain-huggingface = "^0.0.1"
+
+# 工具库
+gitpython = "^3.1.40"
 pydantic = "^2.0.0"
 huggingface_hub = "^0.19.0"
 requests = "^2.31.0"
 numpy = "^1.24.0"
-transformers = "^4.35.0"
+dynaconf = "^3.2.11"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+pytest-asyncio = "^0.21.0"
+black = "^23.0.0"
+isort = "^5.12.0"
+flake8 = "^6.0.0"
+mypy = "^1.5.0"
 
 [build-system]
 requires = ["poetry-core"]
