@@ -24,12 +24,12 @@ async def main():
         os.environ.setdefault("DASHSCOPE_MODEL", "qwen-turbo")
         
         # 初始化配置
-        from services.config_manager import set_config
+        from services.config_manager import set_config, load_env_config
         from dynaconf import Dynaconf
+        env_config = load_env_config()
         settings = Dynaconf(
-            settings_files=["config/settings.json"],
-            environments=True,
-            default_env="testing"
+            **env_config,
+            environments=False
         )
         set_config(settings)
         

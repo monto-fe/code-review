@@ -7,6 +7,69 @@ from typing import Dict, Any, Optional
 # 全局配置存储
 _global_config = None
 
+def load_env_config():
+    """从环境变量加载配置"""
+    return {
+        "service": {
+            "host": os.getenv("SERVICE_HOST", "0.0.0.0"),
+            "port": int(os.getenv("SERVICE_PORT", "50051")),
+            "max_workers": int(os.getenv("SERVICE_MAX_WORKERS", "10")),
+            "max_message_length": int(os.getenv("SERVICE_MAX_MESSAGE_LENGTH", "4194304")),
+            "enable_reflection": os.getenv("SERVICE_ENABLE_REFLECTION", "true").lower() == "true"
+        },
+        "database": {
+            "host": os.getenv("DATABASE_HOST", "127.0.0.1"),
+            "port": int(os.getenv("DATABASE_PORT", "3306")),
+            "username": os.getenv("DATABASE_USERNAME", "root"),
+            "password": os.getenv("DATABASE_PASSWORD", "123456"),
+            "database": os.getenv("DATABASE_NAME", "xxx_review"),
+            "charset": os.getenv("DATABASE_CHARSET", "utf8mb4"),
+            "pool_size": int(os.getenv("DATABASE_POOL_SIZE", "10")),
+            "max_overflow": int(os.getenv("DATABASE_MAX_OVERFLOW", "20"))
+        },
+        "ai": {
+            "provider": os.getenv("AI_PROVIDER", "dashscope"),
+            "openai": {
+                "api_key": os.getenv("OPENAI_API_KEY", ""),
+                "base_url": os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+                "model": os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
+            },
+            "dashscope": {
+                "api_key": os.getenv("DASHSCOPE_API_KEY", "sk-xxxx"),
+                "model": os.getenv("DASHSCOPE_MODEL", "qwen-turbo")
+            },
+            "local": {
+                "model_path": os.getenv("LOCAL_MODEL_PATH", "./data/models"),
+                "model_name": os.getenv("LOCAL_MODEL_NAME", "sentence-transformers/all-MiniLM-L6-v2")
+            },
+            "vector_store": {
+                "type": os.getenv("VECTOR_STORE_TYPE", "faiss"),
+                "path": os.getenv("VECTOR_STORE_PATH", "./data/vector_store"),
+                "embedding_model": os.getenv("VECTOR_STORE_EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+            },
+            "parameters": {
+                "max_tokens": int(os.getenv("AI_MAX_TOKENS", "2048")),
+                "temperature": float(os.getenv("AI_TEMPERATURE", "0.7")),
+                "top_p": float(os.getenv("AI_TOP_P", "0.9"))
+            }
+        },
+        "rag": {
+            "chunk_size": int(os.getenv("RAG_CHUNK_SIZE", "1000")),
+            "chunk_overlap": int(os.getenv("RAG_CHUNK_OVERLAP", "200")),
+            "similarity_threshold": float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.7")),
+            "max_context_length": int(os.getenv("RAG_MAX_CONTEXT_LENGTH", "4000")),
+            "enable_rerank": os.getenv("RAG_ENABLE_RERANK", "true").lower() == "true"
+        },
+        "git": {
+            "token": os.getenv("GITLAB_TOKEN", ""),
+            "temp_dir": os.getenv("GIT_TEMP_DIR", "/tmp/git_repos")
+        },
+        "logging": {
+            "level": os.getenv("LOG_LEVEL", "INFO"),
+            "file": os.getenv("LOG_FILE", "ai_service.log")
+        }
+    }
+
 def set_config(config):
     """设置全局配置"""
     global _global_config

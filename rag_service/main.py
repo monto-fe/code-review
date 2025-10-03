@@ -8,17 +8,29 @@ import sys
 import os
 from pathlib import Path
 from dynaconf import Dynaconf
+from dotenv import load_dotenv
 
 # 添加项目根目录到 Python 路径
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-# 初始化配置
-env = os.getenv("ENV", "testing")
+# 加载项目根目录的 .env 文件
+project_root_env = project_root.parent / ".env"
+if project_root_env.exists():
+    load_dotenv(project_root_env)
+    print(f"已加载环境变量文件: {project_root_env}")
+else:
+    print(f"未找到环境变量文件: {project_root_env}")
+
+# 从环境变量加载配置
+from services.config_manager import load_env_config
+env_config = load_env_config()
+
+# 使用环境变量配置
+print("使用环境变量配置")
 settings = Dynaconf(
-    settings_files=["config/settings.json"],
-    environments=True,
-    default_env=env
+    **env_config,
+    environments=False
 )
 
 # 配置日志

@@ -8,7 +8,6 @@ import os
 from pathlib import Path
 
 # 设置环境变量（模拟服务启动时的环境）
-os.environ.setdefault("ENV", "testing")
 os.environ.setdefault("AI_PROVIDER", "dashscope")
 os.environ.setdefault("DASHSCOPE_API_KEY", "")
 os.environ.setdefault("DASHSCOPE_MODEL", "qwen-turbo")
@@ -65,7 +64,7 @@ def test_basic_connection():
         except grpc.RpcError as e:
             if "没有可用的 AI 模型" in e.details():
                 print("⚠️  聊天失败: 没有配置 AI 模型（这是预期的）")
-                print("   💡 要启用 AI 功能，请在 config/settings.json 中配置 API 密钥")
+                print("   💡 要启用 AI 功能，请在项目根目录的 .env 文件中配置 API 密钥")
             else:
                 print(f"❌ 聊天失败: {e.details()}")
         except Exception as e:
@@ -153,7 +152,7 @@ def print_config_instructions():
 当前服务运行正常，但 AI 功能需要配置 API 密钥。
 
 1. 编辑配置文件:
-   vim config/settings.json
+   vim ../.env
 
 2. 在 "ai" 部分添加 API 密钥:
    {

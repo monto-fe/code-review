@@ -110,7 +110,7 @@ index 1234567..abcdefg 100644
         except grpc.RpcError as e:
             print(f"❌ 聊天失败: {e.details()}")
             if "没有可用的 AI 模型" in e.details():
-                print("   💡 提示: 请在 config/settings.json 中配置 AI API 密钥")
+                print("   💡 提示: 请在项目根目录的 .env 文件中配置 AI API 密钥")
             return False
         except Exception as e:
             print(f"❌ 聊天异常: {e}")
@@ -265,7 +265,7 @@ def print_config_help():
     print("""
 🔧 配置 AI API 密钥
 
-如果测试失败，请在 config/settings.json 中配置 AI API 密钥：
+如果测试失败，请在项目根目录的 .env 文件中配置 AI API 密钥：
 
 1. OpenAI API:
    "ai": {

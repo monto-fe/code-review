@@ -92,14 +92,17 @@ pip install -e .
 
 ### 3. 配置服务
 
-```bash
-# 编辑配置文件
-vim config/settings.json
+#### 方式一：使用环境变量配置（推荐）
 
-# 配置不同环境的参数：
-# - testing: 测试环境配置
-# - production: 生产环境配置
+```bash
+# 复制环境变量模板
+cp env.example ../.env
+
+# 编辑环境变量文件
+vim ../.env
 ```
+
+**注意**: 系统现在完全使用环境变量配置，不再依赖 JSON 配置文件。
 
 ### 4. 初始化数据库
 
@@ -230,25 +233,36 @@ func main() {
 
 ## 配置说明
 
-### 环境变量
+### 环境变量配置
+
+系统支持两种配置方式，环境变量配置优先级更高：
+
+#### 环境变量列表
 
 | 变量名 | 说明 | 默认值 |
 |--------|------|--------|
-| `DB_HOST` | 数据库主机 | localhost |
-| `DB_PORT` | 数据库端口 | 3306 |
-| `DB_USERNAME` | 数据库用户名 | root |
-| `DB_PASSWORD` | 数据库密码 | - |
-| `DB_DATABASE` | 数据库名 | ai_service |
-| `OPENAI_API_KEY` | OpenAI API 密钥 | - |
-| `DASHSCOPE_API_KEY` | 通义千问 API 密钥 | - |
 | `SERVICE_HOST` | 服务监听地址 | 0.0.0.0 |
 | `SERVICE_PORT` | 服务端口 | 50051 |
+| `DATABASE_HOST` | 数据库主机 | 127.0.0.1 |
+| `DATABASE_PORT` | 数据库端口 | 3306 |
+| `DATABASE_USERNAME` | 数据库用户名 | root |
+| `DATABASE_PASSWORD` | 数据库密码 | 123456 |
+| `DATABASE_NAME` | 数据库名称 | xxx_review |
+| `AI_PROVIDER` | AI 提供商 | dashscope |
+| `OPENAI_API_KEY` | OpenAI API 密钥 | - |
+| `DASHSCOPE_API_KEY` | 通义千问 API 密钥 | - |
 | `VECTOR_STORE_TYPE` | 向量存储类型 | faiss |
-| `VECTOR_STORE_PATH` | 向量存储路径 | /app/data/vector_store |
+| `VECTOR_STORE_PATH` | 向量存储路径 | ./data/vector_store |
+| `GITLAB_TOKEN` | GitLab 访问令牌 | - |
+| `LOG_LEVEL` | 日志级别 | INFO |
+
+#### 配置说明
+
+系统完全使用环境变量配置，所有配置项都从项目根目录的 `.env` 文件中读取。
 
 ### 智能体配置
 
-可以在 `config/settings.py` 中自定义智能体角色：
+可以在 `services/ai/agent_manager.py` 中自定义智能体角色：
 
 ```python
 AgentRole(
