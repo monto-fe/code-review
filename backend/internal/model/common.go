@@ -16,6 +16,7 @@ const (
 	TableCustomRule      = "t_custom_rule"
 	TableAIManager       = "t_ai_manager"
 	TableManualCheckTask = "t_manual_check_task"
+	TableReviewWhitelist = "t_review_whitelist"
 )
 
 // PageModel 分页模型

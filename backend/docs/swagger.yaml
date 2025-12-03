@@ -874,6 +874,60 @@ definitions:
     - status
     - token
     type: object
+  model.ReviewWhitelist:
+    properties:
+      create_time:
+        type: integer
+      id:
+        type: integer
+      operator:
+        type: string
+      project_id:
+        type: integer
+      project_name:
+        type: string
+      remark:
+        type: string
+      update_time:
+        type: integer
+    type: object
+  model.ReviewWhitelistCreate:
+    properties:
+      operator:
+        type: string
+      project_id:
+        type: integer
+      project_name:
+        type: string
+      remark:
+        type: string
+    required:
+    - operator
+    - project_id
+    - project_name
+    type: object
+  model.ReviewWhitelistDelete:
+    properties:
+      id:
+        type: integer
+    required:
+    - id
+    type: object
+  model.ReviewWhitelistUpdate:
+    properties:
+      id:
+        type: integer
+      operator:
+        type: string
+      project_id:
+        type: integer
+      project_name:
+        type: string
+      remark:
+        type: string
+    required:
+    - id
+    type: object
   response.Response:
     properties:
       data: {}
@@ -1970,4 +2024,132 @@ paths:
       summary: 触发 AI 代码审查
       tags:
       - Webhook
+  /v1/webhook/whitelist:
+    delete:
+      consumes:
+      - application/json
+      description: 删除现有的代码审查白名单记录
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 白名单ID
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.ReviewWhitelistDelete'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 删除代码审查白名单
+      tags:
+      - 代码审查白名单
+    post:
+      consumes:
+      - application/json
+      description: 创建新的代码审查白名单记录
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 白名单信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.ReviewWhitelistCreate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.ReviewWhitelist'
+              type: object
+      summary: 创建代码审查白名单
+      tags:
+      - 代码审查白名单
+    put:
+      consumes:
+      - application/json
+      description: 更新现有的代码审查白名单记录
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - description: 白名单信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.ReviewWhitelistUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 更新代码审查白名单
+      tags:
+      - 代码审查白名单
+  /v1/webhook/whitelist/list:
+    post:
+      consumes:
+      - application/json
+      description: 分页获取代码审查白名单列表
+      parameters:
+      - description: JWT认证Token
+        in: header
+        name: jwt_token
+        required: true
+        type: string
+      - default: 1
+        description: 页码
+        in: query
+        name: current
+        type: integer
+      - default: 10
+        description: 每页数量
+        in: query
+        name: pageSize
+        type: integer
+      - description: 项目名称（模糊查询）
+        in: query
+        name: project_name
+        type: string
+      - description: 项目ID
+        in: query
+        name: project_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: 获取代码审查白名单列表
+      tags:
+      - 代码审查白名单
 swagger: "2.0"

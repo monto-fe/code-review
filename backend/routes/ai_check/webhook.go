@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"code-review-go/internal/cache"
 	"code-review-go/internal/dto"
 	"code-review-go/internal/pkg/constants"
 	"code-review-go/internal/pkg/response"
@@ -58,17 +59,31 @@ func AICheck(c *gin.Context) {
 		return
 	}
 
-	// 3. 检测事件类型
+	// 3. 检查项目是否在白名单中
+	if cache.IsProjectWhitelisted(uint(body.Project.ID)) {
+		fmt.Printf("项目在白名单中，跳过代码审查: ProjectID=%d, ProjectName=%s\n",
+			body.Project.ID, body.Project.Name)
+		response.Success(c, gin.H{
+			"eventType": "whitelisted",
+			"projectId": body.Project.ID,
+			"timestamp": time.Now().Unix(),
+			"skipped":   true,
+			"reason":    "项目在白名单中，已跳过代码审查",
+		}, "项目在白名单中，已跳过代码审查", int(constants.RetCodeSuccess))
+		return
+	}
+
+	// 4. 检测事件类型
 	eventType := detectEventType(body)
 
-	// 4. 检查是否为支持的事件类型
+	// 5. 检查是否为支持的事件类型
 	if eventType == "unknown" {
 		fmt.Printf("不支持的事件类型，跳过处理: ProjectID=%d, ObjectKind=%s\n",
 			body.Project.ID, body.ObjectKind)
 		return
 	}
 
-	// 5. 立即响应（不阻塞webhook）
+	// 6. 立即响应（不阻塞webhook）
 	responseData := gin.H{
 		"eventType":  eventType,
 		"timestamp":  time.Now().Unix(),
@@ -93,7 +108,7 @@ func AICheck(c *gin.Context) {
 
 	response.Success(c, responseData, "AI检查已启动，请稍候查看结果", int(constants.RetCodeSuccess))
 
-	// 6. 使用事件路由器处理事件
+	// 7. 使用事件路由器处理事件
 	err := eventRouter.Route(body)
 	if err != nil {
 		fmt.Printf("事件路由失败: %v\n", err)

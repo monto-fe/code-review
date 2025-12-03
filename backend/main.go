@@ -52,6 +52,11 @@ func main() {
 		log.Fatalf("Failed to initialize ai_config cache: %v", err)
 	}
 
+	// 初始化代码审查白名单缓存
+	if err := cache.InitReviewWhitelistCache(); err != nil {
+		log.Fatalf("Failed to initialize review whitelist cache: %v", err)
+	}
+
 	// 初始化 Gin
 	r := gin.Default()
 

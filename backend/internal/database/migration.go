@@ -29,6 +29,7 @@ func AutoMigrate() error {
 		&model.Namespace{},
 		&model.ManualCheckTask{}, // 新增手动审核任务表
 		&model.RolePermission{},  // 角色权限关联表
+		&model.ReviewWhitelist{}, // 代码审查白名单表
 	}
 
 	// 执行迁移
