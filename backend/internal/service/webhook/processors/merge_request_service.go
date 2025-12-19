@@ -77,15 +77,15 @@ func CheckMergeRequestWithAI(body dto.WebhookBody) (string, error) {
 		}
 		// 生成提示词
 		// 读取gitlab中的评论类型，然后选择不同的提示词
-		if data.GitlabInfo.CommentType == utils.CommentTypeCommon {
-			prompt = utils.GenerateAICheckCommonPrompt(gitlabPrompt, data.MergeRequest.Title, data.MergeRequest.Description, data.DiffStr)
-		} else {
+		if data.GitlabInfo.CommentType == utils.CommentTypeInline {
 			prompt = utils.GenerateAICheckInlinePrompt(gitlabPrompt, data.MergeRequest.Title, data.MergeRequest.Description, data.DiffStr)
+		} else {
+			prompt = data.FinalRule
 		}
 		// fmt.Printf("AI CodeReview分析的提示词: %s\n", prompt)
 	}
 	// AI检查
-	result, err := manager.PerformAIEnhancement(prompt, data)
+	result, err := manager.PerformAIEnhancement(data)
 	if err != nil {
 		sendFailureNotification(manager, body, fmt.Sprintf("AI CodeReview分析失败: %v", err))
 		return "", err
