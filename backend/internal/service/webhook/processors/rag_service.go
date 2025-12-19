@@ -12,6 +12,7 @@ import (
 	"code-review-go/internal/service/webhook/helpers"
 	"code-review-go/internal/service/webhook/manager"
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -37,6 +38,7 @@ type AnalysisData struct {
 	GitURL       string
 	DiffStr      string
 	CommentType  int8
+	DiffCtx      map[string]string
 }
 
 var (
@@ -223,6 +225,11 @@ func (m *MainServiceManager) PrepareData(body dto.WebhookBody) (*AnalysisData, e
 	// 获取差异信息
 	diff := helpers.GetMergeDiff(gitlabInfo.Config.API, body.Project.ID, body.ObjectAttributes.IID, gitlabToken)
 
+	// 获取提交代码内容
+	commitCode, err := gitlab_service.GetCommitCodeContent(gitlabInfo.Config.API, body.Project.ID, mergeRequest.Sha, gitlabToken)
+	if err != nil {
+		return nil, fmt.Errorf("获取提交代码内容失败: %v", err)
+	}
 	// 获取AI配置
 	aiConfig, _ := cache.GetAIConfigCache()
 
@@ -236,7 +243,7 @@ func (m *MainServiceManager) PrepareData(body dto.WebhookBody) (*AnalysisData, e
 	gitURL := m.buildGitURL(mergeRequest.WebURL)
 
 	// 构建差异字符串
-	diffStr := m.buildDiffString(diff)
+	diffStr := m.buildDiffPrompt(diff, commitCode)
 
 	return &AnalysisData{
 		GitlabInfo:   &gitlabInfo,
@@ -327,6 +334,30 @@ func (m *MainServiceManager) buildDiffString(diff []model.Change) string {
 	return diffStr.String()
 }
 
+// buildDiffString 构建差异字符串
+func (m *MainServiceManager) buildDiffPrompt(diff []model.Change, contentCtx []model.Change) string {
+	var diffStr strings.Builder
+	for _, change := range diff {
+		diffStr.WriteString(fmt.Sprintf("旧文件路径：%s\n", change.OldPath))
+		diffStr.WriteString(fmt.Sprintf("新文件路径：%s\n", change.NewPath))
+		diffStr.WriteString(fmt.Sprintf("是否为新文件：%v\n", change.NewFile))
+		diffStr.WriteString(fmt.Sprintf("是否重命名：%v\n", change.RenamedFile))
+		diffStr.WriteString(fmt.Sprintf("是否删除：%v\n", change.DeletedFile))
+		diffStr.WriteString("差异：")
+		diffStr.WriteString(change.Diff)
+		diffStr.WriteString("\n")
+		for _, ctx := range contentCtx {
+			if ctx.NewPath == change.NewPath && change.NewFile == false {
+				diffStr.WriteString("上下文:\n")
+				diffStr.WriteString(ctx.Diff)
+				break
+			}
+		}
+		diffStr.WriteString("\n")
+	}
+	return diffStr.String()
+}
+
 // PerformRAGAnalysis 执行RAG分析
 func (m *MainServiceManager) PerformRAGAnalysis(data *AnalysisData) (string, error) {
 	// 准备RAG服务请求
@@ -337,6 +368,9 @@ func (m *MainServiceManager) PerformRAGAnalysis(data *AnalysisData) (string, err
 		Query:       data.FinalRule,
 		GitlabToken: data.GitlabToken,
 	}
+	marshal, _ := json.Marshal(req)
+
+	fmt.Println("RAG Req:", string(marshal))
 
 	// 调用RAG服务
 	ragService := m.coordinator.GetRAGService()
@@ -377,10 +411,15 @@ func (m *MainServiceManager) GenerateEnhancedPrompt(ragResult string, data *Anal
 }
 
 // PerformAIEnhancement 执行AI增强分析
-func (m *MainServiceManager) PerformAIEnhancement(prompt string, data *AnalysisData) (string, error) {
+func (m *MainServiceManager) PerformAIEnhancement(data *AnalysisData) (string, error) {
 	// 调用AI服务
 	aiService := m.coordinator.GetAIService()
-	comments, err := aiService.CallAI(prompt)
+
+	rules := []map[string]string{
+		{"role": "system", "content": data.FinalRule},
+		{"role": "user", "content": data.DiffStr},
+	}
+	comments, err := aiService.CallAI(rules)
 	if err != nil {
 		return "", fmt.Errorf("调用AI服务失败: %v", err)
 	}
@@ -467,18 +506,18 @@ func (m *MainServiceManager) SendNotifications(body dto.WebhookBody, comments st
 		}
 
 		// 推送webhook通知
-		err = notificationService.SendWebhookNotification(
-			data.GitlabInfo.Config.WebhookURL,
-			int(data.GitlabInfo.Config.WebhookStatus),
-			body.Project.PathWithNamespace,
-			body.ObjectAttributes.MergeURL,
-			comments,
-			aiMessageID,
-			data.MergeRequest,
-		)
-		if err != nil {
-			fmt.Printf("发送Webhook通知失败: %v\n", err)
+		if data.GitlabInfo.Config.WebhookURL != "" && data.GitlabInfo.Config.WebhookStatus == 1 {
+			err = notificationService.SendWebhookNotification(
+				data.GitlabInfo.Config.WebhookURL,
+				body,
+				comments,
+				data.MergeRequest,
+			)
+			if err != nil {
+				fmt.Printf("发送Webhook通知失败: %v\n", err)
+			}
 		}
+
 	case "push":
 		// Push 事件：发送 GitLab 评论和 webhook 通知
 		fmt.Printf("Push事件：开始发送GitLab评论和webhook通知\n")
@@ -521,20 +560,18 @@ func (m *MainServiceManager) SendNotifications(body dto.WebhookBody, comments st
 		}
 
 		// 2. 发送 webhook 通知
-		pushWebhookURL := fmt.Sprintf("%s/-/commits/%s", data.GitlabInfo.Config.WebhookURL, body.After)
-
-		err := notificationService.SendWebhookNotification(
-			data.GitlabInfo.Config.WebhookURL,
-			int(data.GitlabInfo.Config.WebhookStatus),
-			body.Project.PathWithNamespace,
-			pushWebhookURL,
-			comments,
-			aiMessageID,
-			data.MergeRequest,
-		)
-		if err != nil {
-			fmt.Printf("发送Push事件Webhook通知失败: %v\n", err)
+		if data.GitlabInfo.Config.WebhookURL != "" && data.GitlabInfo.Config.WebhookStatus == 1 {
+			err := notificationService.SendWebhookNotification(
+				data.GitlabInfo.Config.WebhookURL,
+				body,
+				comments,
+				data.MergeRequest,
+			)
+			if err != nil {
+				fmt.Printf("发送Push事件Webhook通知失败: %v\n", err)
+			}
 		}
+
 	default:
 		fmt.Printf("未知的事件类型: %s，跳过通知发送\n", body.ObjectKind)
 	}
