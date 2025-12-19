@@ -62,7 +62,7 @@ type RAGServiceManagerImpl struct {
 
 // NewRAGServiceManagerImpl 创建RAG服务管理器实现
 func NewRAGServiceManagerImpl() *RAGServiceManagerImpl {
-	service, _ := gitlab_service.CreateRAGClient("")
+	service, _ := gitlab_service.NewOptimizedRAGClient(nil)
 	return &RAGServiceManagerImpl{
 		service: service,
 	}
