@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 )
 
 // NotificationServiceImpl 通知服务实现
@@ -48,18 +49,20 @@ func (n *NotificationServiceImpl) SendLineComments(api, token string, projectID,
 }
 
 // SendWebhookNotification 发送Webhook通知
-func (n *NotificationServiceImpl) SendWebhookNotification(webhookURL string, status int, projectNamespace, mergeURL, comments string, aiMessageID uint, mergeRequest *model.MergeRequestInfo) error {
-	pushWebhookIfNeeded(webhookURL, int8(status), projectNamespace, mergeURL, comments, aiMessageID, mergeRequest)
-	return nil
-}
+func (n *NotificationServiceImpl) SendWebhookNotification(webhookURL string, dto dto.WebhookBody, comments string, mergeRequest *model.MergeRequestInfo) (error error) {
 
-// pushWebhookIfNeeded 推送webhook通知
-func pushWebhookIfNeeded(webhookURL string, webhookStatus int8, pathWithNamespace, mergeURL, comments string, aiMessageId uint, mergeRequest *model.MergeRequestInfo) {
-	if webhookURL != "" && webhookStatus == 1 {
-		webhookContent := pushWeChatInfo(pathWithNamespace, mergeURL, comments, aiMessageId)
-		_ = ai.SendMarkdownToWechatBot(webhookURL, webhookContent)
-		fmt.Println("推送webhook成功", mergeRequest)
-	}
+	parse, _ := time.Parse(time.RFC3339, mergeRequest.UpdatedAt)
+	upTime := parse.Add(time.Hour * 8)
+	webUrl := strings.Replace(mergeRequest.WebURL, "http://", "https://", -1)
+	webhookContent := fmt.Sprintf(
+		"**项目**： ["+dto.Project.PathWithNamespace+"]("+webUrl+")\n"+
+			"**标题**： "+mergeRequest.Title+"\n"+
+			"**MR**：: "+dto.ObjectAttributes.SourceBranch+" ➡️ "+dto.ObjectAttributes.TargetBranch+"\n"+
+			"**更新时间**：:"+upTime.Format(time.DateTime)+"\n"+
+			"**提交人**：:"+dto.User.Name+"\n"+
+			"%s", comments)
+
+	return ai.SendMarkdownToWechatBot(webhookURL, webhookContent)
 }
 
 // pushWeChatInfo 构建企业微信推送信息
