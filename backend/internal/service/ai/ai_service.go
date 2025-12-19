@@ -45,7 +45,7 @@ func (a *AIServiceImpl) Initialize() error {
 }
 
 // CallAI 调用AI服务
-func (a *AIServiceImpl) CallAI(prompt string) (string, error) {
+func (a *AIServiceImpl) CallAI(prompt []map[string]string) (string, error) {
 	a.mu.RLock()
 	if !a.initialized {
 		a.mu.RUnlock()

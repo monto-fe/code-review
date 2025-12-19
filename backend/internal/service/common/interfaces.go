@@ -34,7 +34,7 @@ type AIService interface {
 	// 初始化AI服务
 	Initialize() error
 	// 调用AI服务
-	CallAI(prompt string) (string, error)
+	CallAI(prompt []map[string]string) (string, error)
 	// 检查是否已初始化
 	IsInitialized() bool
 }
@@ -50,7 +50,7 @@ type NotificationService interface {
 	// 发送增强通知
 	SendEnhancedNotification(api, token string, projectID, mergeRequestID int, comments string, commentType int8, diff []model.Change) error
 	// 发送Webhook通知
-	SendWebhookNotification(webhookURL string, status int, projectNamespace, mergeURL, comments string, aiMessageID uint, mergeRequest *model.MergeRequestInfo) error
+	SendWebhookNotification(webhookURL string, dto dto.WebhookBody, comments string, mergeRequest *model.MergeRequestInfo) error
 	// 发送Push事件评论
 	SendPushEventComment(api, token string, projectID int, commitSHA, title, comments string, commentType int8) error
 	// 为多个commit发送Push事件评论

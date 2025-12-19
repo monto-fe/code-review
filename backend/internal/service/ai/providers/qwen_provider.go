@@ -22,16 +22,21 @@ func NewQwenProvider(config *model.AIConfig) *QwenProvider {
 }
 
 // CallAI 调用通义千问接口
-func (p *QwenProvider) CallAI(prompt string) (string, error) {
+func (p *QwenProvider) CallAI(prompt []map[string]string) (string, error) {
 	fmt.Printf("通义千问配置: URL=%s, Model=%s, Type=%s\n", p.config.APIURL, p.config.Model, p.config.Type)
 
-	requestBody := map[string]interface{}{
-		"model": p.config.Model,
-		"messages": []map[string]string{
+	/**
+	[]map[string]string{
 			{"role": "system", "content": "你是一个专业的代码审核机器人，请仔细检查代码并提供详细的改进建议。"},
 			{"role": "user", "content": prompt},
-		},
-		"stream": false,
+		}
+	*/
+	requestBody := map[string]interface{}{
+		"model":       p.config.Model,
+		"messages":    prompt,
+		"stream":      false,
+		"temperature": 0.1,
+		"top_p":       0.8,
 	}
 
 	fmt.Printf("请求体: %+v\n", requestBody)
@@ -58,8 +63,8 @@ func (p *QwenProvider) CallAI(prompt string) (string, error) {
 
 	// 读取响应体用于错误调试
 	body, _ := io.ReadAll(resp.Body)
-	// fmt.Printf("响应状态码: %d\n", resp.StatusCode)
-	// fmt.Printf("响应体: %s\n", string(body))
+	fmt.Printf("响应状态码: %d\n", resp.StatusCode)
+	fmt.Printf("响应体: %s\n", string(body))
 
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("通义千问 API返回错误: %s, 状态码: %d", string(body), resp.StatusCode)
