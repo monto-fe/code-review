@@ -22,13 +22,10 @@ func NewUCAIProvider(config *model.AIConfig) *UCAIProvider {
 }
 
 // CallAI 调用UCAI接口
-func (p *UCAIProvider) CallAI(prompt string) (string, error) {
+func (p *UCAIProvider) CallAI(prompt []map[string]string) (string, error) {
 	requestBody := map[string]interface{}{
-		"model": p.config.Model,
-		"messages": []map[string]string{
-			{"role": "system", "content": "你是一个专业的代码审核机器人，请仔细检查代码并提供详细的改进建议。"},
-			{"role": "user", "content": prompt},
-		},
+		"model":       p.config.Model,
+		"messages":    prompt,
 		"temperature": 0.7,
 		"max_tokens":  2000,
 	}

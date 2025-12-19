@@ -13,7 +13,7 @@ const { TextArea } = Input;
 const { Sider, Content } = Layout;
 const { Panel } = Collapse;
 
-const MAX_PROMPT_LENGTH = 1000;
+const MAX_PROMPT_LENGTH = 10000;
 
 // 禁用3天内的日期
 const disabledDate = (current: dayjs.Dayjs) => {
@@ -28,12 +28,12 @@ interface AIConfigPageProps {
   onSubmitLoading?: boolean;
 }
 
-const AIConfigPage: React.FC<AIConfigPageProps> = ({ 
-  initialValues = {}, 
-  visible = false, 
+const AIConfigPage: React.FC<AIConfigPageProps> = ({
+  initialValues = {},
+  visible = false,
   setVisible,
   onSubmit: externalOnSubmit,
-  onSubmitLoading = false 
+  onSubmitLoading = false
 }) => {
   const context = useContext(BasicContext) as any;
   const { i18nLocale } = context.storeContext;
@@ -84,10 +84,10 @@ const AIConfigPage: React.FC<AIConfigPageProps> = ({
       message.error('自定义提示词最多1000字');
       return;
     }
-    onSubmit({ 
-      ...values, 
+    onSubmit({
+      ...values,
       comment_type: commentType,
-      prompt, 
+      prompt,
       expired: values.expired?.unix(),
       status: 1
     }, form);
@@ -110,17 +110,17 @@ const AIConfigPage: React.FC<AIConfigPageProps> = ({
       .then((response) => {
         // form.resetFields();
         message.success(values.id ? t('app.global.tip.update.success') : t('app.global.tip.create.success'));
-        
+
         // 获取创建的 token ID，用于轮询
         const tokenId = response.data?.id || updateData.id;
-        
+
         // 跳转到GitlabToken列表页，带上轮询参数
         if (tokenId) {
           navigate(`/aicodecheck/GitlabToken?pollingTokenId=${tokenId}`);
         } else {
           navigate('/aicodecheck/GitlabToken');
         }
-        
+
         setCreateSubmitLoading(false);
       })
       .catch(() => {
@@ -178,9 +178,9 @@ const AIConfigPage: React.FC<AIConfigPageProps> = ({
                 }
               ]}
             >
-              <DatePicker 
-                style={{ width: '100%' }} 
-                placeholder="请选择有效期" 
+              <DatePicker
+                style={{ width: '100%' }}
+                placeholder="请选择有效期"
                 disabledDate={disabledDate}
               />
             </Form.Item>
@@ -248,7 +248,7 @@ const AIConfigPage: React.FC<AIConfigPageProps> = ({
           <TextArea
             value={prompt}
             onChange={e => setPrompt(e.target.value)}
-            placeholder="请输入自定义提示词，支持Markdown，最多1000字"
+            placeholder="请输入自定义提示词，支持Markdown，最多10000字"
             autoSize={{ minRows: 10, maxRows: 18 }}
             maxLength={MAX_PROMPT_LENGTH}
             showCount

@@ -7,7 +7,7 @@ import (
 
 // AIProvider AI提供者接口
 type AIProvider interface {
-	CallAI(prompt string) (string, error)
+	CallAI([]map[string]string) (string, error)
 }
 
 // AIProviderFactory AI提供者工厂

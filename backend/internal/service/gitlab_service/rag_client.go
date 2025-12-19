@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"sync"
 	"time"
@@ -263,7 +264,8 @@ func (c *RAGClient) performRequest(req *dto.CodeReviewRequest) (*dto.CodeAnalysi
 
 	// 检查状态码
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("RAG服务返回错误状态码: %d", resp.StatusCode)
+		all, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("RAG服务返回错误 code: %d, info: %s", resp.StatusCode, string(all))
 	}
 
 	// 解析响应

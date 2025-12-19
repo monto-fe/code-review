@@ -22,15 +22,12 @@ func NewDeepSeekProvider(config *model.AIConfig) *DeepSeekProvider {
 }
 
 // CallAI 调用DeepSeek接口
-func (p *DeepSeekProvider) CallAI(prompt string) (string, error) {
+func (p *DeepSeekProvider) CallAI(prompt []map[string]string) (string, error) {
 	fmt.Println("p.config.APIURL", p.config)
 	requestBody := map[string]interface{}{
-		"model": p.config.Model,
-		"messages": []map[string]string{
-			{"role": "system", "content": "你是一个专业的代码审核机器人，请仔细检查代码并提供详细的改进建议。"},
-			{"role": "user", "content": prompt},
-		},
-		"stream": false,
+		"model":    p.config.Model,
+		"messages": prompt,
+		"stream":   false,
 	}
 
 	fmt.Println("requestBody", requestBody)

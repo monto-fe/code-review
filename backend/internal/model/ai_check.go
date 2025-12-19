@@ -19,6 +19,7 @@ type MergeRequestInfo struct {
 	UpdatedAt    string `json:"updated_at"`
 	SourceBranch string `json:"source_branch"`
 	TargetBranch string `json:"target_branch"`
+	Sha          string `json:"sha"`
 	User         struct {
 		ID   int    `json:"id"`
 		Name string `json:"name"`

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -443,7 +444,25 @@ func GetMergeRequestDiff(gitlabAPI, projectID, mergeRequestID, gitlabToken strin
 		return nil, fmt.Errorf("解析响应失败: %v", err)
 	}
 
-	return diff.Changes, nil
+	var changes []model.Change
+	for _, item := range diff.Changes {
+		//过滤一下
+		if strings.HasPrefix(item.Diff, "Binary files") {
+			fmt.Printf("过滤掉二进制文件:%v\n", item.NewPath)
+			continue
+		}
+		if item.Diff == "" {
+			fmt.Printf("过滤掉空文件变更:%v\n", item.NewPath)
+			continue
+		}
+
+		if !isCodeFile(item.NewPath) {
+			fmt.Printf("过滤掉非代码文件或忽略文件:%v\n", item.NewPath)
+			continue
+		}
+		changes = append(changes, item)
+	}
+	return changes, nil
 }
 
 // CommentResponse GitLab评论响应
@@ -800,7 +819,7 @@ func PostLineComments(gitlabAPI string, projectID, mergeRequestID int, gitlabTok
 	return failedComments, nil
 }
 
-// 通过id获取Gitlab Token 详情，不返回token
+// GetGitlabTokenDetail 通过id获取Gitlab Token 详情，不返回token
 func (s *GitlabService) GetGitlabTokenDetail(id uint) (*model.GitlabInfo, error) {
 	var gitlabInfo model.GitlabInfo
 	if err := s.db.First(&gitlabInfo, id).Error; err != nil {
@@ -863,6 +882,10 @@ func GetCommitCodeContent(gitlabAPI string, projectID int, commitSHA, gitlabToke
 	var codeFiles []string
 	for _, item := range treeResponse {
 		if item.Type == "blob" && isCodeFile(item.Name) {
+			if strings.HasPrefix(item.Name, ".") || strings.HasPrefix(item.Path, ".") {
+				fmt.Printf("❌ 文件/目录以.开头忽略 %s: \n", item.Path)
+				continue
+			}
 			codeFiles = append(codeFiles, item.Path)
 		}
 	}
@@ -920,6 +943,10 @@ func GetBranchCodeContent(gitlabAPI string, projectID int, branchName, gitlabTok
 	// 过滤出代码文件（排除目录和二进制文件）
 	var codeFiles []string
 	for _, item := range treeResponse {
+		if strings.HasPrefix(item.Name, ".") || strings.HasPrefix(item.Path, ".") {
+			fmt.Printf("❌ 文件/目录以.开头忽略 %s: \n", item.Path)
+			continue
+		}
 		if item.Type == "blob" && isCodeFile(item.Name) {
 			codeFiles = append(codeFiles, item.Path)
 			fmt.Printf("✅ 识别为代码文件: %s\n", item.Path)
@@ -976,6 +1003,7 @@ func getFileContent(gitlabAPI string, projectID int, commitSHA, filePath, gitlab
 // isCodeFile 判断是否为代码文件
 func isCodeFile(filename string) bool {
 	// 定义代码文件扩展名
+
 	codeExtensions := map[string]bool{
 		".go":         true,
 		".js":         true,
@@ -1010,10 +1038,20 @@ func isCodeFile(filename string) bool {
 		".makefile":   true,
 	}
 
+	value := os.Getenv("IGNORE_EXT")
+	if value != "" {
+		extArray := strings.Split(value, ",")
+		for _, ext := range extArray {
+			if codeExtensions[ext] == true {
+				codeExtensions[ext] = false
+			}
+		}
+	}
+
 	// 检查文件扩展名
 	for ext := range codeExtensions {
 		if strings.HasSuffix(strings.ToLower(filename), ext) {
-			return true
+			return codeExtensions[ext]
 		}
 	}
 

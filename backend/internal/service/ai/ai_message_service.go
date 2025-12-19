@@ -2,6 +2,7 @@ package ai
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,7 +13,6 @@ import (
 
 	dto "code-review-go/internal/dto"
 	"code-review-go/internal/model"
-	"code-review-go/internal/pkg/utils"
 )
 
 // AIMessageService AI消息服务
@@ -164,15 +164,28 @@ func (s *AIMessageService) CreateAIMessage(data *model.AIMessage) (uint, error) 
 // SendMarkdownToWechatBot 向企业微信机器人发送 Markdown 消息
 func SendMarkdownToWechatBot(webhookURL, markdownContent string) error {
 	// 构造请求体
+
+	if len(markdownContent) > 3800 {
+		// 按rune截取，避免截断字符
+		runes := []rune(markdownContent)
+		if len(runes) > 3800 {
+			markdownContent = string(runes[:3800])
+			markdownContent += "......"
+		}
+	}
 	payload := map[string]interface{}{
-		"msgtype": "markdown",
-		"markdown": map[string]string{
+		"msgtype": "markdown_v2",
+		"markdown_v2": map[string]string{
 			"content": markdownContent,
 		},
 	}
 
+	marshal, err := json.Marshal(payload)
+	if err != nil {
+		fmt.Errorf(" json.Marsha error: %v", err)
+	}
 	// 发送 POST 请求
-	resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(utils.MustMarshal(payload)))
+	resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(marshal))
 	if err != nil {
 		return fmt.Errorf("发送失败: %v", err)
 	}

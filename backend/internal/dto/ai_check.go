@@ -1,12 +1,23 @@
 package dto
 
 type ProjectInfo struct {
-	ID                int    `json:"id"`
-	Name              string `json:"name"`
-	Description       string `json:"description"`
-	PathWithNamespace string `json:"path_with_namespace"`
+	ID                int         `json:"id"`
+	Name              string      `json:"name"`
+	Description       string      `json:"description"`
+	WebUrl            string      `json:"web_url"`
+	AvatarUrl         interface{} `json:"avatar_url"`
+	GitSshUrl         string      `json:"git_ssh_url"`
+	GitHttpUrl        string      `json:"git_http_url"`
+	Namespace         string      `json:"namespace"`
+	VisibilityLevel   int         `json:"visibility_level"`
+	PathWithNamespace string      `json:"path_with_namespace"`
+	DefaultBranch     string      `json:"default_branch"`
+	CiConfigPath      string      `json:"ci_config_path"`
+	Homepage          string      `json:"homepage"`
+	Url               string      `json:"url"`
+	SshUrl            string      `json:"ssh_url"`
+	HttpUrl           string      `json:"http_url"`
 }
-
 type ObjectAttributes struct {
 	IID               int    `json:"iid"`
 	URL               string `json:"url"`
@@ -28,6 +39,13 @@ type WebhookBody struct {
 	Project          ProjectInfo      `json:"project"`
 	ObjectAttributes ObjectAttributes `json:"object_attributes"`
 	MergeRequest     MergeRequest     `json:"merge_request,omitempty"`
+	User             struct {
+		Id        int    `json:"id"`
+		Name      string `json:"name"`
+		Username  string `json:"username"`
+		AvatarUrl string `json:"avatar_url"`
+		Email     string `json:"email"`
+	} `json:"user"`
 
 	// Push 事件专用字段
 	Ref               string       `json:"ref,omitempty"`                 // 分支引用
