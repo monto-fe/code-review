@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"fmt"
 	"code-review-go/internal/database"
 	"code-review-go/internal/model"
 	"sync"
@@ -18,15 +19,20 @@ func InitReviewWhitelistCache() error {
 		reviewWhitelistCacheLock.Lock()
 		reviewWhitelistCache = make(map[uint]bool)
 		reviewWhitelistCacheLock.Unlock()
+		fmt.Printf("[白名单缓存初始化] 加载失败: %v\n", err)
 		return err
 	}
 
 	reviewWhitelistCacheLock.Lock()
 	reviewWhitelistCache = make(map[uint]bool)
+	projectIDs := make([]uint, 0, len(whitelists))
 	for _, wl := range whitelists {
 		reviewWhitelistCache[wl.ProjectID] = true
+		projectIDs = append(projectIDs, wl.ProjectID)
 	}
 	reviewWhitelistCacheLock.Unlock()
+	
+	fmt.Printf("[白名单缓存初始化] 成功加载 %d 个项目到缓存: %v\n", len(projectIDs), projectIDs)
 	return nil
 }
 

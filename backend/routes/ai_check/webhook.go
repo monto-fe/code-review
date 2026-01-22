@@ -60,7 +60,19 @@ func AICheck(c *gin.Context) {
 	}
 
 	// 3. 检查项目是否在白名单中
-	if cache.IsProjectWhitelisted(uint(body.Project.ID)) {
+	projectID := uint(body.Project.ID)
+	whitelistCache := cache.GetReviewWhitelistCache()
+	projectIDs := make([]uint, 0, len(whitelistCache))
+	for pid := range whitelistCache {
+		projectIDs = append(projectIDs, pid)
+	}
+	fmt.Printf("[白名单检查] 当前项目ID: %d, 项目名称: %s, 缓存中的白名单项目: %v (共 %d 个)\n",
+		projectID, body.Project.Name, projectIDs, len(projectIDs))
+
+	isWhitelisted := cache.IsProjectWhitelisted(projectID)
+	fmt.Printf("[白名单检查] 项目ID %d 是否在白名单中: %v\n", projectID, isWhitelisted)
+
+	if isWhitelisted {
 		fmt.Printf("项目在白名单中，跳过代码审查: ProjectID=%d, ProjectName=%s\n",
 			body.Project.ID, body.Project.Name)
 		response.Success(c, gin.H{
