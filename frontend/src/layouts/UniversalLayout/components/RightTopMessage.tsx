@@ -1,16 +1,25 @@
-import { memo } from 'react';
+import React, { memo } from 'react';
 import { Popover } from 'antd';
-// import { BasicContext } from '@/store/context';
-// import { useI18n } from '@/store/i18n';
+import wechatImg from '@/assets/images/wechat.png';
 
-export default memo(() => (
-  // const context = useContext(BasicContext) as any;
-  // const { i18nLocale } = context.storeContext;
-  // const t = useI18n(i18nLocale);
-
-  <Popover content={<div>二维码展示区</div>} title='微信群'>
-    <div className='universallayout-top-notocemenu ant-dropdown-link cursor' onClick={(e) => e.preventDefault()}>
-      技术交流
+function RightTopMessage() {
+  return (
+    <Popover
+    content={
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <img
+          src={wechatImg}
+          alt='微信群二维码'
+          style={{ display: 'block', width: 100, height: 100, objectFit: 'contain' }}
+        />
+      </div>
+    }
+  >
+    <div className='universallayout-top-notocemenu ant-dropdown-link cursor' onClick={(e: React.MouseEvent<HTMLDivElement>) => e.preventDefault()}>
+      问题反馈
     </div>
-  </Popover>
-));
+    </Popover>
+  );
+}
+
+export default memo(RightTopMessage);

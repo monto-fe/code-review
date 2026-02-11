@@ -97,10 +97,10 @@ function Dashboard() {
             </Col>
           </Row>
           {/* AI检测效果 */}
-          <Card style={{ marginBottom: 24 }}>
+          {/* <Card style={{ marginBottom: 24 }}>
             <Title level={5} style={{ marginBottom: 16 }}>AI检测效果（近30天）</Title>
             <AIDetectionChart />
-          </Card>
+          </Card> */}
           {/* 最近提交和审核记录 */}
             <RecentRecords />
         </Col>}

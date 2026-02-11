@@ -32,10 +32,10 @@ export default memo(
         arrow
         menu={{
           items: [
-            {
-              key: 'userinfo',
-              label: <>{t('universal-layout.topmenu.userinfo')}</>,
-            },
+            // {
+            //   key: 'userinfo',
+            //   label: <>{t('universal-layout.topmenu.userinfo')}</>,
+            // },
             {
               key: 'logout',
               label: <>{t('universal-layout.topmenu.logout')}</>,

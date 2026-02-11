@@ -133,16 +133,25 @@ export default memo(
       return (
         <div className='universallayout-left'>
           <div className='universallayout-left-sider'>
-            <Flex align='center' justify='center' className='logo'>
-              <Link to='/' style={{ color: theme === 'light' ? colorTextBase : colorTextLightSolid }}>
+            <Flex align='center' justify='center' className='logo' style={{ width: '100%' }}>
+              <Link
+                to='/'
+                style={{
+                  color: theme === 'light' ? colorTextBase : colorTextLightSolid,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '100%',
+                }}
+              >
                 {collapsed ? (
                   settings.siteAbbreviationTitle
                 ) : (
                   <img
                     alt=''
                     src={theme === 'light' ? logoDark : logoWhite}
-                    height='100'
-                    className='mt-12'
+                    style={{ height: 44, maxWidth: '100%', objectFit: 'contain', display: 'block', margin: '0 auto' }}
+                    className='my-2'
                   />
                 )}
               </Link>
