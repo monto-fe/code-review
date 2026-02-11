@@ -1,7 +1,7 @@
 import { memo, Suspense, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { Flex, theme } from 'antd';
-import { GithubOutlined } from '@ant-design/icons';
+import { BookOutlined, GithubOutlined } from '@ant-design/icons';
 import ALink from '@/components/ALink';
 
 import BreadCrumbs from '@/components/BreadCrumbs';
@@ -51,6 +51,9 @@ export default memo(({ menuData, routeItem, userRoles = [], breadCrumbs = [] }: 
                 <BreadCrumbs className='breadcrumb' list={breadCrumbs} />
               </div>
               <Flex gap={12} className='universallayout-top-menu-right'>
+                <ALink to='https://vqc26krqvye.feishu.cn/wiki/Zke7wrVPIi25h2kYRybc3CGLnbe?from=from_copylink' title='项目指南'>
+                  <BookOutlined />
+                </ALink>
                 <ALink to='https://github.com/monto-fe/code-review'>
                   <GithubOutlined />
                 </ALink>
@@ -94,6 +97,9 @@ export default memo(({ menuData, routeItem, userRoles = [], breadCrumbs = [] }: 
                 <Suspense fallback={<>loading...</>}>
                   <RightTopMessage />
                 </Suspense>
+                <ALink to='https://vqc26krqvye.feishu.cn/wiki/Zke7wrVPIi25h2kYRybc3CGLnbe?from=from_copylink' title='项目指南'>
+                  <BookOutlined />
+                </ALink>
                 <RightTopUser />
                 <SelectLang className='universallayout-top-selectlang' />
                 <Settings />

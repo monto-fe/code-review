@@ -10,6 +10,7 @@ export interface ALinkProps {
   innerRef?: React.Ref<HTMLAnchorElement>;
   style?: React.CSSProperties;
   className?: string;
+  title?: string;
 }
 
 const ALink: React.FC<ALinkProps> = (props) => {
